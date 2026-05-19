@@ -852,7 +852,8 @@
             }
 
             submitBtn.disabled = true;
-            updateStatus('Uploading captures to the attendance system...');
+            updateStatus('⏳ Uploading captures & running face detection AI...');
+            statusEl.style.color = '';
 
             try {
                 const response = await fetch('/api/attendance/enroll', {
@@ -861,11 +862,50 @@
                     body: JSON.stringify({ captures })
                 });
                 const payload = await response.json();
+
                 if (!response.ok || !payload.success) {
-                    throw new Error(payload.message || 'Upload failed');
+                    // Show per-image details if available
+                    let detail = payload.message || 'Enrollment failed.';
+                    if (payload.details && payload.details.per_image) {
+                        const summary = payload.details.per_image
+                            .map((r, i) => `  Step ${i+1}: ${r.status === 'ok' ? '✅' : '❌'} ${r.reason}`)
+                            .join('\n');
+                        detail += '\n' + summary;
+                    }
+                    statusEl.style.color = '#e74c3c';
+                    updateStatus(detail);
+                    submitBtn.disabled = false;
+                    return;
                 }
-                updateStatus('Enrollment images saved successfully.');
+
+                // Success — show enriched result
+                statusEl.style.color = '#27ae60';
+                let successMsg = `✅ ${payload.message}`;
+                if (payload.details && payload.details.per_image) {
+                    const perImg = payload.details.per_image;
+                    const okCount = perImg.filter(r => r.status === 'ok').length;
+                    successMsg += ` (${okCount}/${perImg.length} faces detected)`;
+
+                    // Mark thumbnails with detection status
+                    const thumbEls = thumbsWrap.querySelectorAll('.attendance-thumb');
+                    perImg.forEach((r, i) => {
+                        if (thumbEls[i]) {
+                            const badge = document.createElement('span');
+                            badge.style.cssText = 'font-size:11px;font-weight:700;margin-top:2px;';
+                            if (r.status === 'ok') {
+                                badge.textContent = '✅ Face detected';
+                                badge.style.color = '#27ae60';
+                            } else {
+                                badge.textContent = '❌ ' + r.reason;
+                                badge.style.color = '#e74c3c';
+                            }
+                            thumbEls[i].appendChild(badge);
+                        }
+                    });
+                }
+                updateStatus(successMsg);
             } catch (error) {
+                statusEl.style.color = '#e74c3c';
                 updateStatus(error.message || 'Failed to upload captures. Try again.');
                 submitBtn.disabled = false;
             }

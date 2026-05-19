@@ -14,12 +14,18 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from functools import wraps
 import os
+import sys
 import base64
 import binascii
 import json
 from typing import Any, cast
 from dotenv import load_dotenv  # type: ignore[import]
 from database import init_db, get_db_connection  # type: ignore[import]
+
+# Add Smart-Attendance-System to the Python path so web_enroll can be imported
+_ATTENDANCE_ROOT = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'Smart-Attendance-System'))
+if _ATTENDANCE_ROOT not in sys.path:
+    sys.path.insert(0, _ATTENDANCE_ROOT)
 
 # Load environment variables
 load_dotenv()
@@ -1220,7 +1226,7 @@ def attendance():
 @app.route('/api/attendance/enroll', methods=['POST'])
 @login_required
 def attendance_enroll():
-    """Accept five enrollment captures from the web UI."""
+    """Accept five enrollment captures, run YOLO+ArcFace, and save to the attendance DB."""
     payload = request.get_json(silent=True) or {}
     captures = payload.get('captures', [])
 
@@ -1228,18 +1234,29 @@ def attendance_enroll():
         return jsonify({'success': False, 'message': 'Please send exactly 5 captures.'}), 400
 
     user_id = to_int_value(session.get('user_id'))
+    email = session.get('email', '')
+
+    # ── Resolve the student name (first_name from profile, fallback to email prefix) ──
+    student_name = email.split('@')[0].capitalize() if email else f'user_{user_id}'
+    try:
+        conn = get_db_connection()
+        if conn:
+            cur = conn.cursor()
+            cur.execute("SELECT first_name FROM user_additional_info WHERE user_id = %s", (user_id,))
+            row = cur.fetchone()
+            if row and row[0]:
+                student_name = str(row[0])
+            cur.close()
+            conn.close()
+    except Exception:
+        pass
+
+    # ── Save captured images to disk ──
     static_root = get_static_root()
     upload_dir = os.path.join(static_root, 'uploads', 'attendance', f'user_{user_id}')
     os.makedirs(upload_dir, exist_ok=True)
 
-    attendance_root = os.path.abspath(os.path.join(BASE_DIR, '..', 'Smart-Attendance-System'))
-    export_dir = os.path.join(attendance_root, 'database', 'web_enrollments', f'user_{user_id}')
-    try:
-        os.makedirs(export_dir, exist_ok=True)
-    except OSError:
-        export_dir = ''
-
-    saved_files = []
+    saved_paths: list[str] = []
     timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
 
     for index, entry in enumerate(captures, start=1):
@@ -1265,17 +1282,28 @@ def attendance_enroll():
         file_path = os.path.join(upload_dir, filename)
         with open(file_path, 'wb') as file_handle:
             file_handle.write(image_bytes)
-        saved_files.append(filename)
+        saved_paths.append(file_path)
 
-        if export_dir:
-            export_path = os.path.join(export_dir, filename)
-            try:
-                with open(export_path, 'wb') as export_handle:
-                    export_handle.write(image_bytes)
-            except OSError:
-                pass
-
-    return jsonify({'success': True, 'files': saved_files})
+    # ── Run the Smart Attendance System face pipeline ──
+    try:
+        from web_enroll import enroll_from_images  # type: ignore[import]
+        result = enroll_from_images(
+            image_paths=saved_paths,
+            student_name=student_name,
+        )
+        return jsonify(result)
+    except FileNotFoundError as model_err:
+        print(f"Enrollment model error: {model_err}")
+        return jsonify({
+            'success': False,
+            'message': f'AI model files not found: {model_err}. Please ensure YOLO and ArcFace models are downloaded.',
+        }), 500
+    except Exception as pipeline_err:
+        print(f"Enrollment pipeline error: {pipeline_err}")
+        return jsonify({
+            'success': False,
+            'message': f'Face processing error: {pipeline_err}',
+        }), 500
 
 
 # ================== ERROR HANDLERS ==================
