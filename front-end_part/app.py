@@ -1260,11 +1260,16 @@ def attendance_enroll():
         venv_python = sys.executable  # fallback
 
     try:
+        env = os.environ.copy()
+        env['PYTHONIOENCODING'] = 'utf-8'
         proc = subprocess.run(
             [venv_python, script_path, student_name],
             cwd=_ATTENDANCE_ROOT,
             capture_output=True,
             text=True,
+            encoding='utf-8',
+            errors='replace',
+            env=env,
             timeout=300,  # 5-minute max for enrollment
         )
 
