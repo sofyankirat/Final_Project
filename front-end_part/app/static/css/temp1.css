@@ -1,0 +1,775 @@
+/* ==================== RIGHT COLUMN — White / Scrolling Images ==================== */
+.login-left {
+    flex: 1;
+    background: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    position: relative;
+    overflow: hidden;
+    order: 2;
+}
+
+.login-left-content {
+    text-align: center;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.login-left-content h2,
+.login-left-content p,
+.features-list {
+    display: none;
+}
+
+/* ==================== Multi-Chain Scrolling Icons — TRUE SEAMLESS INFINITE LOOP ==================== */
+/*
+  HOW THIS WORKS:
+  We create a wrapper that's twice the height of the viewport.
+  Each container has its content duplicated via JavaScript.
+  The animation moves continuously from top to bottom, and when it reaches
+  the halfway point, the second copy is exactly where the first started.
+  This creates a perfect infinite loop with ZERO gaps.
+*/
+
+.login-illustration {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 20px;
+    overflow: hidden;
+}
+
+/* Top / bottom fade masks */
+.login-illustration::before,
+.login-illustration::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 150px;
+    z-index: 2;
+    pointer-events: none;
+}
+
+.login-illustration::before {
+    top: 0;
+    background: linear-gradient(to bottom, #fff 0%, transparent 100%);
+}
+
+.login-illustration::after {
+    bottom: 0;
+    background: linear-gradient(to top, #fff 0%, transparent 100%);
+}
+
+/* Each strip — vertical column with continuous downward motion */
+.symbols-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 32px;
+    padding: 16px 0;
+    flex-shrink: 0;
+    width: 100px;
+    --strip-offset: 0px;
+
+    /* 
+      Animation moves from 0 to -100% (moves up by its full height).
+      Since the content is duplicated, this creates a seamless loop.
+      The container is 200% height with duplicated content.
+    */
+    animation: scrollSeamless 20s linear infinite;
+}
+
+.symbols-container:nth-child(1) {
+    --strip-offset: -24px;
+}
+
+.symbols-container:nth-child(2) {
+    --strip-offset: 14px;
+}
+
+.symbols-container:nth-child(3) {
+    --strip-offset: -24px;
+}
+
+.symbols-container:nth-child(4) {
+    --strip-offset: 14px;
+}
+
+.symbols-container:nth-child(5) {
+    --strip-offset: -24px;
+}
+
+/* Staggered delays for visual variety */
+.symbols-container:nth-child(1) {
+    animation-delay: 0s;
+}
+
+.symbols-container:nth-child(2) {
+    animation-delay: -4s;
+}
+
+.symbols-container:nth-child(3) {
+    animation-delay: -8s;
+}
+
+.symbols-container:nth-child(4) {
+    animation-delay: -12s;
+}
+
+.symbols-container:nth-child(5) {
+    animation-delay: -16s;
+}
+
+@keyframes scrollSeamless {
+    0% {
+        transform: translateY(var(--strip-offset));
+    }
+
+    100% {
+        transform: translateY(calc(var(--strip-offset) - 50%));
+        /* Move by exactly half since content is duplicated */
+    }
+}
+
+.symbol {
+    width: 80px;
+    height: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    opacity: 0.72;
+    transform: scale(1);
+    transition: opacity 0.3s ease;
+}
+
+.symbol:hover {
+    opacity: 1;
+    transform: scale(1);
+}
+
+@media (hover: hover) and (pointer: fine) {
+    body.enable-symbol-hover .symbol {
+        transition: transform 0.3s ease, opacity 0.3s ease;
+    }
+
+    body.enable-symbol-hover .symbol:hover {
+        opacity: 1;
+        transform: scale(1.1);
+    }
+}
+
+.symbol img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    display: block;
+}
+
+/* ==================== Login Container — Main Layout ==================== */
+.login-container {
+    display: flex;
+    height: 100vh;
+    overflow: hidden;
+}
+
+.login-right {
+    flex: 1;
+    background: #ff6b35;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px;
+    position: relative;
+    overflow: hidden;
+    order: 1;
+}
+
+.login-right::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+        linear-gradient(rgba(38, 18, 4, 0.22) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(38, 18, 4, 0.22) 1px, transparent 1px);
+    background-size: 42px 42px;
+    opacity: 0.24;
+    animation: gridPulse 3s ease-in-out infinite;
+    pointer-events: none;
+}
+
+.login-form-container {
+    width: 100%;
+    max-width: 420px;
+    position: relative;
+    z-index: 1;
+}
+
+.login-form-container h1 {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: #3a1e0a;
+    margin-bottom: 8px;
+}
+
+.login-form-container h2 {
+    font-size: 38px;
+    font-weight: 800;
+    color: #2a1406;
+    margin-bottom: 40px;
+    line-height: 1.1;
+}
+
+form {
+    display: flex;
+    flex-direction: column;
+}
+
+.form-group {
+    margin-bottom: 28px;
+    position: relative;
+}
+
+label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+    color: #2a1406;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+}
+
+input[type="email"],
+input[type="password"],
+input[type="text"] {
+    width: 100%;
+    padding: 14px 36px 14px 0;
+    border: none;
+    border-bottom: 1px solid #66310f;
+    font-size: 15px;
+    background: transparent;
+    color: #2a1406;
+    transition: all 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+    outline: none;
+}
+
+.input-wrapper {
+    position: relative;
+}
+
+.password-toggle {
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    border: none;
+    background: transparent;
+    color: #2a1406;
+    cursor: pointer;
+    font-size: 16px;
+    line-height: 1;
+    padding: 2px 4px;
+    opacity: 0.9;
+    transition: transform 0.2s ease, filter 0.2s ease, opacity 0.2s ease;
+}
+
+.password-toggle:hover {
+    opacity: 1;
+    transform: translateY(-50%) scale(1.08);
+}
+
+.password-toggle.lamp-off {
+    filter: grayscale(1) brightness(0.72);
+}
+
+.password-toggle.lamp-on {
+    filter: none;
+    text-shadow: 0 0 8px rgba(255, 245, 120, 0.8);
+}
+
+input::placeholder {
+    color: #7a4118;
+    opacity: 1;
+}
+
+input[type="email"]:focus,
+input[type="password"]:focus,
+input[type="text"]:focus {
+    border-bottom-color: #2a1406;
+    box-shadow: 0 10px 20px -16px rgba(42, 20, 6, 0.7);
+    transform: translateY(-2px);
+    animation: fieldPulse 1.2s ease-in-out infinite alternate;
+}
+
+.input-error {
+    color: #8a2be2;
+    font-size: 12px;
+    margin-top: 5px;
+    display: block;
+}
+
+.error-message {
+    color: #8a2be2;
+    font-size: 13px;
+    font-weight: 600;
+    margin: 6px 0 14px;
+}
+
+.success-message {
+    color: #006400;
+    font-size: 13px;
+    font-weight: 600;
+    margin: 6px 0 14px;
+}
+
+.verification-window {
+    text-align: center;
+    background: rgba(255, 231, 216, 0.72);
+    border: 1px solid rgba(42, 20, 6, 0.2);
+    border-radius: 16px;
+    padding: 28px;
+    animation: verificationCardIn 0.55s ease-out;
+}
+
+.verification-title {
+    text-align: center;
+    margin-bottom: 18px;
+}
+
+.verification-status {
+    padding: 8px 8px 0;
+    animation: verificationContentIn 0.45s ease-out 0.1s both;
+}
+
+.verification-status h3 {
+    margin-bottom: 12px;
+    font-size: 24px;
+    font-weight: 800;
+}
+
+.verification-status p {
+    color: #3a1e0a;
+    margin-bottom: 20px;
+}
+
+.verification-success h3 {
+    color: #006400;
+}
+
+.verification-fail h3 {
+    color: #8a2be2;
+}
+
+@keyframes verificationCardIn {
+    from {
+        opacity: 0;
+        transform: translateY(14px) scale(0.98);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+@keyframes verificationContentIn {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.btn {
+    padding: 14px 24px;
+    border: none;
+    border-radius: 0;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    text-decoration: none;
+}
+
+.btn-primary {
+    background: #ffd7bf;
+    color: #2a1406;
+    border: 1px solid rgba(42, 20, 6, 0.45);
+}
+
+.btn-primary:hover {
+    background: #ffe7d8;
+    color: #1f0f04;
+    border-color: #2a1406;
+    box-shadow: 0 10px 20px -14px rgba(42, 20, 6, 0.65);
+    transform: translateY(-2px);
+    animation: buttonFloat 0.9s ease-in-out infinite alternate;
+}
+
+.btn-primary:active {
+    transform: translateY(0);
+}
+
+.login-footer {
+    text-align: center;
+    margin-top: 20px;
+    padding-top: 20px;
+}
+
+.login-footer p {
+    color: #3a1e0a;
+    font-size: 13px;
+}
+
+.login-footer a {
+    color: #2a1406;
+    text-decoration: none;
+    font-weight: 600;
+    display: inline-block;
+    position: relative;
+    transition: color 0.3s ease, transform 0.3s ease;
+}
+
+.login-footer a::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: -2px;
+    width: 100%;
+    height: 2px;
+    background: linear-gradient(90deg, #2a1406, #7a4118, #2a1406);
+    background-size: 200% 100%;
+    transform: scaleX(0);
+    transform-origin: left;
+    opacity: 0;
+    transition: transform 0.35s ease, opacity 0.35s ease;
+}
+
+.login-footer a:hover {
+    color: #1f0f04;
+    transform: translateY(-2px);
+    animation: registerFloat 1.1s ease-in-out infinite alternate;
+}
+
+.login-footer a:hover::after {
+    transform: scaleX(1);
+    opacity: 1;
+    animation: registerUnderlineShift 1.2s linear infinite;
+}
+
+@keyframes gridPulse {
+
+    0%,
+    100% {
+        opacity: 0.18;
+    }
+
+    50% {
+        opacity: 0.42;
+    }
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    font-family: 'DM Mono', monospace, Arial, sans-serif;
+    background: #0a0a0a;
+    min-height: 100vh;
+    color: #fff;
+}
+
+/* ==================== Responsive ==================== */
+@media (max-width: 1024px) {
+    .login-container {
+        flex-direction: column;
+        height: auto;
+    }
+
+    .login-left {
+        min-height: 200px;
+        order: 1;
+    }
+
+    .login-right {
+        order: 2;
+        min-height: 500px;
+        padding: 40px 20px;
+    }
+
+    .login-illustration {
+        flex-direction: row;
+        align-items: center;
+        gap: 20px;
+        height: 200px;
+    }
+
+    .symbols-container {
+        flex-direction: row;
+        width: auto;
+        gap: 28px;
+        padding: 0 16px;
+        --strip-offset: 0px;
+        /* Horizontal seamless scroll on mobile */
+        animation: scrollSeamlessH 20s linear infinite;
+    }
+
+    .symbols-container:nth-child(1) {
+        animation-delay: 0s;
+    }
+
+    .symbols-container:nth-child(2) {
+        animation-delay: -4s;
+    }
+
+    .symbols-container:nth-child(3) {
+        animation-delay: -8s;
+    }
+
+    .symbols-container:nth-child(4) {
+        animation-delay: -12s;
+    }
+
+    .symbols-container:nth-child(5) {
+        animation-delay: -16s;
+    }
+
+    @keyframes scrollSeamlessH {
+        0% {
+            transform: translateX(0);
+        }
+
+        100% {
+            transform: translateX(-50%);
+        }
+    }
+
+    .symbol {
+        width: 60px;
+        height: 60px;
+    }
+}
+
+@keyframes fieldPulse {
+    0% {
+        box-shadow: 0 10px 20px -16px rgba(42, 20, 6, 0.45);
+    }
+
+    100% {
+        box-shadow: 0 12px 22px -14px rgba(42, 20, 6, 0.72);
+    }
+}
+
+@keyframes buttonFloat {
+    0% {
+        transform: translateY(-1px);
+    }
+
+    100% {
+        transform: translateY(-3px);
+    }
+}
+
+@keyframes registerFloat {
+    0% {
+        text-shadow: 0 0 0 rgba(42, 20, 6, 0.12);
+    }
+
+    100% {
+        text-shadow: 0 3px 10px rgba(42, 20, 6, 0.35);
+    }
+}
+
+@keyframes registerUnderlineShift {
+    0% {
+        background-position: 0% 50%;
+    }
+
+    100% {
+        background-position: 100% 50%;
+    }
+}
+
+/* ==================== Additional Info Page ==================== */
+.additional-container {
+    display: flex;
+    min-height: 100vh;
+    overflow: hidden;
+}
+
+.additional-left {
+    flex: 1;
+    background: #fff;
+    position: relative;
+    overflow: hidden;
+}
+
+.additional-illustration {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 20px;
+    overflow: hidden;
+}
+
+.additional-illustration::before,
+.additional-illustration::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 150px;
+    z-index: 2;
+    pointer-events: none;
+}
+
+.additional-illustration::before {
+    top: 0;
+    background: linear-gradient(to bottom, #fff 0%, transparent 100%);
+}
+
+.additional-illustration::after {
+    bottom: 0;
+    background: linear-gradient(to top, #fff 0%, transparent 100%);
+}
+
+.additional-left .symbols-container {
+    --strip-offset: 0px;
+    animation: scrollSeamless 20s linear infinite;
+}
+
+.additional-left .symbols-container:nth-child(1) {
+    --strip-offset: -24px;
+    animation-delay: 0s;
+}
+
+.additional-left .symbols-container:nth-child(2) {
+    --strip-offset: 14px;
+    animation-delay: -4s;
+}
+
+.additional-left .symbols-container:nth-child(3) {
+    --strip-offset: -24px;
+    animation-delay: -8s;
+}
+
+.additional-left .symbols-container:nth-child(4) {
+    --strip-offset: 14px;
+    animation-delay: -12s;
+}
+
+.additional-left .symbols-container:nth-child(5) {
+    --strip-offset: -24px;
+    animation-delay: -16s;
+}
+
+.additional-right {
+    flex: 1;
+    background: #ff6b35;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px;
+    position: relative;
+    overflow: hidden;
+}
+
+.additional-right::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+        linear-gradient(rgba(38, 18, 4, 0.22) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(38, 18, 4, 0.22) 1px, transparent 1px);
+    background-size: 42px 42px;
+    opacity: 0.24;
+    animation: gridPulse 3s ease-in-out infinite;
+    pointer-events: none;
+}
+
+.additional-form-window {
+    width: 100%;
+    max-width: 460px;
+    position: relative;
+    z-index: 1;
+}
+
+.additional-form-window h2 {
+    font-size: 38px;
+    font-weight: 800;
+    color: #2a1406;
+    margin-bottom: 10px;
+}
+
+.additional-form-window p {
+    color: #3a1e0a;
+    margin-bottom: 26px;
+}
+
+@media (max-width: 1024px) {
+    .additional-container {
+        flex-direction: column;
+    }
+
+    .additional-left {
+        min-height: 240px;
+    }
+
+    .additional-right {
+        min-height: 500px;
+        padding: 40px 20px;
+    }
+
+    .additional-illustration {
+        flex-direction: row;
+        align-items: center;
+        height: 240px;
+    }
+
+    .additional-left .symbols-container {
+        flex-direction: row;
+        width: auto;
+        gap: 28px;
+        padding: 0 16px;
+        animation: scrollSeamlessH 20s linear infinite;
+    }
+
+    .additional-left .symbols-container:nth-child(1),
+    .additional-left .symbols-container:nth-child(2),
+    .additional-left .symbols-container:nth-child(3),
+    .additional-left .symbols-container:nth-child(4),
+    .additional-left .symbols-container:nth-child(5) {
+        animation-delay: 0s;
+    }
+}

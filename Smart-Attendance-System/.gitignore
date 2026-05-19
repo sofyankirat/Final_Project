@@ -1,0 +1,32 @@
+# Virtual environment
+venv/
+venv311/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# VS Code settings
+.vscode/
+
+# Windows files
+Thumbs.db
+desktop.ini
+
+# Model weights (too large)
+Models/
+*.pt
+*.onnx
+
+# Private data
+Database/
+database/
+*.pkl
+logs/
+
+# Smart_Attendence_system_APP private folders
+Smart_Attendence_system_APP/__pycache__/
+Smart_Attendence_system_APP/database/
+Smart_Attendence_system_APP/logs/
+Smart_Attendence_system_APP/Models/

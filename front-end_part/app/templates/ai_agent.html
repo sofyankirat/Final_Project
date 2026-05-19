@@ -1,0 +1,2843 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Agent - {{ username }}</title>
+    <meta name="description" content="Your university AI assistant. Ask anything about courses, professors, and more.">
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/favicon.png') }}?v=3">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/tsparticles@2.12.0/tsparticles.bundle.min.js"></script>
+    <style>
+        /* ===== AI AGENT PAGE STYLES ===== */
+        .ai-intro-card {
+            background: linear-gradient(135deg, rgba(255, 107, 53, 0.08) 0%, rgba(255, 208, 176, 0.15) 100%);
+            border: 1px solid rgba(255, 107, 53, 0.2);
+            border-radius: 18px;
+            padding: 22px 28px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            max-width: 820px;
+            backdrop-filter: blur(12px);
+        }
+
+        body.dark-mode .ai-intro-card {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(20, 184, 166, 0.08) 100%);
+            border-color: rgba(99, 102, 241, 0.25);
+        }
+
+        .ai-intro-icon {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #ff6b35, #e85c20);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            box-shadow: 0 6px 20px rgba(255, 107, 53, 0.35);
+            animation: pulseGlow 2.5s ease-in-out infinite;
+        }
+
+        body.dark-mode .ai-intro-icon {
+            background: linear-gradient(135deg, #6366f1, #14b8a6);
+            box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
+        }
+
+        @keyframes pulseGlow {
+
+            0%,
+            100% {
+                box-shadow: 0 6px 20px rgba(255, 107, 53, 0.35);
+                transform: scale(1);
+            }
+
+            50% {
+                box-shadow: 0 8px 28px rgba(255, 107, 53, 0.55);
+                transform: scale(1.04);
+            }
+        }
+
+        body.dark-mode .ai-intro-icon {
+            animation: pulseGlowDark 2.5s ease-in-out infinite;
+        }
+
+        @keyframes pulseGlowDark {
+
+            0%,
+            100% {
+                box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
+                transform: scale(1);
+            }
+
+            50% {
+                box-shadow: 0 8px 28px rgba(99, 102, 241, 0.6);
+                transform: scale(1.04);
+            }
+        }
+
+        .ai-intro-text h3 {
+            font-size: 15px;
+            font-weight: 700;
+            color: #3a2a1a;
+            margin: 0 0 6px 0;
+        }
+
+        body.dark-mode .ai-intro-text h3 {
+            color: #e2e8f0;
+        }
+
+        .ai-intro-text p {
+            font-size: 13.5px;
+            color: #6a5a4a;
+            margin: 0;
+            line-height: 1.6;
+        }
+
+        body.dark-mode .ai-intro-text p {
+            color: #94a3b8;
+        }
+
+        /* ===== NEW CHAT GLOW EFFECTS ===== */
+        .chat-glow-wrap {
+            position: relative;
+            max-width: none;
+            width: 100%;
+            margin: 0 auto;
+            border-radius: 20px;
+            padding: 2px;
+            background: linear-gradient(135deg, rgba(255, 107, 53, 1), rgba(255, 107, 53, 0.1), rgba(255, 107, 53, 1));
+            background-size: 200% 200%;
+            animation: gradientBorder 3s ease infinite;
+            /* Exact same 3s timing as dark mode */
+            box-shadow: 0 10px 40px rgba(255, 107, 53, 0.5);
+        }
+
+        body.dark-mode .chat-glow-wrap {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 1), rgba(99, 102, 241, 0.1), rgba(99, 102, 241, 1));
+            background-size: 200% 200%;
+            box-shadow: 0 10px 40px rgba(99, 102, 241, 0.5);
+            animation: gradientBorderDark 3s ease infinite;
+        }
+
+        @keyframes gradientBorder {
+            0% {
+                background-position: 0% 50%;
+                box-shadow: 0 10px 20px rgba(255, 107, 53, 0.3);
+            }
+
+            50% {
+                background-position: 100% 50%;
+                box-shadow: 0 10px 50px rgba(255, 107, 53, 0.7);
+            }
+
+            100% {
+                background-position: 0% 50%;
+                box-shadow: 0 10px 20px rgba(255, 107, 53, 0.3);
+            }
+        }
+
+        @keyframes gradientBorderDark {
+            0% {
+                background-position: 0% 50%;
+                box-shadow: 0 10px 20px rgba(99, 102, 241, 0.3);
+            }
+
+            50% {
+                background-position: 100% 50%;
+                box-shadow: 0 10px 50px rgba(99, 102, 241, 0.7);
+            }
+
+            100% {
+                background-position: 0% 50%;
+                box-shadow: 0 10px 20px rgba(99, 102, 241, 0.3);
+            }
+        }
+
+        /* ===== AI MAIN LAYOUT ===== */
+        .ai-main-layout {
+            display: flex;
+            gap: 20px;
+            width: calc(100% - 56px);
+            max-width: 1344px;
+            margin: 0 auto;
+            align-items: stretch;
+        }
+
+        .ai-history-sidebar {
+            width: 300px;
+            background: rgba(255, 255, 255, 0.7);
+            border: 1px solid rgba(255, 107, 53, 0.2);
+            border-radius: 18px;
+            padding: 20px 15px;
+            backdrop-filter: blur(10px);
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            flex-shrink: 0;
+            height: 600px;
+            overflow-y: auto;
+        }
+
+        body.dark-mode .ai-history-sidebar {
+            background: rgba(15, 17, 58, 0.7);
+            border-color: rgba(99, 102, 241, 0.25);
+        }
+
+        .history-title {
+            font-size: 13px;
+            font-weight: 700;
+            color: #7a5a40;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            padding-left: 8px;
+            margin-bottom: 8px;
+        }
+
+        body.dark-mode .history-title {
+            color: #94a3b8;
+        }
+
+        .history-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: #5a3a20;
+            font-size: 13px;
+            font-weight: 500;
+            text-decoration: none;
+        }
+
+        .history-item:hover {
+            background: rgba(255, 107, 53, 0.1);
+        }
+
+        .history-item.active {
+            background: rgba(255, 107, 53, 0.15);
+            font-weight: 600;
+            color: #e85c20;
+        }
+
+        body.dark-mode .history-item {
+            color: #e2e8f0;
+        }
+
+        body.dark-mode .history-item:hover {
+            background: rgba(99, 102, 241, 0.15);
+        }
+
+        body.dark-mode .history-item.active {
+            background: rgba(99, 102, 241, 0.25);
+            color: #818cf8;
+        }
+
+        .history-icon {
+            opacity: 0.5;
+            transition: opacity 0.2s;
+        }
+
+        /* ===== CONVERSATION CONTEXT MENU ===== */
+        .history-item {
+            position: relative;
+        }
+
+        .history-item.active .history-icon {
+            opacity: 1;
+        }
+
+        .history-item:hover .history-icon {
+            opacity: 0.8;
+        }
+
+        .history-item .conv-menu-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: inherit;
+            opacity: 0;
+            padding: 2px 4px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            transition: opacity 0.2s;
+            flex-shrink: 0;
+            margin-left: auto;
+        }
+
+        .history-item:hover .conv-menu-btn {
+            opacity: 0.7;
+        }
+
+        .conv-dropdown {
+            position: absolute;
+            right: 0;
+            top: 100%;
+            z-index: 500;
+            background: #fff;
+            border: 1px solid rgba(255, 107, 53, 0.2);
+            border-radius: 10px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+            min-width: 140px;
+            overflow: hidden;
+            display: none;
+        }
+
+        .conv-dropdown.open {
+            display: block;
+        }
+
+        body.dark-mode .conv-dropdown {
+            background: #1e2048;
+            border-color: rgba(99, 102, 241, 0.3);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+        }
+
+        .conv-dropdown-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 9px 14px;
+            font-size: 13px;
+            cursor: pointer;
+            color: #5a3a20;
+            transition: background 0.15s;
+        }
+
+        .conv-dropdown-item:hover {
+            background: rgba(255, 107, 53, 0.08);
+        }
+
+        .conv-dropdown-item.danger {
+            color: #dc2626;
+        }
+
+        .conv-dropdown-item.danger:hover {
+            background: rgba(220, 38, 38, 0.08);
+        }
+
+        body.dark-mode .conv-dropdown-item {
+            color: #e2e8f0;
+        }
+
+        body.dark-mode .conv-dropdown-item:hover {
+            background: rgba(99, 102, 241, 0.12);
+        }
+
+        body.dark-mode .conv-dropdown-item.danger {
+            color: #ef4444 !important;
+        }
+
+        body.dark-mode .conv-dropdown-item.danger:hover {
+            background: rgba(239, 68, 68, 0.12) !important;
+        }
+
+        /* ===== FULLSCREEN MODE OVERRIDES ===== */
+        body.chat-fullscreen-mode .common-qs-section {
+            display: none !important;
+        }
+
+        body.chat-fullscreen-mode .ai-history-sidebar {
+            display: none !important;
+        }
+
+        body.chat-fullscreen-mode .chat-glow-wrap {
+            max-width: 100% !important;
+        }
+
+        .new-chat-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #ff6b35;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: color 0.2s;
+        }
+
+        body.dark-mode .new-chat-btn {
+            color: #14b8a6;
+        }
+
+        @keyframes gradientBorder {
+            0% {
+                background-position: 0% 50%;
+            }
+
+            50% {
+                background-position: 100% 50%;
+            }
+
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+
+        /* Character counter */
+        .char-counter {
+            font-size: 11px;
+            color: #b0a090;
+            font-weight: 500;
+        }
+
+        body.dark-mode .char-counter {
+            color: #4b5563;
+        }
+
+        .char-counter.warn {
+            color: #f97316;
+        }
+
+        .char-counter.limit {
+            color: #dc2626;
+        }
+
+        /* ===== CHAT CONTAINER ===== */
+        .chat-outer {
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+            border-radius: 18px;
+            overflow: hidden;
+            background: rgba(255, 255, 255, 0.85);
+            box-shadow: inset 0 2px 20px rgba(255, 255, 255, 0.5);
+        }
+
+        body.dark-mode .chat-outer {
+            background: rgba(15, 17, 58, 0.9);
+            box-shadow: inset 0 2px 20px rgba(255, 255, 255, 0.05);
+        }
+
+        .chat-window {
+            background: rgba(255, 255, 255, 0.82);
+            border: 1px solid rgba(255, 107, 53, 0.18);
+            border-bottom: none;
+            border-radius: 20px 20px 0 0;
+            flex: 1;
+            min-height: 420px;
+            height: auto;
+            overflow-y: auto;
+            padding: 24px 24px 12px 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            backdrop-filter: blur(14px);
+            scroll-behavior: smooth;
+        }
+
+        body.dark-mode .chat-window {
+            background: rgba(15, 17, 58, 0.88);
+            border-color: rgba(99, 102, 241, 0.2);
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 107, 53, 0.4);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 107, 53, 0.6);
+        }
+
+        body.dark-mode ::-webkit-scrollbar-thumb {
+            background: rgba(99, 102, 241, 0.35);
+        }
+
+        body.dark-mode ::-webkit-scrollbar-thumb:hover {
+            background: rgba(99, 102, 241, 0.6);
+        }
+
+        /* ===== MESSAGES ===== */
+        .msg-row {
+            display: flex;
+            gap: 10px;
+            align-items: flex-start;
+        }
+
+        .msg-row.user {
+            flex-direction: row-reverse;
+        }
+
+        .msg-avatar {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .msg-avatar.ai-av {
+            background: linear-gradient(135deg, #ff6b35, #e85c20);
+            color: white;
+        }
+
+        body.dark-mode .msg-avatar.ai-av {
+            background: linear-gradient(135deg, #6366f1, #14b8a6);
+        }
+
+        .msg-avatar.user-av {
+            background: linear-gradient(135deg, #ffd0b0, #ffb07a);
+            color: #3a2a1a;
+        }
+
+        body.dark-mode .msg-avatar.user-av {
+            background: rgba(99, 102, 241, 0.2);
+            color: #818cf8;
+        }
+
+        .msg-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: center;
+            border-radius: 50%;
+        }
+
+        .msg-bubble {
+            padding: 12px 16px;
+            border-radius: 16px;
+            font-size: 14px;
+            line-height: 1.55;
+            position: relative;
+            word-wrap: break-word;
+            word-break: break-word;
+            animation: msgPop 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        @keyframes msgPop {
+            from {
+                opacity: 0;
+                transform: scale(0.88) translateY(8px);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        .msg-bubble.ai-bubble {
+            background: rgba(255, 240, 230, 0.95);
+            color: #3a2a1a;
+            border-bottom-left-radius: 4px;
+            border: 1px solid rgba(255, 107, 53, 0.12);
+        }
+
+        body.dark-mode .msg-bubble.ai-bubble {
+            background: rgba(30, 35, 80, 0.9);
+            color: #e2e8f0;
+            border-color: rgba(99, 102, 241, 0.15);
+        }
+
+        .msg-bubble.user-bubble {
+            background: linear-gradient(135deg, #ff6b35, #e85c20);
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+
+        body.dark-mode .msg-bubble.user-bubble {
+            background: linear-gradient(135deg, #6366f1, #4f46e5);
+        }
+
+        .msg-time {
+            font-size: 10.5px;
+            opacity: 0.5;
+            margin-top: 5px;
+            display: block;
+        }
+
+        .msg-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 6px;
+        }
+
+        .msg-action-btn {
+            border: 1px solid rgba(255, 107, 53, 0.35);
+            background: rgba(255, 208, 176, 0.3);
+            color: #7a4a30;
+            border-radius: 999px;
+            width: 28px;
+            height: 28px;
+            padding: 0;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: visible;
+        }
+
+        .msg-action-btn svg {
+            width: 14px;
+            height: 14px;
+            stroke: currentColor;
+        }
+
+        .msg-copy-btn.copied {
+            width: auto;
+            min-width: 82px;
+            padding: 0 10px;
+            gap: 6px;
+            background: #ff6b35 !important;
+            border-color: #ff6b35 !important;
+            color: white !important;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        body.dark-mode .msg-copy-btn.copied {
+            background: linear-gradient(135deg, #14b8a6, #3b82f6) !important;
+            border-color: rgba(255, 255, 255, 0.2) !important;
+            color: white !important;
+        }
+
+        .msg-rename-inline {
+            margin-top: 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            width: 100%;
+            max-width: 100%;
+        }
+
+        .msg-rename-attachment {
+            position: relative;
+            width: fit-content;
+            max-width: 100%;
+            margin-bottom: 4px;
+        }
+
+        .msg-rename-attachment .msg-file-card {
+            margin-bottom: 0;
+            cursor: default;
+            transform: none !important;
+        }
+
+        .msg-rename-attachment img {
+            max-width: 200px;
+            max-height: 200px;
+            border-radius: 8px;
+            object-fit: cover;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            display: block;
+        }
+
+        .msg-rename-attachment-remove {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            width: 20px;
+            height: 20px;
+            border: none;
+            border-radius: 999px;
+            background: rgba(220, 38, 38, 0.95);
+            color: #fff;
+            font-size: 13px;
+            font-weight: 700;
+            line-height: 1;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .msg-attachment-wrap {
+            position: relative;
+            width: fit-content;
+            max-width: 100%;
+            margin-bottom: 8px;
+        }
+
+        .msg-attachment-remove-btn {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            width: 20px;
+            height: 20px;
+            border: none;
+            border-radius: 999px;
+            background: linear-gradient(135deg, #ff8a4c, #ff6b35);
+            color: #fff;
+            font-size: 13px;
+            font-weight: 700;
+            line-height: 1;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            z-index: 2;
+        }
+
+        .msg-rename-input {
+            width: 100%;
+            height: 120px;
+            /* Default big enough size */
+            overflow-y: auto;
+            /* Scrollbar for long text */
+            border: 1px solid rgba(255, 107, 53, 0.35);
+            background: rgba(255, 208, 176, 0.25);
+            color: #5a3a20;
+            padding: 12px 16px;
+            border-radius: 16px;
+            font-size: 14px;
+            font-family: inherit;
+            line-height: 1.55;
+            resize: none;
+            outline: none;
+            box-sizing: border-box;
+            transition: border-color 0.2s ease;
+        }
+
+        .msg-rename-input:focus {
+            border-color: rgba(255, 107, 53, 0.65);
+            box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.14);
+        }
+
+        .msg-rename-controls {
+            display: flex;
+            gap: 8px;
+            justify-content: flex-end;
+        }
+
+        .msg-rename-btn-inline {
+            border: 1px solid rgba(255, 107, 53, 0.35);
+            background: rgba(255, 255, 255, 0.9);
+            color: #7a4a30;
+            border-radius: 8px;
+            padding: 5px 10px;
+            font-size: 11.5px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .msg-rename-btn-inline.primary {
+            background: linear-gradient(135deg, #ff6b35, #e85c20);
+            border-color: transparent;
+            color: #fff;
+        }
+
+        .msg-rename-error {
+            font-size: 11px;
+            color: #dc2626;
+            display: none;
+        }
+
+        body.dark-mode .msg-rename-input {
+            border-color: rgba(99, 102, 241, 0.4);
+            background: rgba(30, 35, 80, 0.55);
+            color: #e2e8f0;
+        }
+
+        body.dark-mode .msg-rename-input:focus {
+            border-color: rgba(99, 102, 241, 0.75);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.18);
+        }
+
+        body.dark-mode .msg-rename-btn-inline {
+            border-color: rgba(99, 102, 241, 0.45);
+            background: rgba(15, 17, 58, 0.9);
+            color: #c7d2fe;
+        }
+
+        body.dark-mode .msg-rename-btn-inline.primary {
+            background: linear-gradient(135deg, #6366f1, #14b8a6);
+            border-color: transparent;
+            color: #fff;
+        }
+
+        body.dark-mode .msg-rename-attachment-remove {
+            background: rgba(248, 113, 113, 0.95);
+            color: #1f2937;
+        }
+
+        body.dark-mode .msg-attachment-remove-btn {
+            background: linear-gradient(135deg, #14b8a6, #6366f1);
+            color: #ffffff;
+        }
+
+        .msg-action-btn:hover {
+            background: rgba(255, 208, 176, 0.55);
+            border-color: rgba(255, 107, 53, 0.55);
+        }
+
+        body.dark-mode .msg-action-btn {
+            border-color: rgba(99, 102, 241, 0.45);
+            background: rgba(99, 102, 241, 0.15);
+            color: #c7d2fe;
+        }
+
+        body.dark-mode .msg-action-btn:hover {
+            background: rgba(99, 102, 241, 0.25);
+            border-color: rgba(99, 102, 241, 0.7);
+        }
+
+        .msg-file-card {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 14px;
+            width: 240px;
+            margin-bottom: 8px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 107, 53, 0.35);
+            background: rgba(255, 208, 176, 0.36);
+            color: #7a4a30;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .msg-file-card:hover {
+            transform: scale(1.02);
+        }
+
+        .msg-file-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #ffffff;
+            flex-shrink: 0;
+            background: linear-gradient(135deg, #ff935f, #ff6b35);
+            box-shadow: 0 2px 5px rgba(255, 107, 53, 0.3);
+        }
+
+        .msg-file-meta {
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            width: 100%;
+        }
+
+        .msg-file-name {
+            font-size: 13.5px;
+            font-weight: 700;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            overflow: hidden;
+            color: inherit;
+            letter-spacing: -0.2px;
+        }
+
+        .msg-file-type {
+            font-size: 11px;
+            opacity: 0.65;
+            text-transform: uppercase;
+            margin-top: 2px;
+        }
+
+        body.dark-mode .msg-file-card {
+            border-color: rgba(59, 130, 246, 0.45);
+            background: linear-gradient(135deg, rgba(20, 184, 166, 0.25), rgba(59, 130, 246, 0.25));
+            color: #c7d2fe;
+        }
+
+        body.dark-mode .msg-file-icon {
+            background: linear-gradient(135deg, #14b8a6, #3b82f6);
+            box-shadow: 0 2px 5px rgba(59, 130, 246, 0.3);
+        }
+
+        /* Typing indicator */
+        .typing-indicator {
+            display: flex;
+            gap: 4px;
+            padding: 12px 16px;
+            background: rgba(255, 240, 230, 0.95);
+            border-radius: 16px;
+            border-bottom-left-radius: 4px;
+            width: fit-content;
+            border: 1px solid rgba(255, 107, 53, 0.12);
+        }
+
+        body.dark-mode .typing-indicator {
+            background: rgba(30, 35, 80, 0.9);
+            border-color: rgba(99, 102, 241, 0.15);
+        }
+
+        .typing-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: #ff6b35;
+            animation: typingBounce 1.2s ease-in-out infinite;
+        }
+
+        body.dark-mode .typing-dot {
+            background: #818cf8;
+        }
+
+        .typing-dot:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .typing-dot:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes typingBounce {
+
+            0%,
+            100% {
+                transform: translateY(0);
+                opacity: 0.4;
+            }
+
+            50% {
+                transform: translateY(-5px);
+                opacity: 1;
+            }
+        }
+
+        /* Attached file preview */
+        .file-preview-bar {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 14px;
+            background: rgba(255, 208, 176, 0.36);
+            border: 1px dashed rgba(255, 107, 53, 0.45);
+            border-radius: 10px;
+            font-size: 12.5px;
+            color: #7a4a30;
+            margin-bottom: 4px;
+            display: none;
+            transition: all 0.3s ease;
+        }
+
+        body.dark-mode .file-preview-bar {
+            background: rgba(99, 102, 241, 0.1);
+            border-color: rgba(99, 102, 241, 0.3);
+            color: #818cf8;
+        }
+
+        .file-preview-bar.active {
+            display: flex;
+        }
+
+        .file-preview-name {
+            font-weight: 600;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            max-width: 200px;
+        }
+
+        body.dark-mode .file-preview-name {
+            color: #818cf8;
+        }
+
+        body:not(.dark-mode) .file-preview-name {
+            color: #7a4a30;
+        }
+
+        .file-preview-remove {
+            margin-left: auto;
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #dc2626;
+            display: flex;
+            align-items: center;
+            padding: 2px;
+            border-radius: 4px;
+            transition: background 0.15s;
+        }
+
+        .file-preview-remove:hover {
+            background: rgba(220, 38, 38, 0.1);
+        }
+
+        body.dark-mode .file-preview-remove {
+            color: #ef4444;
+        }
+
+        body.dark-mode .file-preview-remove:hover {
+            background: rgba(239, 68, 68, 0.15);
+        }
+
+        /* ===== CHAT INPUT AREA ===== */
+        .chat-input-area {
+            background: rgba(255, 255, 255, 0.92);
+            border: 1px solid rgba(255, 107, 53, 0.2);
+            border-top: 1px solid rgba(255, 107, 53, 0.12);
+            border-radius: 0 0 20px 20px;
+            padding: 14px 18px 28px 18px;
+            backdrop-filter: blur(14px);
+        }
+
+        body.dark-mode .chat-input-area {
+            background: rgba(15, 17, 58, 0.92);
+            border-color: rgba(99, 102, 241, 0.2);
+        }
+
+        .chat-input-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(255, 208, 176, 0.4);
+            border: 1px solid rgba(255, 107, 53, 0.2);
+            border-radius: 50px;
+            padding: 8px 10px 8px 18px;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .chat-input-row:focus-within {
+            border-color: #ff6b35;
+            box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.12);
+        }
+
+        body.dark-mode .chat-input-row {
+            background: rgba(12, 14, 50, 0.7);
+            border-color: rgba(99, 102, 241, 0.25);
+        }
+
+        body.dark-mode .chat-input-row:focus-within {
+            border-color: #6366f1;
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+        }
+
+        #chatTextInput {
+            flex: 1;
+            background: transparent;
+            border: none;
+            outline: none;
+            font-family: 'Inter', sans-serif;
+            font-size: 14px;
+            color: #1a1a1a;
+            resize: none;
+            max-height: 96px;
+            min-height: 24px;
+            overflow-y: auto;
+            line-height: 1.5;
+        }
+
+        body.dark-mode #chatTextInput {
+            color: #e2e8f0;
+        }
+
+        #chatTextInput::placeholder {
+            color: #b0a090;
+        }
+
+        body.dark-mode #chatTextInput::placeholder {
+            color: #6b7280;
+        }
+
+        .chat-action-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s, transform 0.15s;
+            flex-shrink: 0;
+        }
+
+        .chat-attach-btn {
+            background: transparent;
+            color: #b0906a;
+        }
+
+        .chat-attach-btn:hover {
+            background: rgba(255, 107, 53, 0.1);
+            color: #ff6b35;
+            transform: scale(1.08);
+        }
+
+        body.dark-mode .chat-attach-btn {
+            color: #6b7280;
+        }
+
+        body.dark-mode .chat-attach-btn:hover {
+            background: rgba(99, 102, 241, 0.15);
+            color: #818cf8;
+        }
+
+        .chat-send-btn {
+            background: linear-gradient(135deg, #ff6b35, #e85c20);
+            color: white;
+            box-shadow: 0 4px 12px rgba(255, 107, 53, 0.35);
+        }
+
+        .chat-send-btn:not(:disabled) {
+            animation: sendGlow 2s infinite;
+        }
+
+        @keyframes sendGlow {
+
+            0%,
+            100% {
+                box-shadow: 0 4px 12px rgba(255, 107, 53, 0.35);
+            }
+
+            50% {
+                box-shadow: 0 4px 20px rgba(255, 107, 53, 0.65);
+                transform: scale(1.02);
+            }
+        }
+
+        .chat-send-btn:hover {
+            transform: scale(1.08) !important;
+            box-shadow: 0 6px 18px rgba(255, 107, 53, 0.6) !important;
+            animation: none !important;
+        }
+
+        .chat-send-btn:disabled {
+            background: #d1d5db;
+            box-shadow: none;
+            cursor: not-allowed;
+            animation: none;
+            transform: none !important;
+        }
+
+        body.dark-mode .chat-send-btn {
+            background: linear-gradient(135deg, #06b6d4, #0891b2);
+            box-shadow: 0 4px 12px rgba(6, 182, 212, 0.4);
+        }
+
+        body.dark-mode .chat-send-btn:not(:disabled) {
+            animation: sendGlowDark 2s infinite;
+        }
+
+        @keyframes sendGlowDark {
+
+            0%,
+            100% {
+                box-shadow: 0 4px 12px rgba(6, 182, 212, 0.4);
+            }
+
+            50% {
+                box-shadow: 0 4px 20px rgba(6, 182, 212, 0.7);
+                transform: scale(1.02);
+            }
+        }
+
+        body.dark-mode .chat-send-btn:hover {
+            box-shadow: 0 6px 18px rgba(6, 182, 212, 0.55) !important;
+        }
+
+        body.dark-mode .chat-send-btn:disabled {
+            background: #374151;
+        }
+
+        .chat-hints-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 2px 6px 4px 6px;
+            flex-wrap: wrap;
+        }
+
+        .chat-hint-label {
+            font-size: 11px;
+            font-weight: 600;
+            color: #b0906a;
+            text-transform: uppercase;
+            letter-spacing: 0.7px;
+            white-space: nowrap;
+        }
+
+        body.dark-mode .chat-hint-label {
+            color: #6b7280;
+        }
+
+        /* ===== COMMON QUESTIONS ===== */
+        .common-qs-section {
+            max-width: 820px;
+            margin: 0 auto;
+        }
+
+        .common-qs-title {
+            font-size: 13px;
+            font-weight: 700;
+            color: #7a5a40;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        body.dark-mode .common-qs-title {
+            color: #6b7280;
+        }
+
+        .qs-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 10px;
+        }
+
+        .qs-chip {
+            background: rgba(255, 255, 255, 0.82);
+            border: 1px solid rgba(255, 107, 53, 0.2);
+            border-radius: 14px;
+            padding: 12px 16px;
+            font-size: 13px;
+            color: #5a3a20;
+            cursor: pointer;
+            text-align: left;
+            font-family: 'Inter', sans-serif;
+            font-weight: 500;
+            transition: transform 0.15s, box-shadow 0.15s, border-color 0.2s, background 0.2s;
+            line-height: 1.4;
+            backdrop-filter: blur(8px);
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+        }
+
+        .qs-chip:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 18px rgba(255, 107, 53, 0.18);
+            border-color: #ff6b35;
+            background: rgba(255, 208, 176, 0.45);
+        }
+
+        body.dark-mode .qs-chip {
+            background: rgba(15, 17, 58, 0.78);
+            border-color: rgba(99, 102, 241, 0.2);
+            color: #94a3b8;
+        }
+
+        body.dark-mode .qs-chip:hover {
+            background: rgba(30, 35, 80, 0.9);
+            border-color: #818cf8;
+            box-shadow: 0 6px 18px rgba(99, 102, 241, 0.2);
+            color: #e2e8f0;
+        }
+
+        .qs-chip-icon {
+            font-size: 16px;
+            flex-shrink: 0;
+            margin-top: 1px;
+        }
+
+        /* Clear chat button */
+        .clear-chat-btn {
+            background: none;
+            border: 1px solid rgba(255, 107, 53, 0.25);
+            border-radius: 8px;
+            padding: 5px 12px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #ff6b35;
+            cursor: pointer;
+            transition: background 0.15s;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .clear-chat-btn:hover {
+            background: rgba(255, 107, 53, 0.08);
+        }
+
+        body.dark-mode .clear-chat-btn {
+            border-color: rgba(99, 102, 241, 0.3);
+            color: #818cf8;
+        }
+
+        body.dark-mode .clear-chat-btn:hover {
+            background: rgba(99, 102, 241, 0.1);
+        }
+
+        /* Enhanced background blobs */
+        .ai-blob {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.18;
+            pointer-events: none;
+            z-index: -1;
+            animation: blobDrift 12s ease-in-out infinite alternate;
+        }
+
+        @keyframes blobDrift {
+            from {
+                transform: translate(0, 0) scale(1);
+            }
+
+            to {
+                transform: translate(40px, -30px) scale(1.08);
+            }
+        }
+
+        .ai-blob-1 {
+            width: 340px;
+            height: 340px;
+            background: radial-gradient(circle, #ff6b35, transparent);
+            top: 10%;
+            left: 5%;
+            animation-duration: 14s;
+        }
+
+        .ai-blob-2 {
+            width: 280px;
+            height: 280px;
+            background: radial-gradient(circle, #ffd0b0, transparent);
+            bottom: 15%;
+            right: 8%;
+            animation-duration: 10s;
+            animation-direction: alternate-reverse;
+        }
+
+        .ai-blob-3 {
+            width: 200px;
+            height: 200px;
+            background: radial-gradient(circle, #ff9060, transparent);
+            top: 55%;
+            left: 50%;
+            animation-duration: 16s;
+        }
+
+        body.dark-mode .ai-blob-1 {
+            background: radial-gradient(circle, #6366f1, transparent);
+            opacity: 0.2;
+        }
+
+        body.dark-mode .ai-blob-2 {
+            background: radial-gradient(circle, #14b8a6, transparent);
+            opacity: 0.15;
+        }
+
+        body.dark-mode .ai-blob-3 {
+            background: radial-gradient(circle, #818cf8, transparent);
+            opacity: 0.12;
+        }
+
+        /* Empty state */
+        .chat-empty-state {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            opacity: 0.55;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .chat-empty-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, rgba(255, 107, 53, 0.15), rgba(255, 208, 176, 0.15));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        body.dark-mode .chat-empty-icon {
+            background: linear-gradient(135deg, #14b8a6, #3b82f6);
+        }
+
+        .empty-icon-svg {
+            stroke: #ff6b35;
+        }
+
+        body.dark-mode .empty-icon-svg {
+            stroke: #ffffff;
+        }
+
+        .chat-empty-state p {
+            font-size: 14px;
+            color: #9a8070;
+            max-width: 260px;
+            line-height: 1.5;
+        }
+
+        body.dark-mode .chat-empty-state p {
+            color: #6b7280;
+        }
+
+        .image-modal {
+            display: none;
+            position: fixed;
+            z-index: 9999;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(5px);
+        }
+    </style>
+</head>
+
+<body class="dash-body">
+    <!-- Enhanced animated background blobs -->
+    <div class="ai-blob ai-blob-1"></div>
+    <div class="ai-blob ai-blob-2"></div>
+    <div class="ai-blob ai-blob-3"></div>
+
+    <!-- Particles background -->
+    <div id="particles-bg"
+        style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -2; pointer-events: none;"></div>
+
+    <!-- Image Zoom Modal -->
+    <div id="imageModal" class="image-modal" onclick="this.style.display='none'">
+        <span class="image-modal-close"
+            style="position:absolute; top:20px; right:35px; color:#fff; font-size:40px; font-weight:bold; cursor:pointer;">&times;</span>
+        <img class="image-modal-content" id="imgModalTarget"
+            style="margin:auto; display:block; max-width:90%; max-height:90vh; border-radius:8px; box-shadow:0 10px 30px rgba(0,0,0,0.5); margin-top:5vh;">
+    </div>
+
+    <!-- ===== MAIN LAYOUT WRAPPER ===== -->
+    <div class="dash-layout-wrapper">
+        <!-- ===== LEFT SIDEBAR ===== -->
+        <aside class="dash-sidebar" id="dashSidebar">
+            <!-- Sidebar Header -->
+            <div class="sidebar-header">
+                <a href="{{ url_for('dashboard') }}" class="dash-logo-link">
+                    <img src="{{ url_for('static', filename='images/Logo_BR.png') }}" alt="Logo" class="dash-logo-img">
+                </a>
+                <button class="sidebar-toggle-btn" id="sidebarToggle" aria-label="Toggle Sidebar">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="3" y1="12" x2="21" y2="12"></line>
+                        <line x1="3" y1="6" x2="21" y2="6"></line>
+                        <line x1="3" y1="18" x2="21" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+
+            <div class="sidebar-scroll-area">
+                <!-- MENU SECTION -->
+                <div class="sidebar-section">
+                    <span class="section-title">Menu</span>
+                    <nav class="sidebar-nav">
+                        <a href="{{ url_for('dashboard') }}" class="sidebar-item">
+                            <svg class="sidebar-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18"
+                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="3" y="3" width="7" height="7"></rect>
+                                <rect x="14" y="3" width="7" height="7"></rect>
+                                <rect x="14" y="14" width="7" height="7"></rect>
+                                <rect x="3" y="14" width="7" height="7"></rect>
+                            </svg>
+                            <span class="sidebar-text">Dashboard</span>
+                        </a>
+                        <a href="{{ url_for('attendance') }}" class="sidebar-item">
+                            <svg class="sidebar-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18"
+                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                                <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                            </svg>
+                            <span class="sidebar-text">Attendance</span>
+                        </a>
+                        <a href="{{ url_for('recommendations') }}" class="sidebar-item">
+                            <svg class="sidebar-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18"
+                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <polygon
+                                    points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2">
+                                </polygon>
+                            </svg>
+                            <span class="sidebar-text">Recommendation</span>
+                        </a>
+                        <a href="{{ url_for('ai_agent') }}" class="sidebar-item active">
+                            <svg class="sidebar-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18"
+                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="3" y="11" width="18" height="10" rx="2"></rect>
+                                <circle cx="12" cy="5" r="2"></circle>
+                                <path d="M12 7v4"></path>
+                                <line x1="8" y1="16" x2="8" y2="16"></line>
+                                <line x1="16" y1="16" x2="16" y2="16"></line>
+                            </svg>
+                            <span class="sidebar-text">AI Agent</span>
+                        </a>
+                    </nav>
+                </div>
+
+                <!-- GENERAL SECTION -->
+                <div class="sidebar-section">
+                    <span class="section-title">General</span>
+                    <nav class="sidebar-nav">
+                        <a href="{{ url_for('our_team') }}" class="sidebar-item">
+                            <svg class="sidebar-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18"
+                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                                <circle cx="9" cy="7" r="4" />
+                                <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                                <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                            </svg>
+                            <span class="sidebar-text">Our Team</span>
+                        </a>
+                        <a href="{{ url_for('help') }}" class="sidebar-item">
+                            <svg class="sidebar-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18"
+                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                                <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                            </svg>
+                            <span class="sidebar-text">Help</span>
+                        </a>
+                    </nav>
+                </div>
+
+                <!-- VIEW SECTION -->
+                <div class="sidebar-section">
+                    <span class="section-title">View</span>
+                    <div class="sidebar-nav">
+                        <button class="sidebar-item dark-mode-toggle" id="btnDarkMode">
+                            <div class="toggle-icon-wrap">
+                                <svg class="sidebar-icon sun-icon" xmlns="http://www.w3.org/2000/svg" width="18"
+                                    height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                    stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="12" cy="12" r="5"></circle>
+                                    <line x1="12" y1="1" x2="12" y2="3"></line>
+                                    <line x1="12" y1="21" x2="12" y2="23"></line>
+                                    <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                                    <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                                    <line x1="1" y1="12" x2="3" y2="12"></line>
+                                    <line x1="21" y1="12" x2="23" y2="12"></line>
+                                    <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                                    <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                                </svg>
+                                <svg class="sidebar-icon moon-icon" xmlns="http://www.w3.org/2000/svg" width="18"
+                                    height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                    stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                                </svg>
+                            </div>
+                            <span class="sidebar-text">Dark mode (off)</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Profile & Logout -->
+            <div class="sidebar-footer">
+                <a href="{{ url_for('profile') }}" class="sidebar-profile-widget" style="text-decoration:none;">
+                    <div class="dash-avatar">
+                        {% if profile_photo %}
+                        <img src="{{ profile_photo }}" alt="Profile"
+                            style="width:100%;height:100%;object-fit:cover;object-position:center;border-radius:50%;">
+                        {% else %}
+                        <span class="avatar-initials">{{ username[0] | upper }}</span>
+                        {% endif %}
+                    </div>
+                    <div class="profile-info sidebar-text">
+                        <span class="profile-name">{{ username }}</span>
+                    </div>
+                </a>
+                <a href="{{ url_for('logout') }}" class="sidebar-logout-btn" title="Logout">
+                    <svg class="sidebar-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18"
+                        viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                        <polyline points="16 17 21 12 16 7"></polyline>
+                        <line x1="21" y1="12" x2="9" y2="12"></line>
+                    </svg>
+                    <span class="sidebar-text">Logout</span>
+                </a>
+            </div>
+        </aside>
+
+        <!-- ===== MAIN CONTENT AREA ===== -->
+        <main class="dash-main-area">
+            <div class="dash-main-content">
+
+                <!-- ===== TOP PILL HEADER ===== -->
+                <div class="top-header-bar">
+                    <!-- Left: Current Page Name -->
+                    <div class="header-page-title" style="display:flex; align-items:center;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="11" width="18" height="10" rx="2"></rect>
+                            <circle cx="12" cy="5" r="2"></circle>
+                            <path d="M12 7v4"></path>
+                            <line x1="8" y1="16" x2="8" y2="16"></line>
+                            <line x1="16" y1="16" x2="16" y2="16"></line>
+                        </svg>
+                        <span>AI Agent</span>
+                    </div>
+
+                    <!-- Right: Actions + Profile -->
+                    <div class="header-actions">
+                        <!-- Messages -->
+                        <div class="header-popup-wrap" id="msgWrap">
+                            <button class="header-action-btn" id="headerBtnMsg" aria-label="Messages" title="Messages">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                    stroke-linejoin="round">
+                                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                                </svg>
+                            </button>
+                            <div class="header-popup" id="msgPopup">
+                                <div class="popup-empty">
+                                    <span class="popup-icon">💬</span>
+                                    <span class="popup-msg">No messages right now</span>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Notifications -->
+                        <div class="header-popup-wrap" id="notifWrap">
+                            <button class="header-action-btn has-notif" id="headerBtnNotif" aria-label="Notifications"
+                                title="Notifications">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                    stroke-linejoin="round">
+                                    <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" />
+                                    <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
+                                </svg>
+                                <span class="header-notif-dot"></span>
+                            </button>
+                            <div class="header-popup" id="notifPopup">
+                                <div class="popup-empty">
+                                    <span class="popup-icon">🔔</span>
+                                    <span class="popup-msg">No notifications right now</span>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Profile info -->
+                        <a href="{{ url_for('profile') }}" class="header-profile" style="text-decoration:none;">
+                            <div class="header-avatar">
+                                {% if profile_photo %}
+                                <img src="{{ profile_photo }}" alt="Profile"
+                                    style="width:100%;height:100%;object-fit:cover;object-position:center;border-radius:50%;">
+                                {% else %}
+                                <span class="avatar-initials">{{ username[0] | upper }}</span>
+                                {% endif %}
+                            </div>
+                            <div class="header-profile-info">
+                                <span class="header-profile-name">{{ username }}</span>
+                                <span class="header-profile-email">{{ email }}</span>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Welcome Heading -->
+                <div class="dash-welcome">
+                    <h1 class="dash-welcome-text">Your University <span class="welcome-name">AI Agent</span></h1>
+                    <p class="dash-welcome-sub">Ask me anything about your courses, professors, exam tips, study
+                        plans, and all aspects of your university journey. I'm here to help you succeed!</p>
+                </div>
+
+            </div>
+
+            <!-- ===== AI MAIN LAYOUT (Sidebar + Chat) ===== -->
+            <div class="ai-main-layout">
+                <!-- Previous Chats Sidebar -->
+                <div class="ai-history-sidebar" id="aiHistorySidebar">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                        <div class="history-title" style="margin-bottom:0px;">Conversations</div>
+                        <div style="display:flex; gap:4px;">
+                            <button id="newChatBtn" class="new-chat-btn" title="New Chat">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                                    fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+                                    stroke-linejoin="round">
+                                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="historyList">
+                        <!-- Populated by JavaScript -->
+                    </div>
+                </div>
+
+                <!-- ===== CHAT BLOCK WITH GLOWING BORDER ===== -->
+                <div class="chat-glow-wrap" style="flex: 1; min-width: 0;">
+                    <div class="chat-outer" style="height: 600px;">
+                        <!-- Messages window -->
+                        <div class="chat-window" id="chatWindow">
+                            <!-- Empty state shown when no messages -->
+                            <div class="chat-empty-state" id="emptyState">
+                                <div class="chat-empty-icon">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24"
+                                        fill="none" class="empty-icon-svg" stroke-width="2" stroke-linecap="round"
+                                        stroke-linejoin="round">
+                                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                                    </svg>
+                                </div>
+                                <p>Start a conversation! Ask me anything about your university, courses, or professors.
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Input area -->
+                        <div class="chat-input-area">
+                            <!-- File preview bar -->
+                            <div class="file-preview-bar" id="filePreviewBar">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
+                                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                    stroke-linejoin="round">
+                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                    <polyline points="14 2 14 8 20 8"></polyline>
+                                </svg>
+                                <span class="file-preview-name" id="filePreviewName">file.pdf</span>
+                                <button class="file-preview-remove" id="fileRemoveBtn" title="Remove file">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24"
+                                        fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+                                        stroke-linejoin="round">
+                                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                                    </svg>
+                                </button>
+                            </div>
+
+                            <!-- Input row -->
+                            <div class="chat-input-row">
+                                <textarea id="chatTextInput" placeholder="Ask about courses, professors, exams…"
+                                    rows="1" aria-label="Chat input"></textarea>
+
+                                <!-- Attach file button -->
+                                <button class="chat-action-btn chat-attach-btn" id="attachBtn" title="Attach a file"
+                                    aria-label="Attach file">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                        stroke-linejoin="round">
+                                        <path
+                                            d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48">
+                                        </path>
+                                    </svg>
+                                </button>
+
+                                <!-- Hidden file input -->
+                                <input type="file" id="fileInput" style="display:none;"
+                                    accept=".pdf,.doc,.docx,.txt,.png,.jpg,.jpeg">
+
+                                <!-- Send button -->
+                                <button class="chat-action-btn chat-send-btn" id="sendBtn" title="Send message"
+                                    aria-label="Send message" disabled>
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                                        fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+                                        stroke-linejoin="round">
+                                        <line x1="22" y1="2" x2="11" y2="13"></line>
+                                        <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                                    </svg>
+                                </button>
+                            </div>
+
+                            <!-- Hint bar -->
+                            <div class="chat-hints-row" style="margin-top:4px; justify-content: space-between;">
+                                <span class="chat-hint-label">Enter to send · Shift+Enter for new line</span>
+                                <div style="display:flex; gap: 8px; align-items: center;">
+                                    <button class="clear-chat-btn" id="clearChatBtn" title="Clear conversation">Clear
+                                        chat</button>
+                                    <button class="clear-chat-btn" id="fullscreenBtn" title="Fullscreen"
+                                        style="padding: 4px 8px;">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13"
+                                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                                            stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M8 3H5a2 2 0 0 0-2 2v3"></path>
+                                            <path d="M21 8V5a2 2 0 0 0-2-2h-3"></path>
+                                            <path d="M3 16v3a2 2 0 0 0 2 2h3"></path>
+                                            <path d="M16 21h3a2 2 0 0 0 2-2v-3"></path>
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div> <!-- End chat-outer -->
+
+                    <!-- ===== COMMON QUESTIONS ===== -->
+                    <div class="common-qs-section" style="margin-top: 16px; padding: 0 16px 16px 16px;">
+                        <div class="common-qs-title">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+                                stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                                <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                            </svg>
+                            Common Questions
+                        </div>
+                        <div class="qs-grid">
+                            <button class="qs-chip" data-q="What are the easiest courses I can take this semester?">
+                                <span class="qs-chip-icon">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                                        fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+                                        stroke-linejoin="round">
+                                        <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"></path>
+                                    </svg>
+                                </span>
+                                What are the easiest courses I can take this semester?
+                            </button>
+                            <button class="qs-chip" data-q="How do I prepare for a calculus exam effectively?">
+                                <span class="qs-chip-icon">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                                        fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+                                        stroke-linejoin="round">
+                                        <polygon
+                                            points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2">
+                                        </polygon>
+                                    </svg>
+                                </span>
+                                How do I prepare for a calculus exam effectively?
+                            </button>
+                            <button class="qs-chip"
+                                data-q="Which professors are known for being the most helpful and supportive?">
+                                <span class="qs-chip-icon">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                                        fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+                                        stroke-linejoin="round">
+                                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                                        <circle cx="9" cy="7" r="4"></circle>
+                                        <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                                        <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                                    </svg>
+                                </span>
+                                Which professors are the most helpful and supportive?
+                            </button>
+                            <button class="qs-chip" data-q="What resources can I use to improve my GPA?">
+                                <span class="qs-chip-icon">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                                        fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+                                        stroke-linejoin="round">
+                                        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+                                    </svg>
+                                </span>
+                                What resources can I use to improve my GPA?
+                            </button>
+                            <button class="qs-chip" data-q="Can you summarize the key topics in Linear Algebra?">
+                                <span class="qs-chip-icon">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                                        fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+                                        stroke-linejoin="round">
+                                        <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+                                        <polyline points="2 17 12 22 22 17"></polyline>
+                                        <polyline points="2 12 12 17 22 12"></polyline>
+                                    </svg>
+                                </span>
+                                Can you summarize key topics in Linear Algebra?
+                            </button>
+                            <button class="qs-chip"
+                                data-q="What is the difference between Probability Theory 1 and Probability Theory 2?">
+                                <span class="qs-chip-icon">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                                        fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+                                        stroke-linejoin="round">
+                                        <circle cx="12" cy="12" r="10"></circle>
+                                        <line x1="12" y1="8" x2="12" y2="12"></line>
+                                        <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                                    </svg>
+                                </span>
+                                Difference between Probability Theory 1 and 2?
+                            </button>
+                        </div>
+                    </div>
+                </div> <!-- End chat-glow-wrap -->
+            </div> <!-- End ai-main-layout -->
+
+            <div style="height: 40px;"></div>
+        </main>
+    </div>
+
+    <!-- ===== SCRIPTS ===== -->
+    <script>
+        // ─── Dark Mode ───────────────────────────────────────────────
+        const darkModeBtn = document.getElementById('btnDarkMode');
+        const darkModeLabel = darkModeBtn ? darkModeBtn.querySelector('.sidebar-text') : null;
+        const isDarkInitial = localStorage.getItem('theme') === 'dark';
+
+        function updateDarkModeUI(isDark) {
+            if (darkModeLabel) darkModeLabel.textContent = isDark ? 'Dark mode (on)' : 'Dark mode (off)';
+        }
+
+        if (isDarkInitial) {
+            document.body.classList.add('dark-mode');
+            updateDarkModeUI(true);
+        }
+
+        let particlesContainer = null;
+
+        function initParticles(isDark) {
+            tsParticles.load("particles-bg", {
+                fpsLimit: 60,
+                particles: {
+                    color: { value: isDark ? ["#e8c547", "#ff6b35", "#80706a"] : ["#ff6b35", "#ffc5d0", "#ffffff"] },
+                    move: { enable: true, direction: "top", random: true, speed: 0.6, straight: false },
+                    number: { density: { enable: true, area: 800 }, value: 100 },
+                    opacity: { value: { min: 0.2, max: 0.6 }, animation: { enable: true, speed: 0.8, minimumValue: 0.1 } },
+                    shape: { type: "circle" },
+                    size: { value: { min: 2, max: 8 }, animation: { enable: true, speed: 1.5, minimumValue: 2 } }
+                }
+            }).then(c => particlesContainer = c);
+        }
+
+        initParticles(isDarkInitial);
+
+        if (darkModeBtn) {
+            darkModeBtn.addEventListener('click', () => {
+                const isDark = document.body.classList.toggle('dark-mode');
+                localStorage.setItem('theme', isDark ? 'dark' : 'light');
+                updateDarkModeUI(isDark);
+                if (particlesContainer) { particlesContainer.destroy(); initParticles(isDark); }
+            });
+        }
+
+        // ─── Sidebar Toggle ──────────────────────────────────────────
+        const sidebarToggle = document.getElementById('sidebarToggle');
+        const sidebar = document.getElementById('dashSidebar');
+        if (sidebarToggle && sidebar) {
+            sidebarToggle.addEventListener('click', () => sidebar.classList.toggle('collapsed'));
+        }
+
+        // ─── Header Popups ───────────────────────────────────────────
+        function setupPopup(btnId, popupId) {
+            const btn = document.getElementById(btnId);
+            const popup = document.getElementById(popupId);
+            if (!btn || !popup) return;
+            btn.addEventListener('click', e => {
+                e.stopPropagation();
+                document.querySelectorAll('.header-popup.open').forEach(p => { if (p !== popup) p.classList.remove('open'); });
+                popup.classList.toggle('open');
+            });
+        }
+
+        setupPopup('headerBtnMsg', 'msgPopup');
+        setupPopup('headerBtnNotif', 'notifPopup');
+
+        document.addEventListener('click', () => {
+            document.querySelectorAll('.header-popup.open').forEach(p => p.classList.remove('open'));
+        });
+
+        // ─── Chat Logic ──────────────────────────────────────────────
+        const chatWindow = document.getElementById('chatWindow');
+        const chatInput = document.getElementById('chatTextInput');
+        const sendBtn = document.getElementById('sendBtn');
+        const clearBtn = document.getElementById('clearChatBtn');
+        const fullscreenBtn = document.getElementById('fullscreenBtn');
+        const attachBtn = document.getElementById('attachBtn');
+        const fileInput = document.getElementById('fileInput');
+        const filePreviewBar = document.getElementById('filePreviewBar');
+        const filePreviewName = document.getElementById('filePreviewName');
+        const fileRemoveBtn = document.getElementById('fileRemoveBtn');
+        const emptyState = document.getElementById('emptyState');
+        const aiHistorySidebar = document.getElementById('aiHistorySidebar');
+
+        function openImageModal(src) {
+            const modal = document.getElementById('imageModal');
+            document.getElementById('imgModalTarget').src = src;
+            modal.style.display = 'block';
+        }
+
+        let attachedFile = null;
+        const userInitials = "{{ username[0] | upper }}";
+        const profilePhoto = "{{ profile_photo or '' }}";
+
+        // Auto-grow textarea
+        chatInput.addEventListener('input', () => {
+            chatInput.style.height = 'auto';
+            chatInput.style.height = Math.min(chatInput.scrollHeight, 96) + 'px';
+            sendBtn.disabled = chatInput.value.trim().length === 0 && !attachedFile;
+        });
+
+        // Send on Enter (Shift+Enter = newline)
+        chatInput.addEventListener('keydown', e => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                if (!sendBtn.disabled) sendMessage();
+            }
+        });
+
+        sendBtn.addEventListener('click', sendMessage);
+
+        // File attach
+        attachBtn.addEventListener('click', () => fileInput.click());
+
+        fileInput.addEventListener('change', () => {
+            const file = fileInput.files[0];
+            if (!file) return;
+            attachedFile = file;
+            filePreviewName.textContent = file.name;
+            filePreviewBar.classList.add('active');
+            sendBtn.disabled = false;
+            fileInput.value = '';
+        });
+
+        fileRemoveBtn.addEventListener('click', () => {
+            attachedFile = null;
+            filePreviewBar.classList.remove('active');
+        });
+
+        function handleClipboardImagePaste(event) {
+            const items = event.clipboardData && event.clipboardData.items ? Array.from(event.clipboardData.items) : [];
+            const imageItem = items.find(item => item.kind === 'file' && item.type && item.type.startsWith('image/'));
+            if (!imageItem) return false;
+
+            const blob = imageItem.getAsFile();
+            if (!blob) return false;
+
+            const fileName = blob.name && blob.name.trim()
+                ? blob.name
+                : `pasted-image-${Date.now()}.png`;
+
+            attachedFile = new File([blob], fileName, { type: blob.type || 'image/png' });
+            filePreviewName.textContent = attachedFile.name;
+            filePreviewBar.classList.add('active');
+            sendBtn.disabled = false;
+            return true;
+        }
+
+        chatInput.addEventListener('paste', event => {
+            if (handleClipboardImagePaste(event)) {
+                event.preventDefault();
+                chatInput.dispatchEvent(new Event('input'));
+                chatInput.focus();
+            }
+        });
+
+        // Clear chat
+        clearBtn.addEventListener('click', () => {
+            activeResponseToken++;
+            removeTyping();
+
+            const msgs = chatWindow.querySelectorAll('.msg-row, .msg-row.user');
+            msgs.forEach(m => m.remove());
+            emptyState.style.display = 'flex';
+
+            chats[currentChatId] = [];
+            isFirstMessage = true;
+
+            attachedFile = null;
+            filePreviewBar.classList.remove('active');
+            chatInput.value = '';
+            chatInput.style.height = 'auto';
+            sendBtn.disabled = true;
+
+            saveToLocal();
+            renderHistoryList();
+            loadChat(currentChatId);
+        });
+
+        // Fullscreen toggle — expands layout and collapses sidebar
+        let isFullscreen = false;
+        if (fullscreenBtn) {
+            fullscreenBtn.addEventListener('click', () => {
+                isFullscreen = !isFullscreen;
+                const sidebar = document.getElementById('dashSidebar');
+                if (isFullscreen) {
+                    document.body.classList.add('chat-fullscreen-mode');
+                    if (sidebar && !sidebar.classList.contains('collapsed')) {
+                        sidebar.classList.add('collapsed');
+                        sidebar.dataset.wasOpen = 'true';
+                    }
+                    fullscreenBtn.title = 'Exit Fullscreen';
+                    fullscreenBtn.querySelector('svg').innerHTML = '<path d="M8 3v3a2 2 0 0 1-2 2H3"></path><path d="M21 8h-3a2 2 0 0 1-2-2V3"></path><path d="M3 16h3a2 2 0 0 1 2 2v3"></path><path d="M16 21v-3a2 2 0 0 1 2-2h3"></path>';
+                } else {
+                    document.body.classList.remove('chat-fullscreen-mode');
+                    if (sidebar && sidebar.dataset.wasOpen === 'true') {
+                        sidebar.classList.remove('collapsed');
+                        sidebar.dataset.wasOpen = 'false';
+                    }
+                    fullscreenBtn.title = 'Fullscreen';
+                    fullscreenBtn.querySelector('svg').innerHTML = '<path d="M8 3H5a2 2 0 0 0-2 2v3"></path><path d="M21 8V5a2 2 0 0 0-2-2h-3"></path><path d="M3 16v3a2 2 0 0 0 2 2h3"></path><path d="M16 21h3a2 2 0 0 0 2-2v-3"></path>';
+                }
+            });
+        }
+
+        function getTime() {
+            const now = new Date();
+            let hours = now.getHours();
+            let minutes = now.getMinutes();
+            const ampm = hours >= 12 ? 'PM' : 'AM';
+            hours = hours % 12;
+            hours = hours ? hours : 12;
+            minutes = minutes < 10 ? '0' + minutes : minutes;
+            return hours + ':' + minutes + ' ' + ampm;
+        }
+
+        function makeUserAvatar() {
+            if (profilePhoto) {
+                return `<div class="msg-avatar user-av"><img src="${profilePhoto}" alt="You"></div>`;
+            }
+            return `<div class="msg-avatar user-av">${userInitials}</div>`;
+        }
+
+        const currentUserName = "{{ username }}";
+        const storageKey = `ai_chats_${currentUserName}`;
+
+        const chatStateApi = "{{ url_for('ai_chat_state') }}";
+        const chatAttachmentApi = "{{ url_for('upload_ai_chat_attachment') }}";
+
+        let chats = { 'chat_1': [] };
+        let chatCounter = 1;
+        let currentChatId = 'chat_1';
+        let isFirstMessage = true;
+        let chatSaveTimeout = null;
+        let activeResponseToken = 0;
+
+        function getLocalChatState() {
+            let localChats = { 'chat_1': [] };
+            let localCounter = 1;
+            let localCurrentId = 'chat_1';
+
+            try {
+                localChats = JSON.parse(localStorage.getItem(storageKey)) || { 'chat_1': [] };
+                localCounter = parseInt(localStorage.getItem(storageKey + '_counter')) || 1;
+                localCurrentId = localStorage.getItem(storageKey + '_currentId') || 'chat_1';
+            } catch (_error) {
+                localChats = { 'chat_1': [] };
+                localCounter = 1;
+                localCurrentId = 'chat_1';
+            }
+
+            return {
+                chats: localChats,
+                chatCounter: localCounter,
+                currentChatId: localCurrentId
+            };
+        }
+
+        function ensureChatStateSafety() {
+            if (!chats || typeof chats !== 'object') chats = { 'chat_1': [] };
+            if (Object.keys(chats).length === 0) chats = { 'chat_1': [] };
+
+            if (!chats[currentChatId]) {
+                currentChatId = Object.keys(chats)[0] || 'chat_1';
+            }
+
+            if (!chats[currentChatId]) {
+                chats[currentChatId] = [];
+            }
+
+            if (!Number.isFinite(chatCounter) || chatCounter < 1) {
+                chatCounter = 1;
+            }
+        }
+
+        function hasAnyMeaningfulChatData() {
+            const ids = Object.keys(chats);
+            if (ids.length > 1) return true;
+            const firstId = ids[0];
+            const firstChat = firstId ? chats[firstId] : null;
+            return Array.isArray(firstChat) && firstChat.length > 0;
+        }
+
+        async function saveToServer() {
+            try {
+                await fetch(chatStateApi, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ chats, chatCounter, currentChatId })
+                });
+            } catch (error) {
+                console.warn('Failed to sync chats to server:', error);
+            }
+        }
+
+        function scheduleServerSave() {
+            if (chatSaveTimeout) {
+                clearTimeout(chatSaveTimeout);
+            }
+            chatSaveTimeout = setTimeout(() => {
+                saveToServer();
+            }, 250);
+        }
+
+        function saveToLocal() {
+            localStorage.setItem(storageKey, JSON.stringify(chats));
+            localStorage.setItem(storageKey + '_counter', chatCounter.toString());
+            localStorage.setItem(storageKey + '_currentId', currentChatId);
+            scheduleServerSave();
+        }
+
+        async function initializeChatState() {
+            const localState = getLocalChatState();
+            chats = localState.chats;
+            chatCounter = localState.chatCounter;
+            currentChatId = localState.currentChatId;
+
+            ensureChatStateSafety();
+
+            try {
+                const response = await fetch(chatStateApi, { method: 'GET' });
+                if (response.ok) {
+                    const payload = await response.json();
+                    if (payload.success && payload.state && typeof payload.state === 'object') {
+                        chats = payload.state.chats || { 'chat_1': [] };
+                        chatCounter = parseInt(payload.state.chatCounter) || 1;
+                        currentChatId = payload.state.currentChatId || 'chat_1';
+                    } else if (hasAnyMeaningfulChatData()) {
+                        saveToServer();
+                    }
+                }
+            } catch (error) {
+                console.warn('Failed to load chats from server, using local data:', error);
+            }
+
+            ensureChatStateSafety();
+            saveToLocal();
+            renderHistoryList();
+            loadChat(currentChatId);
+        }
+
+        function renderHistoryList() {
+            const hList = document.getElementById('historyList');
+
+            // Sort by chat ID number to ensure proper historical reverse order
+            const sortedIds = Object.keys(chats).sort((a, b) => {
+                const numA = parseInt(a.replace('chat_', ''));
+                const numB = parseInt(b.replace('chat_', ''));
+                return numB - numA;
+            });
+
+            hList.innerHTML = sortedIds.map(id => {
+                const chatData = chats[id];
+                const firstUserMsg = chatData.find(m => m.sender === 'user');
+                const customTitle = chats[id]._title;
+                const title = customTitle || (firstUserMsg ? firstUserMsg.text : 'New Conversation');
+                const displayTitle = title.split('\n').map(l => l.trim()).find(l => l.length > 0) || title.split('\n')[0] || 'New Conversation';
+                const isActive = id === currentChatId;
+                return `
+                <div class="history-item ${isActive ? 'active' : ''}" data-id="${id}" style="min-width:0;">
+                    <span class="history-icon" style="display: flex; align-items: center; justify-content: center; margin-right: 4px;" onclick="loadChat('${id}')">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                        </svg>
+                    </span>
+                    <span class="conv-title-text" id="conv-title-${id}" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;flex:1;cursor:pointer;outline:none;" onclick="loadChat('${id}')">${escHtmlTitle(displayTitle)}</span>
+                    <button class="conv-menu-btn" title="Options" onclick="event.stopPropagation(); toggleConvMenu('${id}', this)">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                            <circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/>
+                        </svg>
+                    </button>
+                    <div class="conv-dropdown" id="conv-drop-${id}">
+                        <div class="conv-dropdown-item" onclick="renameChat('${id}')">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                            Rename
+                        </div>
+                        <div class="conv-dropdown-item danger" onclick="deleteChat('${id}')">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+                            Delete
+                        </div>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        function toggleConvMenu(id, btn) {
+            document.querySelectorAll('.conv-dropdown').forEach(d => {
+                if (d.id !== 'conv-drop-' + id) d.classList.remove('open');
+            });
+            document.getElementById('conv-drop-' + id).classList.toggle('open');
+        }
+
+        function renameChat(id) {
+            document.querySelectorAll('.conv-dropdown').forEach(d => d.classList.remove('open'));
+            const span = document.getElementById('conv-title-' + id);
+            const btnContainer = span.nextElementSibling;
+            const isDark = document.body.classList.contains('dark-mode');
+
+            // Preserve original title with newlines during editing
+            const originalTitle = chats[id]._title || span.innerText;
+            span.innerText = originalTitle;
+            span.contentEditable = 'true';
+
+            // Adjust layout to remove dots and truncation
+            span.style.textOverflow = 'clip';
+            span.style.overflow = 'visible';
+            span.style.whiteSpace = 'pre-wrap';
+            span.style.wordBreak = 'break-word';
+            span.style.background = isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.06)';
+            span.style.borderRadius = '4px';
+            span.style.padding = '2px 4px';
+            span.style.margin = '-2px -4px'; // Offset for padding
+            btnContainer.style.display = 'none'; // Hide the 3 dots button
+
+            // Move cursor to end
+            const selection = window.getSelection();
+            const range = document.createRange();
+            range.selectNodeContents(span);
+            range.collapse(false);
+            selection.removeAllRanges();
+            selection.addRange(range);
+            span.focus();
+
+            // Handle save on blur or enter key
+            const saveFunc = function (e) {
+                if (e.type === 'keydown') {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault(); // save and exit
+                    } else {
+                        return; // ignore shift+enter or other keys
+                    }
+                }
+
+                span.contentEditable = 'false';
+                span.blur();
+
+                // Revert styling
+                span.style.background = 'transparent';
+                span.style.padding = '0';
+                span.style.margin = '0';
+                span.style.textOverflow = 'ellipsis';
+                span.style.overflow = 'hidden';
+                span.style.whiteSpace = 'nowrap';
+                btnContainer.style.display = '';
+
+                const newName = span.innerText.trim();
+                if (newName) {
+                    chats[id]._title = newName;
+                    saveToLocal();
+                } else {
+                    renderHistoryList(); // Revert back if empty
+                }
+
+                span.removeEventListener('blur', saveFunc);
+                span.removeEventListener('keydown', saveFunc);
+            };
+
+            span.addEventListener('blur', saveFunc);
+            span.addEventListener('keydown', saveFunc);
+        }
+
+        function deleteChat(id) {
+            document.querySelectorAll('.conv-dropdown').forEach(d => d.classList.remove('open'));
+            delete chats[id];
+
+            const remaining = Object.keys(chats);
+            if (remaining.length === 0) {
+                chatCounter++;
+                const newId = 'chat_' + chatCounter;
+                chats[newId] = [];
+                currentChatId = newId;
+            } else if (id === currentChatId) {
+                // Determine new chat by grabbing the one with highest index
+                const sortedRemaining = remaining.sort((a, b) => parseInt(b.replace('chat_', '')) - parseInt(a.replace('chat_', '')));
+                currentChatId = sortedRemaining[0];
+            }
+            saveToLocal();
+            renderHistoryList();
+            loadChat(currentChatId);
+        }
+
+        // Close dropdowns on outside click
+        document.addEventListener('click', () => {
+            document.querySelectorAll('.conv-dropdown').forEach(d => d.classList.remove('open'));
+        });
+
+        function loadChat(id) {
+            currentChatId = id;
+            saveToLocal();
+            document.querySelectorAll('.history-item').forEach(el => {
+                el.classList.toggle('active', el.dataset.id === id);
+            });
+            const msgs = chatWindow.querySelectorAll('.msg-row');
+            msgs.forEach(m => m.remove());
+
+            if (chats[id].length === 0) {
+                isFirstMessage = true;
+                emptyState.style.display = 'flex';
+            } else {
+                isFirstMessage = false;
+                emptyState.style.display = 'none';
+                let hasMigration = false;
+                chats[id].forEach((msg, messageIndex) => {
+                    const normalizedFileHtml = normalizeLegacyFileHtml(msg.fileHTML);
+                    if (normalizedFileHtml !== msg.fileHTML) {
+                        msg.fileHTML = normalizedFileHtml;
+                        hasMigration = true;
+                    }
+                    appendMessage(msg.text, msg.sender, msg.time, normalizedFileHtml, false, messageIndex, id);
+                });
+                if (hasMigration) saveToLocal();
+                chatWindow.scrollTop = chatWindow.scrollHeight;
+            }
+        }
+
+        function appendMessage(text, sender, time = null, passedFileHtml = null, save = true, existingIndex = null, chatId = null) {
+            // Hide empty state
+            emptyState.style.display = 'none';
+            const msgTime = time || getTime();
+            const targetChatId = chatId || currentChatId;
+            const messageIndex = save ? chats[targetChatId].length : (typeof existingIndex === 'number' ? existingIndex : -1);
+
+            const row = document.createElement('div');
+            row.className = 'msg-row' + (sender === 'user' ? ' user' : '');
+
+            const aiLogo = `<svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/><path d="M5 3v4"/><path d="M19 17v4"/><path d="M3 5h4"/><path d="M17 19h4"/></svg>`;
+
+            const avatarHtml = sender === 'user'
+                ? makeUserAvatar()
+                : `<div class="msg-avatar ai-av">${aiLogo}</div>`;
+
+            const bubbleClass = sender === 'user' ? 'user-bubble' : 'ai-bubble';
+
+            // Attach file mention
+            let fileHtml = passedFileHtml !== null ? passedFileHtml : '';
+            if (sender === 'user' && attachedFile && passedFileHtml === null) {
+                const fileUrl = URL.createObjectURL(attachedFile);
+                fileHtml = buildDocumentAttachmentHtml(attachedFile.name, fileUrl);
+            }
+
+            const attachmentWrapHtml = fileHtml ? `<div class="msg-attachment-wrap">${fileHtml}</div>` : '';
+
+            const alignStyle = sender === 'user' ? 'align-items: flex-end;' : 'align-items: flex-start;';
+            const actionsHtml = sender === 'user' && (text || fileHtml)
+                ? `<div class="msg-actions" data-chat-id="${targetChatId}" data-message-index="${messageIndex}">
+                        <button class="msg-action-btn msg-copy-btn" type="button" title="Copy message" aria-label="Copy message">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                        </button>
+                        <button class="msg-action-btn msg-rename-btn" type="button" title="Edit message" aria-label="Edit message">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 1 1 3 3L7 19l-4 1 1-4 12.5-12.5z"></path></svg>
+                        </button>
+                   </div>`
+                : '';
+
+            row.innerHTML = `
+                ${avatarHtml}
+                <div style="display: flex; flex-direction: column; max-width: 82%; ${alignStyle}">
+                    ${attachmentWrapHtml}
+                    ${text ? `<div class="msg-bubble ${bubbleClass}">${escHtml(text)}</div>` : ''}
+                    ${actionsHtml}
+                    <span class="msg-time">${msgTime}</span>
+                </div>`;
+
+            chatWindow.appendChild(row);
+            if (save) chatWindow.scrollTop = chatWindow.scrollHeight;
+
+            if (save) {
+                const wasFirst = isFirstMessage;
+                chats[targetChatId].push({ text, sender, time: msgTime, fileHTML: fileHtml });
+                saveToLocal();
+                if (wasFirst && sender === 'user') {
+                    isFirstMessage = false;
+                    renderHistoryList();
+                }
+            }
+        }
+
+        chatWindow.addEventListener('click', async (event) => {
+            const copyBtn = event.target.closest('.msg-copy-btn');
+            const renameBtn = event.target.closest('.msg-rename-btn');
+            if (!copyBtn && !renameBtn) return;
+
+            const actionWrap = event.target.closest('.msg-actions');
+            if (!actionWrap) return;
+
+            const actionChatId = actionWrap.dataset.chatId || currentChatId;
+            const actionIndex = parseInt(actionWrap.dataset.messageIndex || '-1');
+            if (!chats[actionChatId] || actionIndex < 0 || !chats[actionChatId][actionIndex]) return;
+
+            const targetMessage = chats[actionChatId][actionIndex];
+
+            if (copyBtn) {
+                const textToCopy = targetMessage.text || '';
+                if (!textToCopy) return;
+                try {
+                    await navigator.clipboard.writeText(textToCopy);
+                } catch (_error) {
+                    const tempArea = document.createElement('textarea');
+                    tempArea.value = textToCopy;
+                    document.body.appendChild(tempArea);
+                    tempArea.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(tempArea);
+                }
+
+                const originalIcon = copyBtn.innerHTML;
+                copyBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg> Copied`;
+                copyBtn.classList.add('copied');
+
+                if (copyBtn._copiedTimeout) {
+                    clearTimeout(copyBtn._copiedTimeout);
+                }
+                copyBtn._copiedTimeout = setTimeout(() => {
+                    copyBtn.classList.remove('copied');
+                    copyBtn.innerHTML = originalIcon;
+                }, 1500);
+                return;
+            }
+
+            if (renameBtn) {
+                activateInlineRename(actionWrap, actionChatId, actionIndex, targetMessage);
+            }
+        });
+
+        function appendTyping() {
+            const row = document.createElement('div');
+            row.className = 'msg-row';
+            row.id = 'typingRow';
+            const aiLogo = `<svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/><path d="M5 3v4"/><path d="M19 17v4"/><path d="M3 5h4"/><path d="M17 19h4"/></svg>`;
+
+            row.innerHTML = `
+                <div class="msg-avatar ai-av">${aiLogo}</div>
+                <div class="typing-indicator" style="align-self: flex-start;">
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
+                </div>`;
+            chatWindow.appendChild(row);
+            chatWindow.scrollTop = chatWindow.scrollHeight;
+        }
+
+        function removeTyping() {
+            const row = document.getElementById('typingRow');
+            if (row) row.remove();
+        }
+
+        function escHtml(text) {
+            return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;').replace(/\n/g, '<br>');
+        }
+
+        function escHtmlTitle(text) {
+            return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;').replace(/\n/g, ' ');
+        }
+
+        function openAttachmentFile(fileUrl) {
+            if (!fileUrl) return;
+            window.open(fileUrl, '_blank');
+        }
+
+        function buildDocumentAttachmentHtml(fileName, fileUrl) {
+            return `<div class="msg-file-card" title="Click to open" data-file-url="${fileUrl}" onclick="openAttachmentFile(this.dataset.fileUrl)">
+                <div class="msg-file-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                </div>
+                <div class="msg-file-meta">
+                    <span class="msg-file-name">${escHtmlTitle(fileName)}</span>
+                    <span class="msg-file-type">Document</span>
+                </div>
+            </div>`;
+        }
+
+        function buildImageAttachmentHtml(fileName, fileUrl) {
+            return `<div style="margin-bottom:8px;">
+                <img src="${fileUrl}" alt="${escHtmlTitle(fileName)}" style="max-width:200px; max-height: 200px; border-radius:8px; cursor:zoom-in; object-fit:cover; border: 2px solid rgba(255,255,255,0.2);" onclick="openImageModal(this.src)">
+            </div>`;
+        }
+
+        function buildVideoAttachmentHtml(fileName, fileUrl) {
+            return `<div style="margin-bottom:8px;">
+                <video controls style="max-width:260px; max-height:220px; border-radius:8px; display:block; border: 2px solid rgba(255,255,255,0.2);">
+                    <source src="${fileUrl}">
+                    Your browser does not support the video tag.
+                </video>
+                <div style="font-size:11px; margin-top:4px; opacity:0.85;">${escHtmlTitle(fileName)}</div>
+            </div>`;
+        }
+
+        async function uploadChatAttachment(file) {
+            const formData = new FormData();
+            formData.append('file', file);
+
+            const response = await fetch(chatAttachmentApi, {
+                method: 'POST',
+                body: formData
+            });
+
+            const payload = await response.json().catch(() => ({}));
+            if (!response.ok || !payload.success) {
+                const message = payload.message || 'Attachment upload failed';
+                throw new Error(message);
+            }
+
+            return {
+                fileName: payload.fileName || file.name || 'Attachment',
+                fileUrl: payload.fileUrl || '',
+                mimeType: payload.mimeType || file.type || ''
+            };
+        }
+
+        function buildUploadedAttachmentHtml(uploadedAttachment) {
+            const mimeType = uploadedAttachment.mimeType || '';
+            if (mimeType.startsWith('image/')) {
+                return buildImageAttachmentHtml(uploadedAttachment.fileName, uploadedAttachment.fileUrl);
+            }
+
+            if (mimeType.startsWith('video/')) {
+                return buildVideoAttachmentHtml(uploadedAttachment.fileName, uploadedAttachment.fileUrl);
+            }
+
+            return buildDocumentAttachmentHtml(uploadedAttachment.fileName, uploadedAttachment.fileUrl);
+        }
+
+        function activateInlineRename(actionWrap, actionChatId, actionIndex, targetMessage) {
+            const row = actionWrap.closest('.msg-row');
+            if (!row) return;
+            const wrapper = actionWrap.parentElement;
+            if (!wrapper) return;
+            const bubble = wrapper.querySelector('.msg-bubble.user-bubble');
+            if (wrapper.querySelector('.msg-rename-inline')) return;
+            const originalAttachmentWrap = wrapper.querySelector('.msg-attachment-wrap');
+
+            const originalText = targetMessage.text || '';
+            const bubbleWidth = bubble ? bubble.offsetWidth : (wrapper.offsetWidth || 620);
+            const defaultEditWidth = 760;
+            const originalWrapperWidth = wrapper.style.width;
+            const originalFileHtml = targetMessage.fileHTML || '';
+            let editedFileHtml = originalFileHtml;
+
+            if (bubble) bubble.style.display = 'none';
+            if (originalAttachmentWrap) originalAttachmentWrap.style.display = '';
+            actionWrap.style.display = 'none';
+            wrapper.style.width = '80%';
+
+            const renameWrap = document.createElement('div');
+            renameWrap.className = 'msg-rename-inline';
+            renameWrap.style.width = Math.max(defaultEditWidth, bubbleWidth) + 'px';
+            renameWrap.style.maxWidth = '100%';
+
+            renameWrap.innerHTML = `
+                <textarea class="msg-rename-input" aria-label="Edit message"></textarea>
+                <span class="msg-rename-error">Message cannot be empty. Add text or attachment.</span>
+                <div class="msg-rename-controls">
+                    <button type="button" class="msg-rename-btn-inline cancel">Cancel</button>
+                    <button type="button" class="msg-rename-btn-inline primary save">Send</button>
+                </div>
+            `;
+            wrapper.insertBefore(renameWrap, actionWrap.nextSibling);
+
+            const input = renameWrap.querySelector('.msg-rename-input');
+            const error = renameWrap.querySelector('.msg-rename-error');
+            const cancelBtn = renameWrap.querySelector('.cancel');
+            const saveBtn = renameWrap.querySelector('.save');
+            input.value = originalText;
+
+            // Real-time validation
+            function validateInput() {
+                const hasText = input.value.trim().length > 0;
+                const hasAttachment = !!editedFileHtml;
+                const canSend = hasText || hasAttachment;
+                saveBtn.disabled = !canSend;
+                saveBtn.style.opacity = canSend ? '1' : '0.5';
+                saveBtn.style.cursor = canSend ? 'pointer' : 'not-allowed';
+                if (canSend) error.style.display = 'none';
+            }
+
+            input.addEventListener('input', validateInput);
+
+            validateInput(); // Initial check
+
+            if (originalAttachmentWrap) {
+                let removeBtn = originalAttachmentWrap.querySelector('.msg-attachment-remove-btn');
+                if (!removeBtn) {
+                    removeBtn = document.createElement('button');
+                    removeBtn.type = 'button';
+                    removeBtn.className = 'msg-attachment-remove-btn';
+                    removeBtn.title = 'Remove attachment';
+                    removeBtn.setAttribute('aria-label', 'Remove attachment');
+                    removeBtn.textContent = '×';
+                    originalAttachmentWrap.appendChild(removeBtn);
+                }
+
+                removeBtn.addEventListener('click', () => {
+                    editedFileHtml = '';
+                    originalAttachmentWrap.style.display = 'none';
+                    validateInput();
+                });
+            }
+
+            function cleanup() {
+                renameWrap.remove();
+                if (bubble) bubble.style.display = '';
+                if (originalAttachmentWrap) originalAttachmentWrap.style.display = '';
+                actionWrap.style.display = '';
+                wrapper.style.width = originalWrapperWidth;
+            }
+
+            async function sendEditedPrompt(promptText) {
+                const responseChatId = currentChatId;
+                const responseToken = ++activeResponseToken;
+
+                appendTyping();
+                await new Promise(r => setTimeout(r, 1200 + Math.random() * 600));
+
+                if (responseToken !== activeResponseToken || responseChatId !== currentChatId) {
+                    removeTyping();
+                    return;
+                }
+
+                removeTyping();
+                const response = placeholderResponses[responseIndex % placeholderResponses.length];
+                responseIndex++;
+                appendMessage(response, 'ai');
+            }
+
+            function saveRename() {
+                const updatedText = input.value.trim();
+                if (!updatedText && !editedFileHtml) {
+                    error.style.display = 'block';
+                    input.focus();
+                    return;
+                }
+
+                chats[actionChatId].push({
+                    text: updatedText,
+                    sender: 'user',
+                    time: getTime(),
+                    fileHTML: editedFileHtml
+                });
+                currentChatId = actionChatId;
+                saveToLocal();
+                renderHistoryList();
+                cleanup();
+                loadChat(actionChatId);
+
+                // Trigger fresh AI response for the edited prompt
+                sendEditedPrompt(updatedText);
+            }
+
+            cancelBtn.addEventListener('click', cleanup);
+            saveBtn.addEventListener('click', saveRename);
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    saveRename();
+                }
+                if (e.key === 'Escape') {
+                    e.preventDefault();
+                    cleanup();
+                }
+            });
+
+            input.focus();
+            input.setSelectionRange(input.value.length, input.value.length);
+        }
+
+        function normalizeLegacyFileHtml(fileHtml) {
+            if (!fileHtml || fileHtml.includes('class="msg-file-card"')) return fileHtml;
+
+            const wrapper = document.createElement('div');
+            wrapper.innerHTML = fileHtml;
+            const clickable = wrapper.querySelector('[title="Click to open"]');
+            if (!clickable) return fileHtml;
+
+            let fileUrl = clickable.getAttribute('data-file-url');
+            if (!fileUrl) {
+                const onClickText = clickable.getAttribute('onclick') || '';
+                const urlMatch = onClickText.match(/window\.open\('([^']+)'/);
+                fileUrl = urlMatch ? urlMatch[1] : '';
+            }
+
+            const nameEl = clickable.querySelector('span');
+            const fileName = nameEl ? nameEl.textContent.trim() : 'Attachment';
+
+            if (!fileUrl) return fileHtml;
+            return buildDocumentAttachmentHtml(fileName, fileUrl);
+        }
+
+        const placeholderResponses = [
+            "That's a great question! I'm currently in demo mode — once connected to the AI backend, I'll give you a detailed and personalized answer. 🎓",
+            "I'd love to help with that! The full AI model will provide tailored guidance based on your university's curriculum and your own academic profile.",
+            "Great question! My full capabilities are coming soon. For now, consider checking your university portal or asking your academic advisor for immediate help.",
+            "Once the AI backend is connected, I'll be able to give you personalized course recommendations, study tips, and professor insights based on real data.",
+        ];
+
+        let responseIndex = 0;
+
+        async function sendMessage() {
+            const text = chatInput.value.trim();
+            if (!text && !attachedFile) return;
+            const responseChatId = currentChatId;
+            const responseToken = ++activeResponseToken;
+
+            let fileHtmlData = null;
+            if (attachedFile) {
+                try {
+                    const uploadedAttachment = await uploadChatAttachment(attachedFile);
+                    fileHtmlData = buildUploadedAttachmentHtml(uploadedAttachment);
+                } catch (error) {
+                    alert(error.message || 'Could not upload the file. Please try again.');
+                    return;
+                }
+            }
+
+            appendMessage(text, 'user', null, fileHtmlData);
+
+            if (attachedFile) {
+                attachedFile = null;
+                filePreviewBar.classList.remove('active');
+            }
+
+            chatInput.value = '';
+            chatInput.style.height = 'auto';
+            sendBtn.disabled = true;
+
+            appendTyping();
+
+            await new Promise(r => setTimeout(r, 1200 + Math.random() * 600));
+
+            if (responseToken !== activeResponseToken || responseChatId !== currentChatId) {
+                removeTyping();
+                return;
+            }
+
+            removeTyping();
+            const response = placeholderResponses[responseIndex % placeholderResponses.length];
+            responseIndex++;
+            appendMessage(response, 'ai');
+        }
+
+        // ─── Common Questions ─────────────────────────────────────────
+        document.querySelectorAll('.qs-chip').forEach(chip => {
+            chip.addEventListener('click', () => {
+                const q = chip.getAttribute('data-q');
+                chatInput.value = q;
+                chatInput.dispatchEvent(new Event('input'));
+                chatInput.focus();
+                // Auto-scroll to chat
+                chatWindow.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            });
+        });
+
+        // ─── New Chat ─────────────────────────────────────────────────
+        const newChatBtn = document.getElementById('newChatBtn');
+
+        if (newChatBtn) {
+            newChatBtn.addEventListener('click', () => {
+                chatCounter++;
+                const newId = 'chat_' + chatCounter;
+                chats[newId] = [];
+                saveToLocal();
+                renderHistoryList();
+                loadChat(newId);
+            });
+        }
+
+        // Initial render
+        initializeChatState();
+    </script>
+</body>
+
+</html>

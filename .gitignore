@@ -1,0 +1,30 @@
+# Virtual environments
+venv/
+venv311/
+*/venv/
+*/venv311/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*/__pycache__/
+
+# VS Code settings
+.vscode/
+
+# Windows files
+Thumbs.db
+desktop.ini
+
+# Model weights and datasets
+Models/
+models/
+*.pt
+*.onnx
+
+# Private data
+Database/
+database/
+*.pkl
+logs/

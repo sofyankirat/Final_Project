@@ -1,0 +1,892 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Attendance - {{ username }}</title>
+    <meta name="description" content="Enroll your face for smart attendance in five guided positions.">
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/favicon.png') }}?v=3">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/tsparticles@2.12.0/tsparticles.bundle.min.js"></script>
+    <style>
+        .attendance-hero {
+            margin-top: 0;
+            padding: 18px 0 14px;
+        }
+
+        .attendance-title {
+            font-size: clamp(26px, 3vw, 34px);
+            font-weight: 800;
+            color: #2c2420;
+            margin: 0 0 6px;
+            letter-spacing: -0.4px;
+        }
+
+        .attendance-accent {
+            color: #ff6b35;
+        }
+
+        .attendance-subtitle {
+            font-size: 14.5px;
+            color: #5a4a3a;
+            margin: 0;
+            max-width: 760px;
+            line-height: 1.6;
+        }
+
+        body.dark-mode .attendance-title {
+            color: #e8f0ff;
+        }
+
+        body.dark-mode .attendance-subtitle {
+            color: #b8d4ff;
+        }
+
+        .attendance-center {
+            display: flex;
+            justify-content: center;
+            margin-top: 24px;
+        }
+
+        .attendance-card {
+            width: min(980px, 100%);
+            border-radius: 24px;
+            border: 1px solid rgba(255, 107, 53, 0.2);
+            background:
+                radial-gradient(circle at 14% 16%, rgba(255, 210, 176, 0.65), transparent 42%),
+                radial-gradient(circle at 86% 18%, rgba(255, 159, 117, 0.25), transparent 36%),
+                linear-gradient(145deg, rgba(255, 255, 255, 0.95), rgba(255, 241, 230, 0.86));
+            box-shadow:
+                0 20px 44px rgba(0, 0, 0, 0.1),
+                inset 0 1px 0 rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(12px);
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+        body.dark-mode .attendance-card {
+            border-color: rgba(79, 212, 255, 0.22);
+            background:
+                radial-gradient(circle at 16% 20%, rgba(79, 212, 255, 0.16), transparent 42%),
+                radial-gradient(circle at 84% 18%, rgba(120, 140, 255, 0.18), transparent 36%),
+                linear-gradient(160deg, rgba(10, 14, 36, 0.96), rgba(10, 12, 36, 0.88));
+            box-shadow:
+                0 20px 44px rgba(0, 0, 0, 0.28),
+                inset 0 1px 0 rgba(255, 255, 255, 0.05);
+        }
+
+        .attendance-card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px 24px 0;
+            gap: 16px;
+        }
+
+        .attendance-card-title {
+            font-size: 16px;
+            font-weight: 800;
+            color: #2c2420;
+            margin: 0;
+        }
+
+        body.dark-mode .attendance-card-title {
+            color: #e8f0ff;
+        }
+
+        .attendance-card-note {
+            font-size: 12.5px;
+            color: #6a5a4a;
+            margin: 0;
+        }
+
+        body.dark-mode .attendance-card-note {
+            color: #9fb3d9;
+        }
+
+        .attendance-card-body {
+            padding: 18px 24px 26px;
+            display: grid;
+            grid-template-columns: minmax(280px, 1.2fr) minmax(260px, 1fr);
+            gap: 22px;
+            align-items: stretch;
+        }
+
+        @media (max-width: 900px) {
+            .attendance-card-body {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .attendance-video-wrap {
+            position: relative;
+            border-radius: 18px;
+            border: 1px solid rgba(255, 107, 53, 0.22);
+            background: rgba(255, 255, 255, 0.7);
+            overflow: hidden;
+            min-height: 320px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        body.dark-mode .attendance-video-wrap {
+            border-color: rgba(79, 212, 255, 0.3);
+            background: rgba(11, 15, 40, 0.75);
+        }
+
+        .attendance-video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: none;
+            transform: scaleX(-1);
+        }
+
+        .attendance-video.active {
+            display: block;
+        }
+
+        .attendance-overlay {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            color: #5a4a3a;
+            text-align: center;
+            padding: 20px;
+        }
+
+        body.dark-mode .attendance-overlay {
+            color: #c7d5f5;
+        }
+
+        .attendance-overlay-icon {
+            width: 54px;
+            height: 54px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #ff6b35, #e85c20);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            box-shadow: 0 10px 24px rgba(255, 107, 53, 0.35);
+            font-size: 22px;
+        }
+
+        body.dark-mode .attendance-overlay-icon {
+            background: linear-gradient(135deg, #6366f1, #14b8a6);
+            box-shadow: 0 10px 24px rgba(99, 102, 241, 0.4);
+        }
+
+        .attendance-progress {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 10px;
+        }
+
+        .attendance-step {
+            border-radius: 14px;
+            border: 1px solid rgba(255, 107, 53, 0.2);
+            background: rgba(255, 255, 255, 0.72);
+            padding: 10px 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12.5px;
+            font-weight: 600;
+            color: #4a3826;
+        }
+
+        .attendance-step span {
+            font-size: 11px;
+            color: #8a6a54;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+        }
+
+        .attendance-step.active {
+            border-color: rgba(255, 107, 53, 0.5);
+            background: rgba(255, 208, 176, 0.5);
+        }
+
+        .attendance-step.completed {
+            border-color: rgba(255, 107, 53, 0.5);
+            background: rgba(255, 240, 225, 0.9);
+        }
+
+        body.dark-mode .attendance-step {
+            border-color: rgba(79, 212, 255, 0.25);
+            background: rgba(15, 20, 52, 0.75);
+            color: #dbe7ff;
+        }
+
+        body.dark-mode .attendance-step span {
+            color: #92a4cf;
+        }
+
+        body.dark-mode .attendance-step.active {
+            border-color: rgba(79, 212, 255, 0.6);
+            background: rgba(79, 212, 255, 0.16);
+        }
+
+        body.dark-mode .attendance-step.completed {
+            border-color: rgba(79, 212, 255, 0.55);
+            background: rgba(12, 18, 44, 0.9);
+        }
+
+        .attendance-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 16px;
+        }
+
+        .attendance-btn {
+            padding: 10px 18px;
+            border-radius: 10px;
+            border: none;
+            font-weight: 700;
+            font-size: 13px;
+            cursor: pointer;
+            transition: transform 0.15s, box-shadow 0.15s;
+            font-family: inherit;
+        }
+
+        .attendance-btn.primary {
+            background: linear-gradient(135deg, #ff6b35, #e85c20);
+            color: #fff;
+            box-shadow: 0 6px 16px rgba(255, 107, 53, 0.35);
+        }
+
+        .attendance-btn.secondary {
+            background: rgba(255, 255, 255, 0.85);
+            border: 1px solid rgba(255, 107, 53, 0.25);
+            color: #5a4a3a;
+        }
+
+        .attendance-btn:disabled {
+            cursor: not-allowed;
+            opacity: 0.6;
+            box-shadow: none;
+        }
+
+        .attendance-btn:hover:not(:disabled) {
+            transform: translateY(-1px);
+        }
+
+        body.dark-mode .attendance-btn.secondary {
+            background: rgba(13, 18, 46, 0.9);
+            color: #d2dcff;
+            border-color: rgba(79, 212, 255, 0.4);
+        }
+
+        .attendance-status {
+            margin-top: 12px;
+            font-size: 13px;
+            color: #6a5a4a;
+            min-height: 18px;
+        }
+
+        body.dark-mode .attendance-status {
+            color: #a7b9df;
+        }
+
+        .attendance-thumbs {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 10px;
+            margin-top: 12px;
+        }
+
+        .attendance-thumb {
+            border-radius: 12px;
+            border: 1px dashed rgba(255, 107, 53, 0.3);
+            padding: 8px;
+            background: rgba(255, 255, 255, 0.7);
+            text-align: center;
+            font-size: 11px;
+            color: #7a5a40;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .attendance-thumb img {
+            width: 100%;
+            height: 72px;
+            border-radius: 8px;
+            object-fit: cover;
+            display: none;
+        }
+
+        .attendance-thumb.filled img {
+            display: block;
+        }
+
+        body.dark-mode .attendance-thumb {
+            border-color: rgba(79, 212, 255, 0.35);
+            background: rgba(12, 16, 42, 0.85);
+            color: #9fb3d9;
+        }
+    </style>
+</head>
+
+<body class="dash-body">
+    <div id="particles-bg"
+        style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -2; pointer-events: none;"></div>
+
+    <div class="dash-layout-wrapper">
+        <aside class="dash-sidebar" id="dashSidebar">
+            <div class="sidebar-header">
+                <a href="{{ url_for('dashboard') }}" class="dash-logo-link">
+                    <img src="{{ url_for('static', filename='images/Logo_BR.png') }}" alt="Logo" class="dash-logo-img">
+                </a>
+                <button class="sidebar-toggle-btn" id="sidebarToggle" aria-label="Toggle Sidebar">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="3" y1="12" x2="21" y2="12"></line>
+                        <line x1="3" y1="6" x2="21" y2="6"></line>
+                        <line x1="3" y1="18" x2="21" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+
+            <div class="sidebar-scroll-area">
+                <div class="sidebar-section">
+                    <span class="section-title">Menu</span>
+                    <nav class="sidebar-nav">
+                        <a href="{{ url_for('dashboard') }}" class="sidebar-item">
+                            <svg class="sidebar-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18"
+                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="3" y="3" width="7" height="7"></rect>
+                                <rect x="14" y="3" width="7" height="7"></rect>
+                                <rect x="14" y="14" width="7" height="7"></rect>
+                                <rect x="3" y="14" width="7" height="7"></rect>
+                            </svg>
+                            <span class="sidebar-text">Dashboard</span>
+                        </a>
+                        <a href="{{ url_for('attendance') }}" class="sidebar-item active">
+                            <svg class="sidebar-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18"
+                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                                <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                            </svg>
+                            <span class="sidebar-text">Attendance</span>
+                        </a>
+                        <a href="{{ url_for('recommendations') }}" class="sidebar-item">
+                            <svg class="sidebar-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18"
+                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <polygon
+                                    points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2">
+                                </polygon>
+                            </svg>
+                            <span class="sidebar-text">Recommendation</span>
+                        </a>
+                        <a href="{{ url_for('ai_agent') }}" class="sidebar-item">
+                            <svg class="sidebar-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18"
+                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="3" y="11" width="18" height="10" rx="2"></rect>
+                                <circle cx="12" cy="5" r="2"></circle>
+                                <path d="M12 7v4"></path>
+                                <line x1="8" y1="16" x2="8" y2="16"></line>
+                                <line x1="16" y1="16" x2="16" y2="16"></line>
+                            </svg>
+                            <span class="sidebar-text">AI Agent</span>
+                        </a>
+                    </nav>
+                </div>
+
+                <div class="sidebar-section">
+                    <span class="section-title">General</span>
+                    <nav class="sidebar-nav">
+                        <a href="{{ url_for('our_team') }}" class="sidebar-item">
+                            <svg class="sidebar-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18"
+                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                                <circle cx="9" cy="7" r="4" />
+                                <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                                <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                            </svg>
+                            <span class="sidebar-text">Our Team</span>
+                        </a>
+                        <a href="{{ url_for('help') }}" class="sidebar-item">
+                            <svg class="sidebar-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18"
+                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                                <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                            </svg>
+                            <span class="sidebar-text">Help</span>
+                        </a>
+                    </nav>
+                </div>
+
+                <div class="sidebar-section">
+                    <span class="section-title">View</span>
+                    <div class="sidebar-nav">
+                        <button class="sidebar-item dark-mode-toggle" id="btnDarkMode">
+                            <div class="toggle-icon-wrap">
+                                <svg class="sidebar-icon sun-icon" xmlns="http://www.w3.org/2000/svg" width="18"
+                                    height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                    stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="12" cy="12" r="5"></circle>
+                                    <line x1="12" y1="1" x2="12" y2="3"></line>
+                                    <line x1="12" y1="21" x2="12" y2="23"></line>
+                                    <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                                    <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                                    <line x1="1" y1="12" x2="3" y2="12"></line>
+                                    <line x1="21" y1="12" x2="23" y2="12"></line>
+                                    <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                                    <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                                </svg>
+                                <svg class="sidebar-icon moon-icon" xmlns="http://www.w3.org/2000/svg" width="18"
+                                    height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                    stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                                </svg>
+                            </div>
+                            <span class="sidebar-text">Dark mode (off)</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="sidebar-footer">
+                <a href="{{ url_for('profile') }}" class="sidebar-profile-widget" style="text-decoration:none;">
+                    <div class="dash-avatar">
+                        {% if profile_photo %}
+                        <img src="{{ profile_photo }}" alt="Profile"
+                            style="width:100%;height:100%;object-fit:cover;object-position:center;border-radius:50%;">
+                        {% else %}
+                        <span class="avatar-initials">{{ username[0] | upper }}</span>
+                        {% endif %}
+                    </div>
+                    <div class="profile-info sidebar-text">
+                        <span class="profile-name">{{ username }}</span>
+                    </div>
+                </a>
+                <a href="{{ url_for('logout') }}" class="sidebar-logout-btn" title="Logout">
+                    <svg class="sidebar-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18"
+                        viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                        <polyline points="16 17 21 12 16 7"></polyline>
+                        <line x1="21" y1="12" x2="9" y2="12"></line>
+                    </svg>
+                    <span class="sidebar-text">Logout</span>
+                </a>
+            </div>
+        </aside>
+
+        <main class="dash-main-area">
+            <div class="dash-main-content">
+                <div class="top-header-bar">
+                    <div class="header-page-title">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                        </svg>
+                        <span>Attendance</span>
+                    </div>
+
+                    <div class="header-actions">
+                        <div class="header-popup-wrap" id="msgWrap">
+                            <button class="header-action-btn" id="headerBtnMsg" aria-label="Messages" title="Messages">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                    stroke-linejoin="round">
+                                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                                </svg>
+                            </button>
+                            <div class="header-popup" id="msgPopup">
+                                <div class="popup-empty">
+                                    <span class="popup-icon">MSG</span>
+                                    <span class="popup-msg">No messages right now</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="header-popup-wrap" id="notifWrap">
+                            <button class="header-action-btn has-notif" id="headerBtnNotif" aria-label="Notifications"
+                                title="Notifications">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                    stroke-linejoin="round">
+                                    <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" />
+                                    <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
+                                </svg>
+                                <span class="header-notif-dot"></span>
+                            </button>
+                            <div class="header-popup" id="notifPopup">
+                                <div class="popup-empty">
+                                    <span class="popup-icon">NEW</span>
+                                    <span class="popup-msg">No notifications right now</span>
+                                </div>
+                            </div>
+                        </div>
+                        <a href="{{ url_for('profile') }}" class="header-profile" style="text-decoration:none;">
+                            <div class="header-avatar">
+                                {% if profile_photo %}
+                                <img src="{{ profile_photo }}" alt="Profile"
+                                    style="width:100%;height:100%;object-fit:cover;object-position:center;border-radius:50%;">
+                                {% else %}
+                                <span class="avatar-initials">{{ username[0] | upper }}</span>
+                                {% endif %}
+                            </div>
+                            <div class="header-profile-info">
+                                <span class="header-profile-name">{{ username }}</span>
+                                <span class="header-profile-email">{{ email }}</span>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+
+                <div class="attendance-hero">
+                    <h1 class="attendance-title">Smart <span class="attendance-accent">Attendance</span> Enrollment</h1>
+                    <p class="attendance-subtitle">Capture five guided face positions so the attendance system can
+                        recognize you quickly and accurately. Click the box below to open your camera and follow each
+                        prompt.</p>
+                </div>
+
+                <div class="attendance-center">
+                    <section class="attendance-card" id="attendanceCard" aria-label="Attendance capture">
+                        <div class="attendance-card-header">
+                            <div>
+                                <p class="attendance-card-title">Face Capture Studio</p>
+                                <p class="attendance-card-note">Five quick captures, guided step-by-step.</p>
+                            </div>
+                            <p class="attendance-card-note" id="attendanceCounter">0 / 5 captured</p>
+                        </div>
+                        <div class="attendance-card-body">
+                            <div>
+                                <div class="attendance-video-wrap" id="attendanceVideoWrap">
+                                    <video class="attendance-video" id="attendanceVideo" autoplay muted
+                                        playsinline></video>
+                                    <canvas id="attendanceCanvas" width="640" height="480"
+                                        style="display:none;"></canvas>
+                                    <div class="attendance-overlay" id="attendanceOverlay">
+                                        <div class="attendance-overlay-icon">CAM</div>
+                                        <strong>Click to start camera</strong>
+                                        <span>Make sure your face is centered and well-lit.</span>
+                                    </div>
+                                </div>
+                                <div class="attendance-actions">
+                                    <button class="attendance-btn primary" id="startCaptureBtn" type="button">Start
+                                        Camera</button>
+                                    <button class="attendance-btn primary" id="takeSnapshotBtn" type="button"
+                                        disabled>Capture
+                                        Next</button>
+                                    <button class="attendance-btn secondary" id="retakeLastBtn" type="button"
+                                        disabled>Retake
+                                        Last</button>
+                                    <button class="attendance-btn secondary" id="submitEnrollmentBtn" type="button"
+                                        disabled>Send to Attendance System</button>
+                                </div>
+                                <div class="attendance-status" id="attendanceStatus">Ready when you are.</div>
+                            </div>
+
+                            <div>
+                                <div class="attendance-progress" id="attendanceSteps"></div>
+                                <div class="attendance-thumbs" id="attendanceThumbs"></div>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const sidebar = document.getElementById('dashSidebar');
+        const toggleBtn = document.getElementById('sidebarToggle');
+        const darkModeBtn = document.getElementById('btnDarkMode');
+        const darkModeText = darkModeBtn ? darkModeBtn.querySelector('.sidebar-text') : null;
+
+        if (toggleBtn) {
+            toggleBtn.addEventListener('click', () => {
+                sidebar.classList.toggle('collapsed');
+            });
+        }
+
+        const isDark = localStorage.getItem('theme') === 'dark';
+        if (isDark) {
+            document.body.classList.add('dark-mode');
+            if (darkModeText) darkModeText.textContent = 'Dark mode (on)';
+            if (darkModeBtn) darkModeBtn.classList.add('active');
+        }
+
+        let particlesContainer;
+        tsParticles.load("particles-bg", {
+            fpsLimit: 60,
+            particles: {
+                color: { value: isDark ? ["#e8c547", "#ff6b35", "#80706a"] : ["#ff6b35", "#ffc5d0", "#ffffff"] },
+                move: {
+                    enable: true,
+                    direction: "top",
+                    random: true,
+                    speed: 0.6,
+                    straight: false
+                },
+                number: {
+                    density: { enable: true, area: 800 },
+                    value: 100
+                },
+                opacity: {
+                    value: { min: 0.2, max: 0.6 },
+                    animation: { enable: true, speed: 0.8, minimumValue: 0.1 }
+                },
+                shape: { type: "circle" },
+                size: {
+                    value: { min: 2, max: 8 },
+                    animation: { enable: true, speed: 1.5, minimumValue: 2 }
+                }
+            },
+            detectRetina: true
+        }).then(container => {
+            particlesContainer = container;
+        });
+
+        if (darkModeBtn) {
+            darkModeBtn.addEventListener('click', () => {
+                document.body.classList.toggle('dark-mode');
+
+                if (document.body.classList.contains('dark-mode')) {
+                    localStorage.setItem('theme', 'dark');
+                    if (darkModeText) darkModeText.textContent = 'Dark mode (on)';
+                    darkModeBtn.classList.add('active');
+                    if (particlesContainer) {
+                        particlesContainer.options.particles.color.value = ["#e8c547", "#ff6b35", "#80706a"];
+                        particlesContainer.refresh();
+                    }
+                } else {
+                    localStorage.setItem('theme', 'light');
+                    if (darkModeText) darkModeText.textContent = 'Dark mode (off)';
+                    darkModeBtn.classList.remove('active');
+                    if (particlesContainer) {
+                        particlesContainer.options.particles.color.value = ["#ff6b35", "#ffc5d0", "#ffffff"];
+                        particlesContainer.refresh();
+                    }
+                }
+            });
+        }
+
+        function setupPopup(btnId, popupId) {
+            const btn = document.getElementById(btnId);
+            const popup = document.getElementById(popupId);
+            if (!btn || !popup) return;
+
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                document.querySelectorAll('.header-popup.open').forEach(p => {
+                    if (p !== popup) p.classList.remove('open');
+                });
+                popup.classList.toggle('open');
+            });
+        }
+
+        setupPopup('headerBtnMsg', 'msgPopup');
+        setupPopup('headerBtnNotif', 'notifPopup');
+
+        document.addEventListener('click', () => {
+            document.querySelectorAll('.header-popup.open').forEach(p => p.classList.remove('open'));
+        });
+
+        const attendanceCard = document.getElementById('attendanceCard');
+        const startBtn = document.getElementById('startCaptureBtn');
+        const captureBtn = document.getElementById('takeSnapshotBtn');
+        const retakeBtn = document.getElementById('retakeLastBtn');
+        const submitBtn = document.getElementById('submitEnrollmentBtn');
+        const statusEl = document.getElementById('attendanceStatus');
+        const counterEl = document.getElementById('attendanceCounter');
+        const video = document.getElementById('attendanceVideo');
+        const canvas = document.getElementById('attendanceCanvas');
+        const overlay = document.getElementById('attendanceOverlay');
+        const stepsWrap = document.getElementById('attendanceSteps');
+        const thumbsWrap = document.getElementById('attendanceThumbs');
+
+        const positions = [
+            { id: 'front', label: 'Look straight' },
+            { id: 'left', label: 'Turn left' },
+            { id: 'right', label: 'Turn right' },
+            { id: 'up', label: 'Look up' },
+            { id: 'down', label: 'Look down' }
+        ];
+
+        const captures = [];
+        let captureIndex = 0;
+        let stream = null;
+
+        function renderSteps() {
+            stepsWrap.innerHTML = '';
+            positions.forEach((pos, index) => {
+                const step = document.createElement('div');
+                step.className = 'attendance-step';
+                if (index === captureIndex) step.classList.add('active');
+                if (index < captureIndex) step.classList.add('completed');
+                step.innerHTML = `<span>Step ${index + 1}</span> ${pos.label}`;
+                stepsWrap.appendChild(step);
+            });
+        }
+
+        function renderThumbs() {
+            thumbsWrap.innerHTML = '';
+            positions.forEach((pos, index) => {
+                const thumb = document.createElement('div');
+                thumb.className = 'attendance-thumb';
+                const img = document.createElement('img');
+                if (captures[index]) {
+                    thumb.classList.add('filled');
+                    img.src = captures[index].dataUrl;
+                }
+                thumb.appendChild(img);
+                const label = document.createElement('span');
+                label.textContent = `Step ${index + 1}: ${pos.label}`;
+                thumb.appendChild(label);
+                thumbsWrap.appendChild(thumb);
+            });
+        }
+
+        function updateStatus(message) {
+            statusEl.textContent = message;
+        }
+
+        function updateCounter() {
+            counterEl.textContent = `${captureIndex} / ${positions.length} captured`;
+        }
+
+        async function startCamera() {
+            if (stream) return;
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+                video.srcObject = stream;
+                video.classList.add('active');
+                overlay.style.display = 'none';
+                captureBtn.disabled = false;
+                updateStatus('Camera ready. Follow the prompt and capture each position.');
+            } catch (error) {
+                updateStatus('Camera access denied. Please allow camera permissions.');
+            }
+        }
+
+        function stopCamera() {
+            if (!stream) return;
+            stream.getTracks().forEach(track => track.stop());
+            stream = null;
+            video.classList.remove('active');
+            overlay.style.display = 'flex';
+        }
+
+        function captureFrame() {
+            if (!stream) {
+                updateStatus('Start the camera first.');
+                return;
+            }
+            if (captureIndex >= positions.length) return;
+
+            const context = canvas.getContext('2d');
+            const width = video.videoWidth || 640;
+            const height = video.videoHeight || 480;
+            canvas.width = width;
+            canvas.height = height;
+            context.save();
+            context.scale(-1, 1);
+            context.drawImage(video, -width, 0, width, height);
+            context.restore();
+
+            const dataUrl = canvas.toDataURL('image/jpeg', 0.92);
+            captures[captureIndex] = {
+                label: positions[captureIndex].label,
+                dataUrl
+            };
+
+            captureIndex += 1;
+            renderSteps();
+            renderThumbs();
+            updateCounter();
+
+            if (captureIndex >= positions.length) {
+                captureBtn.disabled = true;
+                submitBtn.disabled = false;
+                updateStatus('All positions captured. Send them to the attendance system.');
+                stopCamera();
+            } else {
+                updateStatus(`Captured. Next: ${positions[captureIndex].label}.`);
+            }
+
+            retakeBtn.disabled = captureIndex === 0;
+        }
+
+        function retakeLast() {
+            if (captureIndex === 0) return;
+            captureIndex -= 1;
+            captures.splice(captureIndex, 1);
+            renderSteps();
+            renderThumbs();
+            updateCounter();
+            captureBtn.disabled = false;
+            submitBtn.disabled = true;
+            retakeBtn.disabled = captureIndex === 0;
+            updateStatus(`Retake step ${captureIndex + 1}: ${positions[captureIndex].label}.`);
+        }
+
+        async function submitEnrollment() {
+            if (captures.length !== positions.length) {
+                updateStatus('Please capture all five positions before submitting.');
+                return;
+            }
+
+            submitBtn.disabled = true;
+            updateStatus('Uploading captures to the attendance system...');
+
+            try {
+                const response = await fetch('/api/attendance/enroll', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ captures })
+                });
+                const payload = await response.json();
+                if (!response.ok || !payload.success) {
+                    throw new Error(payload.message || 'Upload failed');
+                }
+                updateStatus('Enrollment images saved successfully.');
+            } catch (error) {
+                updateStatus(error.message || 'Failed to upload captures. Try again.');
+                submitBtn.disabled = false;
+            }
+        }
+
+        if (attendanceCard) {
+            attendanceCard.addEventListener('click', (event) => {
+                if (event.target.closest('button')) return;
+                startCamera();
+            });
+        }
+
+        if (startBtn) startBtn.addEventListener('click', startCamera);
+        if (captureBtn) captureBtn.addEventListener('click', captureFrame);
+        if (retakeBtn) retakeBtn.addEventListener('click', retakeLast);
+        if (submitBtn) submitBtn.addEventListener('click', submitEnrollment);
+
+        renderSteps();
+        renderThumbs();
+        updateCounter();
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,1130 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Help - {{ username }}</title>
+    <meta name="description" content="Help page for Student Recommendation and Attendance System.">
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/favicon.png') }}?v=3">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/tsparticles@2.12.0/tsparticles.bundle.min.js"></script>
+
+    <style>
+        .help-hero {
+            margin-top: 0;
+            padding: 18px 0 14px;
+        }
+
+        .help-title {
+            font-size: clamp(26px, 3vw, 34px);
+            font-weight: 800;
+            color: #2c2420;
+            margin: 0 0 6px;
+            letter-spacing: -0.4px;
+        }
+
+        .help-accent {
+            color: #ff6b35;
+        }
+
+        .help-subtitle {
+            font-size: 14.5px;
+            color: #5a4a3a;
+            margin: 0;
+            max-width: 720px;
+            line-height: 1.6;
+        }
+
+        body.dark-mode .help-title {
+            color: #e8f0ff;
+        }
+
+        body.dark-mode .help-accent {
+            color: #ff6b35;
+        }
+
+        body.dark-mode .help-subtitle {
+            color: #b8d4ff;
+        }
+
+        .help-panel {
+            position: relative;
+            border-radius: 24px;
+            border: 1px solid rgba(255, 107, 53, 0.18);
+            background:
+                radial-gradient(circle at 12% 18%, rgba(255, 210, 176, 0.78), transparent 42%),
+                radial-gradient(circle at 88% 12%, rgba(255, 159, 117, 0.30), transparent 38%),
+                radial-gradient(circle at 80% 88%, rgba(255, 107, 53, 0.12), transparent 34%),
+                linear-gradient(145deg, rgba(255, 255, 255, 0.96), rgba(255, 241, 230, 0.84));
+            backdrop-filter: blur(10px);
+            box-shadow:
+                0 18px 42px rgba(0, 0, 0, 0.09),
+                inset 0 1px 0 rgba(255, 255, 255, 0.65);
+            overflow: hidden;
+        }
+
+        body.dark-mode .help-panel {
+            border-color: rgba(79, 212, 255, 0.18);
+            background:
+                radial-gradient(circle at 14% 18%, rgba(79, 212, 255, 0.14), transparent 42%),
+                radial-gradient(circle at 85% 14%, rgba(120, 140, 255, 0.16), transparent 36%),
+                radial-gradient(circle at 84% 86%, rgba(79, 212, 255, 0.08), transparent 34%),
+                linear-gradient(160deg, rgba(10, 14, 36, 0.96), rgba(10, 12, 36, 0.88));
+            box-shadow:
+                0 18px 42px rgba(0, 0, 0, 0.24),
+                inset 0 1px 0 rgba(255, 255, 255, 0.06);
+        }
+
+        .help-panel::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.18), transparent 32%, transparent 68%, rgba(255, 255, 255, 0.10));
+            pointer-events: none;
+        }
+
+        .help-panel::after {
+            content: '';
+            position: absolute;
+            inset: 10px;
+            border-radius: 18px;
+            border: 1px solid rgba(255, 255, 255, 0.22);
+            pointer-events: none;
+        }
+
+        .help-panel-inner {
+            position: relative;
+            padding: 22px;
+            z-index: 1;
+        }
+
+        .help-section-title {
+            font-size: 16px;
+            font-weight: 800;
+            color: #2c2420;
+            margin: 0 0 12px;
+            letter-spacing: 0.4px;
+            text-transform: uppercase;
+        }
+
+        body.dark-mode .help-section-title {
+            color: #e8f0ff;
+        }
+
+        /* ===== Slider ===== */
+        .help-slider-wrap {
+            position: relative;
+            border-radius: 22px;
+            border: 1px solid rgba(255, 107, 53, 0.16);
+            background:
+                radial-gradient(circle at 16% 16%, rgba(255, 220, 195, 0.78), transparent 36%),
+                radial-gradient(circle at 84% 18%, rgba(255, 165, 125, 0.34), transparent 34%),
+                radial-gradient(circle at 50% 115%, rgba(255, 107, 53, 0.10), transparent 30%),
+                linear-gradient(145deg, rgba(255, 255, 255, 0.92), rgba(255, 240, 229, 0.78));
+            box-shadow:
+                0 18px 40px rgba(0, 0, 0, 0.10),
+                inset 0 1px 0 rgba(255, 255, 255, 0.65);
+            padding: 14px;
+        }
+
+        body.dark-mode .help-slider-wrap {
+            border-color: rgba(79, 212, 255, 0.16);
+            background:
+                radial-gradient(circle at 16% 18%, rgba(79, 212, 255, 0.12), transparent 36%),
+                radial-gradient(circle at 84% 18%, rgba(120, 140, 255, 0.16), transparent 34%),
+                radial-gradient(circle at 50% 118%, rgba(79, 212, 255, 0.07), transparent 30%),
+                linear-gradient(160deg, rgba(10, 14, 36, 0.86), rgba(10, 12, 36, 0.76));
+            box-shadow:
+                0 18px 40px rgba(0, 0, 0, 0.26),
+                inset 0 1px 0 rgba(255, 255, 255, 0.06);
+        }
+
+        .help-slider {
+            display: flex;
+            gap: 14px;
+            overflow: hidden;
+            border-radius: 16px;
+        }
+
+        .help-arrow-btn {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 50px;
+            height: 50px;
+            border-radius: 999px;
+            border: 1px solid rgba(255, 107, 53, 0.30);
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.92), rgba(255, 236, 220, 0.78));
+            color: #2c2420;
+            cursor: pointer;
+            font-weight: 900;
+            font-family: inherit;
+            font-size: 22px;
+            line-height: 1;
+            display: grid;
+            place-items: center;
+            z-index: 2;
+            transition: transform 0.12s ease, box-shadow 0.12s ease, border-color 0.12s ease;
+            box-shadow:
+                0 12px 28px rgba(0, 0, 0, 0.10),
+                inset 0 1px 0 rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(10px);
+        }
+
+        .help-arrow-btn:hover {
+            transform: translateY(-50%) translateY(-1px) scale(1.02);
+            border-color: rgba(255, 107, 53, 0.45);
+            box-shadow: 0 10px 26px rgba(0, 0, 0, 0.08);
+        }
+
+        .help-arrow-btn:focus-visible {
+            outline: none;
+            box-shadow:
+                0 0 0 3px rgba(255, 107, 53, 0.18),
+                0 12px 28px rgba(0, 0, 0, 0.10);
+        }
+
+        .help-arrow-left {
+            left: -14px;
+        }
+
+        .help-arrow-right {
+            right: -14px;
+        }
+
+        body.dark-mode .help-arrow-btn {
+            background: linear-gradient(160deg, rgba(10, 14, 36, 0.80), rgba(10, 12, 36, 0.68));
+            color: #e8f0ff;
+            border-color: rgba(79, 212, 255, 0.24);
+            box-shadow:
+                0 12px 28px rgba(0, 0, 0, 0.25),
+                inset 0 1px 0 rgba(255, 255, 255, 0.06);
+        }
+
+        body.dark-mode .help-arrow-btn:hover {
+            border-color: rgba(79, 212, 255, 0.45);
+        }
+
+        body.dark-mode .help-arrow-btn:focus-visible {
+            outline: none;
+            box-shadow:
+                0 0 0 3px rgba(79, 212, 255, 0.16),
+                0 12px 28px rgba(0, 0, 0, 0.25);
+        }
+
+        .help-slider-track {
+            display: flex;
+            width: 100%;
+            transition: transform 0.35s ease;
+        }
+
+        .help-slide {
+            min-width: 100%;
+            padding: 20px 58px;
+            border-radius: 18px;
+            border: 1px solid rgba(255, 107, 53, 0.15);
+            background:
+                radial-gradient(circle at 12% 16%, rgba(255, 220, 195, 0.58), transparent 32%),
+                radial-gradient(circle at 86% 22%, rgba(255, 170, 130, 0.24), transparent 26%),
+                linear-gradient(145deg, rgba(255, 255, 255, 0.90), rgba(255, 242, 232, 0.78));
+            backdrop-filter: blur(8px);
+            box-shadow:
+                inset 0 1px 0 rgba(255, 255, 255, 0.60),
+                0 10px 22px rgba(255, 107, 53, 0.05);
+        }
+
+        body.dark-mode .help-slide {
+            border-color: rgba(79, 212, 255, 0.16);
+            background:
+                radial-gradient(circle at 14% 18%, rgba(79, 212, 255, 0.10), transparent 32%),
+                radial-gradient(circle at 86% 22%, rgba(120, 140, 255, 0.14), transparent 26%),
+                linear-gradient(160deg, rgba(10, 14, 36, 0.78), rgba(10, 12, 36, 0.66));
+            box-shadow:
+                inset 0 1px 0 rgba(255, 255, 255, 0.06),
+                0 10px 22px rgba(0, 0, 0, 0.16);
+        }
+
+        .help-slide-layout {
+            display: grid;
+            grid-template-columns: minmax(0, 1.15fr) minmax(220px, 0.85fr);
+            gap: 18px;
+            align-items: start;
+        }
+
+        .help-slide-text {
+            min-width: 0;
+        }
+
+        .help-slide-image-card {
+            border-radius: 14px;
+            border: 1px solid rgba(255, 107, 53, 0.22);
+            background: rgba(255, 255, 255, 0.72);
+            box-shadow: 0 10px 22px rgba(0, 0, 0, 0.09);
+            overflow: hidden;
+            align-self: center;
+            padding: 8px;
+        }
+
+        .help-slide-image {
+            width: 100%;
+            height: auto;
+            display: block;
+            border-radius: 10px;
+        }
+
+        body.dark-mode .help-slide-image-card {
+            border-color: rgba(79, 212, 255, 0.34);
+            background: linear-gradient(160deg, rgba(232, 240, 255, 0.96), rgba(214, 231, 255, 0.94));
+            box-shadow: 0 12px 28px rgba(0, 0, 0, 0.22);
+        }
+
+        body.dark-mode .help-slide-image {
+            background: #f8fbff;
+        }
+
+        @media (max-width: 520px) {
+            .help-arrow-btn {
+                width: 44px;
+                height: 44px;
+                font-size: 20px;
+            }
+
+            .help-arrow-left {
+                left: -10px;
+            }
+
+            .help-arrow-right {
+                right: -10px;
+            }
+
+            .help-slide {
+                padding: 18px 44px;
+            }
+
+            .help-slide-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .help-slide h3 {
+            margin: 0 0 8px;
+            font-size: 18px;
+            font-weight: 900;
+            color: #ff6b35;
+            letter-spacing: 0.2px;
+        }
+
+        body.dark-mode .help-slide h3 {
+            color: #4fd4ff;
+        }
+
+        .help-slide p {
+            margin: 0;
+            color: #5a4a3a;
+            font-size: 14px;
+            line-height: 1.65;
+            max-width: 760px;
+        }
+
+        .help-slide ul {
+            margin: 12px 0 0;
+            padding-left: 18px;
+            color: #5a4a3a;
+            font-size: 14px;
+            line-height: 1.65;
+        }
+
+        .help-slide li {
+            margin: 6px 0;
+        }
+
+        body.dark-mode .help-slide p {
+            color: #b8d4ff;
+        }
+
+        body.dark-mode .help-slide ul {
+            color: #b8d4ff;
+        }
+
+        .help-dots-row {
+            display: flex;
+            justify-content: center;
+            margin-top: 12px;
+        }
+
+        .help-dots {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .help-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 999px;
+            border: 1px solid rgba(255, 107, 53, 0.5);
+            background: rgba(255, 107, 53, 0.12);
+            cursor: pointer;
+            padding: 0;
+        }
+
+        .help-dot.active {
+            background: rgba(255, 107, 53, 0.95);
+        }
+
+        body.dark-mode .help-dot {
+            border-color: rgba(79, 212, 255, 0.55);
+            background: rgba(79, 212, 255, 0.12);
+        }
+
+        body.dark-mode .help-dot.active {
+            background: rgba(79, 212, 255, 0.92);
+        }
+
+
+
+        /* ===== Form ===== */
+        .help-form-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 14px;
+        }
+
+        .help-label {
+            font-size: 13.5px;
+            font-weight: 700;
+            color: #5a4a3a;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .help-label-row {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .help-label-icon {
+            width: 15px;
+            height: 15px;
+            color: #ff6b35;
+            flex-shrink: 0;
+        }
+
+        body.dark-mode .help-label {
+            color: #b8d4ff;
+        }
+
+        body.dark-mode .help-label-icon {
+            color: #4fd4ff;
+        }
+
+        .help-input,
+        .help-textarea {
+            width: 100%;
+            padding: 12px 14px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 107, 53, 0.25);
+            background: rgba(255, 255, 255, 0.85);
+            color: #1a1a1a;
+            font-family: 'Inter', sans-serif;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        body.dark-mode .help-input,
+        body.dark-mode .help-textarea {
+            border-color: rgba(79, 212, 255, 0.24);
+            background: rgba(10, 14, 36, 0.55);
+            color: #e8f0ff;
+        }
+
+        .help-input:focus,
+        .help-textarea:focus {
+            border-color: #ff6b35;
+            box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.15);
+        }
+
+        body.dark-mode .help-input:focus,
+        body.dark-mode .help-textarea:focus {
+            border-color: #4fd4ff;
+            box-shadow: 0 0 0 3px rgba(79, 212, 255, 0.15);
+        }
+
+        body.dark-mode #helpSubject::placeholder {
+            color: #9db9de;
+            opacity: 1;
+        }
+
+        .help-textarea {
+            min-height: 140px;
+            resize: vertical;
+        }
+
+        .help-submit {
+            padding: 12px 18px;
+            border-radius: 12px;
+            border: none;
+            background: linear-gradient(135deg, #ff6b35, #e85c20);
+            color: #fff;
+            cursor: pointer;
+            font-weight: 900;
+            font-family: inherit;
+            box-shadow: 0 6px 18px rgba(255, 107, 53, 0.35);
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+            width: fit-content;
+        }
+
+        .help-submit:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 10px 26px rgba(255, 107, 53, 0.45);
+        }
+
+        body.dark-mode .help-submit {
+            background: linear-gradient(135deg, #4fd4ff, #3b82f6);
+            box-shadow: 0 8px 22px rgba(79, 212, 255, 0.34);
+            color: #06101f;
+        }
+
+        body.dark-mode .help-submit:hover {
+            box-shadow: 0 12px 28px rgba(79, 212, 255, 0.44);
+        }
+
+        .help-alert {
+            padding: 12px 14px;
+            border-radius: 14px;
+            font-size: 13.5px;
+            font-weight: 700;
+            margin: 12px 0 0;
+            border: 1px solid transparent;
+        }
+
+        .help-alert.success {
+            background: rgba(34, 197, 94, 0.12);
+            border-color: rgba(34, 197, 94, 0.25);
+            color: #166534;
+        }
+
+        .help-alert.error {
+            background: rgba(220, 38, 38, 0.10);
+            border-color: rgba(220, 38, 38, 0.20);
+            color: #991b1b;
+        }
+
+        body.dark-mode .help-alert.success {
+            color: #bbf7d0;
+        }
+
+        body.dark-mode .help-alert.error {
+            color: #fecaca;
+        }
+
+        .help-spacer {
+            height: 18px;
+        }
+
+        @media (min-width: 980px) {
+            .help-panel-inner {
+                padding: 22px;
+            }
+
+            .help-form-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .help-form-grid .help-field-full {
+                grid-column: 1 / -1;
+            }
+        }
+    </style>
+</head>
+
+<body class="dash-body">
+    <div id="particles-bg"
+        style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -2; pointer-events: none;"></div>
+
+    <div class="dash-layout-wrapper">
+        <aside class="dash-sidebar" id="dashSidebar">
+            <div class="sidebar-header">
+                <a href="{{ url_for('dashboard') }}" class="dash-logo-link">
+                    <img src="{{ url_for('static', filename='images/Logo_BR.png') }}" alt="Logo" class="dash-logo-img">
+                </a>
+                <button class="sidebar-toggle-btn" id="sidebarToggle" aria-label="Toggle Sidebar">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="3" y1="12" x2="21" y2="12"></line>
+                        <line x1="3" y1="6" x2="21" y2="6"></line>
+                        <line x1="3" y1="18" x2="21" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+
+            <div class="sidebar-scroll-area">
+                <div class="sidebar-section">
+                    <span class="section-title">Menu</span>
+                    <nav class="sidebar-nav">
+                        <a href="{{ url_for('dashboard') }}" class="sidebar-item">
+                            <svg class="sidebar-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18"
+                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="3" y="3" width="7" height="7"></rect>
+                                <rect x="14" y="3" width="7" height="7"></rect>
+                                <rect x="14" y="14" width="7" height="7"></rect>
+                                <rect x="3" y="14" width="7" height="7"></rect>
+                            </svg>
+                            <span class="sidebar-text">Dashboard</span>
+                        </a>
+                        <a href="{{ url_for('attendance') }}" class="sidebar-item">
+                            <svg class="sidebar-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18"
+                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                                <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                            </svg>
+                            <span class="sidebar-text">Attendance</span>
+                        </a>
+                        <a href="{{ url_for('recommendations') }}" class="sidebar-item">
+                            <svg class="sidebar-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18"
+                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <polygon
+                                    points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2">
+                                </polygon>
+                            </svg>
+                            <span class="sidebar-text">Recommendation</span>
+                        </a>
+                        <a href="{{ url_for('ai_agent') }}" class="sidebar-item">
+                            <svg class="sidebar-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18"
+                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="3" y="11" width="18" height="10" rx="2"></rect>
+                                <circle cx="12" cy="5" r="2"></circle>
+                                <path d="M12 7v4"></path>
+                                <line x1="8" y1="16" x2="8" y2="16"></line>
+                                <line x1="16" y1="16" x2="16" y2="16"></line>
+                            </svg>
+                            <span class="sidebar-text">AI Agent</span>
+                        </a>
+                    </nav>
+                </div>
+
+                <div class="sidebar-section">
+                    <span class="section-title">General</span>
+                    <nav class="sidebar-nav">
+                        <a href="{{ url_for('our_team') }}" class="sidebar-item">
+                            <svg class="sidebar-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18"
+                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                                <circle cx="9" cy="7" r="4" />
+                                <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                                <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                            </svg>
+                            <span class="sidebar-text">Our Team</span>
+                        </a>
+                        <a href="{{ url_for('help') }}" class="sidebar-item active">
+                            <svg class="sidebar-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18"
+                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                                <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                            </svg>
+                            <span class="sidebar-text">Help</span>
+                        </a>
+                    </nav>
+                </div>
+
+                <div class="sidebar-section">
+                    <span class="section-title">View</span>
+                    <div class="sidebar-nav">
+                        <button class="sidebar-item dark-mode-toggle" id="btnDarkMode">
+                            <div class="toggle-icon-wrap">
+                                <svg class="sidebar-icon sun-icon" xmlns="http://www.w3.org/2000/svg" width="18"
+                                    height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                    stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="12" cy="12" r="5"></circle>
+                                    <line x1="12" y1="1" x2="12" y2="3"></line>
+                                    <line x1="12" y1="21" x2="12" y2="23"></line>
+                                    <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                                    <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                                    <line x1="1" y1="12" x2="3" y2="12"></line>
+                                    <line x1="21" y1="12" x2="23" y2="12"></line>
+                                    <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                                    <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                                </svg>
+                                <svg class="sidebar-icon moon-icon" xmlns="http://www.w3.org/2000/svg" width="18"
+                                    height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                    stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                                </svg>
+                            </div>
+                            <span class="sidebar-text">Dark mode (off)</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="sidebar-footer">
+                <a href="{{ url_for('profile') }}" class="sidebar-profile-widget" style="text-decoration:none;">
+                    <div class="dash-avatar">
+                        {% if profile_photo %}
+                        <img src="{{ profile_photo }}" alt="Profile"
+                            style="width:100%;height:100%;object-fit:cover;object-position:center;border-radius:50%;">
+                        {% else %}
+                        <span class="avatar-initials">{{ username[0] | upper }}</span>
+                        {% endif %}
+                    </div>
+                    <div class="profile-info sidebar-text">
+                        <span class="profile-name">{{ username }}</span>
+                    </div>
+                </a>
+                <a href="{{ url_for('logout') }}" class="sidebar-logout-btn" title="Logout">
+                    <svg class="sidebar-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18"
+                        viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                        <polyline points="16 17 21 12 16 7"></polyline>
+                        <line x1="21" y1="12" x2="9" y2="12"></line>
+                    </svg>
+                    <span class="sidebar-text">Logout</span>
+                </a>
+            </div>
+        </aside>
+
+        <main class="dash-main-area">
+            <div class="dash-main-content">
+
+                <div class="top-header-bar">
+                    <div class="header-page-title">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                            <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                        </svg>
+                        <span>Help</span>
+                    </div>
+
+                    <div class="header-actions">
+                        <div class="header-popup-wrap" id="msgWrap">
+                            <button class="header-action-btn" id="headerBtnMsg" aria-label="Messages" title="Messages">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                    stroke-linejoin="round">
+                                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                                </svg>
+                            </button>
+                            <div class="header-popup" id="msgPopup">
+                                <div class="popup-empty">
+                                    <span class="popup-icon">💬</span>
+                                    <span class="popup-msg">No messages right now</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="header-popup-wrap" id="notifWrap">
+                            <button class="header-action-btn has-notif" id="headerBtnNotif" aria-label="Notifications"
+                                title="Notifications">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                    stroke-linejoin="round">
+                                    <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" />
+                                    <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
+                                </svg>
+                                <span class="header-notif-dot"></span>
+                            </button>
+                            <div class="header-popup" id="notifPopup">
+                                <div class="popup-empty">
+                                    <span class="popup-icon">🔔</span>
+                                    <span class="popup-msg">No notifications right now</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <a href="{{ url_for('profile') }}" class="header-profile" style="text-decoration:none;">
+                            <div class="header-avatar">
+                                {% if profile_photo %}
+                                <img src="{{ profile_photo }}" alt="Profile"
+                                    style="width:100%;height:100%;object-fit:cover;object-position:center;border-radius:50%;">
+                                {% else %}
+                                <span class="avatar-initials">{{ username[0] | upper }}</span>
+                                {% endif %}
+                            </div>
+                            <div class="header-profile-info">
+                                <span class="header-profile-name">{{ username }}</span>
+                                <span class="header-profile-email">{{ email }}</span>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+
+                <div class="help-hero">
+                    <h1 class="help-title">Need <span class="help-accent">help</span> using the platform?</h1>
+                    <p class="help-subtitle">Explore the core features in a minute. If you can’t find what you need,
+                        send us your question below and we’ll respond to your registered email as soon as possible.</p>
+                </div>
+
+                <section class="help-panel" aria-label="Platform features">
+                    <div class="help-panel-inner">
+                        <h2 class="help-section-title">Platform feature overview</h2>
+
+                        <div class="help-slider-wrap" aria-label="Feature slides">
+                            <button class="help-arrow-btn help-arrow-left" type="button" id="helpPrevBtn"
+                                aria-label="Previous slide">&lt;</button>
+
+                            <div class="help-slider">
+                                <div class="help-slider-track" id="helpSliderTrack">
+                                    <div class="help-slide" data-slide="0">
+                                        <div class="help-slide-layout">
+                                            <div class="help-slide-text">
+                                                <h3>Dashboard</h3>
+                                                <p>Your central overview page. It brings together the most important
+                                                    academic
+                                                    indicators so you can understand your progress at a glance.</p>
+                                                <ul>
+                                                    <li>Review attendance rate, GPA, recommendation count, and academic
+                                                        grade
+                                                        in one place.</li>
+                                                    <li>View dashboard charts for attendance trends, GPA progress, and
+                                                        course
+                                                        attendance.</li>
+                                                    <li>Use it to spot changes early and move quickly to the tools you
+                                                        need.
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                            <div class="help-slide-image-card">
+                                                <img class="help-slide-image"
+                                                    src="{{ url_for('static', filename='images/dashboard.png') }}"
+                                                    alt="Dashboard preview">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="help-slide" data-slide="1">
+                                        <div class="help-slide-layout">
+                                            <div class="help-slide-text">
+                                                <h3>Attendance</h3>
+                                                <p>The attendance area helps you monitor your consistency across the
+                                                    week and
+                                                    across individual courses.</p>
+                                                <ul>
+                                                    <li>Follow the weekly attendance trend to see how regularly you
+                                                        attend.</li>
+                                                    <li>Check the course-by-course attendance bars to find weak subjects
+                                                        early.
+                                                    </li>
+                                                    <li>Use the results to improve discipline and reduce missed
+                                                        sessions.</li>
+                                                </ul>
+                                            </div>
+                                            <div class="help-slide-image-card">
+                                                <img class="help-slide-image"
+                                                    src="{{ url_for('static', filename='images/attendence.png') }}"
+                                                    alt="Attendance preview">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="help-slide" data-slide="2">
+                                        <div class="help-slide-layout">
+                                            <div class="help-slide-text">
+                                                <h3>Recommendation System</h3>
+                                                <p>This tool evaluates your academic inputs and explains whether a
+                                                    course is a
+                                                    strong match for your current study pattern.</p>
+                                                <ul>
+                                                    <li>Enter the course name, professor name, average study hours, and
+                                                        attendance.</li>
+                                                    <li>Receive a clear result with a reason, match status, and
+                                                        recommendation
+                                                        score.</li>
+                                                    <li>Review your saved recommendation history whenever you want to
+                                                        compare
+                                                        past decisions.</li>
+                                                </ul>
+                                            </div>
+                                            <div class="help-slide-image-card">
+                                                <img class="help-slide-image"
+                                                    src="{{ url_for('static', filename='images/recommendation_system.png') }}"
+                                                    alt="Recommendation system preview">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="help-slide" data-slide="3">
+                                        <div class="help-slide-layout">
+                                            <div class="help-slide-text">
+                                                <h3>AI Agent</h3>
+                                                <p>Your interactive assistant for quick questions, study guidance, and
+                                                    support
+                                                    while you work through the platform.</p>
+                                                <ul>
+                                                    <li>Ask questions in natural language and get instant, useful
+                                                        answers.</li>
+                                                    <li>Keep track of conversations through the chat history sidebar and
+                                                        common
+                                                        question shortcuts.</li>
+                                                    <li>Use message actions and file attachments when you need to share
+                                                        or
+                                                        review supporting details.</li>
+                                                </ul>
+                                            </div>
+                                            <div class="help-slide-image-card">
+                                                <img class="help-slide-image"
+                                                    src="{{ url_for('static', filename='images/ai_agent.png') }}"
+                                                    alt="AI agent preview">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <button class="help-arrow-btn help-arrow-right" type="button" id="helpNextBtn"
+                                aria-label="Next slide">&gt;</button>
+                        </div>
+
+                        <div class="help-dots-row">
+                            <div class="help-dots" role="tablist" aria-label="Choose a slide">
+                                <button class="help-dot active" type="button" data-go="0"
+                                    aria-label="Dashboard slide"></button>
+                                <button class="help-dot" type="button" data-go="1"
+                                    aria-label="Attendance slide"></button>
+                                <button class="help-dot" type="button" data-go="2"
+                                    aria-label="Recommendation slide"></button>
+                                <button class="help-dot" type="button" data-go="3" aria-label="AI Agent slide"></button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <div class="help-spacer"></div>
+
+                <section class="help-panel" aria-label="Contact form">
+                    <div class="help-panel-inner">
+                        <h2 class="help-section-title">Contact us</h2>
+
+                        <p class="help-subtitle" style="margin-bottom:14px;">Tell us your question and we’ll get back to
+                            you as soon as possible.</p>
+
+                        <form method="POST" action="{{ url_for('help') }}" class="help-form" novalidate>
+                            <div class="help-form-grid">
+                                <div class="help-field">
+                                    <label class="help-label" for="helpName">
+                                        <span class="help-label-row">
+                                            <svg class="help-label-icon" xmlns="http://www.w3.org/2000/svg"
+                                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                                stroke-linecap="round" stroke-linejoin="round">
+                                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                                                <circle cx="12" cy="7" r="4" />
+                                            </svg>
+                                            <span>Name</span>
+                                        </span>
+                                    </label>
+                                    <input class="help-input" id="helpName" name="name" type="text"
+                                        value="{{ username }}" readonly>
+                                </div>
+
+                                <div class="help-field">
+                                    <label class="help-label" for="helpEmail">
+                                        <span class="help-label-row">
+                                            <svg class="help-label-icon" xmlns="http://www.w3.org/2000/svg"
+                                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                                stroke-linecap="round" stroke-linejoin="round">
+                                                <rect x="3" y="5" width="18" height="14" rx="2" ry="2" />
+                                                <path d="m3 7 9 6 9-6" />
+                                            </svg>
+                                            <span>Email</span>
+                                        </span>
+                                    </label>
+                                    <input class="help-input" id="helpEmail" name="email" type="email"
+                                        value="{{ email }}" readonly>
+                                </div>
+
+                                <div class="help-field help-field-full">
+                                    <label class="help-label" for="helpSubject">
+                                        <span class="help-label-row">
+                                            <svg class="help-label-icon" xmlns="http://www.w3.org/2000/svg"
+                                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                                stroke-linecap="round" stroke-linejoin="round">
+                                                <path
+                                                    d="M4 19.5V4.8A1.8 1.8 0 0 1 5.8 3h13.4V21H5.8A1.8 1.8 0 0 1 4 19.2z" />
+                                                <path d="M8 8h8M8 12h8" />
+                                            </svg>
+                                            <span>Subject</span>
+                                        </span>
+                                    </label>
+                                    <input class="help-input" id="helpSubject" name="subject" type="text" required
+                                        value="{{ form_data.subject if form_data else '' }}"
+                                        placeholder="Example: I can’t find my recommendation history">
+                                </div>
+
+                                <div class="help-field help-field-full">
+                                    <label class="help-label" for="helpMessage">
+                                        <span class="help-label-row">
+                                            <svg class="help-label-icon" xmlns="http://www.w3.org/2000/svg"
+                                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                                stroke-linecap="round" stroke-linejoin="round">
+                                                <path
+                                                    d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                                            </svg>
+                                            <span>Your question</span>
+                                        </span>
+                                    </label>
+                                    <textarea class="help-textarea" id="helpMessage" name="message" required
+                                        placeholder="Write your question here...">{{ form_data.message if form_data else '' }}</textarea>
+                                </div>
+
+                                <div class="help-field help-field-full">
+                                    <button class="help-submit" type="submit">Send message</button>
+
+                                    {% if sent %}
+                                    <div class="help-alert success">Message sent successfully. We’ll respond to you on
+                                        your email.</div>
+                                    {% endif %}
+
+                                    {% if error %}
+                                    <div class="help-alert error">{{ error }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </section>
+
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Sidebar toggle logic
+        const sidebar = document.getElementById('dashSidebar');
+        const toggleBtn = document.getElementById('sidebarToggle');
+        if (toggleBtn && sidebar) {
+            toggleBtn.addEventListener('click', () => {
+                sidebar.classList.toggle('collapsed');
+            });
+        }
+
+        // ---- Dark mode toggle ----
+        const darkModeBtn = document.getElementById('btnDarkMode');
+        const darkModeText = darkModeBtn ? darkModeBtn.querySelector('.sidebar-text') : null;
+
+        const isDark = localStorage.getItem('theme') === 'dark';
+        if (isDark) {
+            document.body.classList.add('dark-mode');
+            if (darkModeText) darkModeText.textContent = 'Dark mode (on)';
+            if (darkModeBtn) darkModeBtn.classList.add('active');
+        }
+
+        let particlesContainer;
+        tsParticles.load("particles-bg", {
+            fpsLimit: 60,
+            particles: {
+                color: { value: isDark ? ["#e8c547", "#ff6b35", "#80706a"] : ["#ff6b35", "#ffc5d0", "#ffffff"] },
+                move: {
+                    enable: true,
+                    direction: "top",
+                    random: true,
+                    speed: 0.6,
+                    straight: false
+                },
+                number: {
+                    density: { enable: true, area: 800 },
+                    value: 100
+                },
+                opacity: {
+                    value: { min: 0.2, max: 0.6 },
+                    animation: { enable: true, speed: 0.8, minimumValue: 0.1 }
+                },
+                shape: { type: "circle" },
+                size: {
+                    value: { min: 2, max: 8 },
+                    animation: { enable: true, speed: 1.5, minimumValue: 2 }
+                }
+            },
+            detectRetina: true
+        }).then(container => {
+            particlesContainer = container;
+        });
+
+        if (darkModeBtn) {
+            darkModeBtn.addEventListener('click', () => {
+                document.body.classList.toggle('dark-mode');
+
+                if (document.body.classList.contains('dark-mode')) {
+                    localStorage.setItem('theme', 'dark');
+                    if (darkModeText) darkModeText.textContent = 'Dark mode (on)';
+                    darkModeBtn.classList.add('active');
+                    if (particlesContainer) {
+                        particlesContainer.options.particles.color.value = ["#e8c547", "#ff6b35", "#80706a"];
+                        particlesContainer.refresh();
+                    }
+                } else {
+                    localStorage.setItem('theme', 'light');
+                    if (darkModeText) darkModeText.textContent = 'Dark mode (off)';
+                    darkModeBtn.classList.remove('active');
+                    if (particlesContainer) {
+                        particlesContainer.options.particles.color.value = ["#ff6b35", "#ffc5d0", "#ffffff"];
+                        particlesContainer.refresh();
+                    }
+                }
+            });
+        }
+
+        // Popup toggle logic for Messages & Notifications
+        function setupPopup(btnId, popupId) {
+            const btn = document.getElementById(btnId);
+            const popup = document.getElementById(popupId);
+            if (!btn || !popup) return;
+
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                document.querySelectorAll('.header-popup.open').forEach(p => {
+                    if (p !== popup) p.classList.remove('open');
+                });
+                popup.classList.toggle('open');
+            });
+        }
+
+        setupPopup('headerBtnMsg', 'msgPopup');
+        setupPopup('headerBtnNotif', 'notifPopup');
+
+        document.addEventListener('click', () => {
+            document.querySelectorAll('.header-popup.open').forEach(p => p.classList.remove('open'));
+        });
+
+        // ===== Slider logic =====
+        const sliderTrack = document.getElementById('helpSliderTrack');
+        const dots = Array.from(document.querySelectorAll('.help-dot'));
+        const prevBtn = document.getElementById('helpPrevBtn');
+        const nextBtn = document.getElementById('helpNextBtn');
+
+        let currentSlide = 0;
+        const slideCount = 4;
+
+        function setSlide(index) {
+            const clamped = ((index % slideCount) + slideCount) % slideCount;
+            currentSlide = clamped;
+            if (sliderTrack) sliderTrack.style.transform = `translateX(-${clamped * 100}%)`;
+            dots.forEach((d, i) => d.classList.toggle('active', i === clamped));
+        }
+
+        dots.forEach(dot => {
+            dot.addEventListener('click', () => {
+                const go = Number(dot.dataset.go || '0');
+                setSlide(go);
+            });
+        });
+
+        if (prevBtn) prevBtn.addEventListener('click', () => setSlide(currentSlide - 1));
+        if (nextBtn) nextBtn.addEventListener('click', () => setSlide(currentSlide + 1));
+
+        setSlide(0);
+    </script>
+</body>
+
+</html>

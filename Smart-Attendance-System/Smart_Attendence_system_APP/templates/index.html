@@ -1,0 +1,1906 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Smart Attendance System, Mansoura University</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+
+:root {
+  --navy:       #0B1628;
+  --navy2:      #0F1F3C;
+  --navy3:      #152747;
+  --blue:       #1E3A5F;
+  --blue2:      #254B78;
+  --teal:       #00C9B8;
+  --teal2:      #00A89A;
+  --teal-dim:   rgba(0,201,184,0.12);
+  --amber:      #F59E0B;
+  --amber-dim:  rgba(245,158,11,0.12);
+  --green:      #10B981;
+  --green-dim:  rgba(16,185,129,0.12);
+  --red:        #EF4444;
+  --red-dim:    rgba(239,68,68,0.12);
+  --text:       #F0F4FF;
+  --text2:      #A8B8D8;
+  --text3:      #6B7FA3;
+  --border:     rgba(0,201,184,0.15);
+  --border2:    rgba(255,255,255,0.06);
+  --card:       rgba(21,39,71,0.8);
+  --card2:      rgba(30,58,95,0.5);
+  --ff-body:    'Outfit', sans-serif;
+  --ff-mono:    'JetBrains Mono', monospace;
+  --radius:     14px;
+  --shadow:     0 8px 32px rgba(0,0,0,0.4);
+}
+
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: var(--ff-body);
+  background: var(--navy);
+  color: var(--text);
+  overflow-x: hidden;
+  line-height: 1.65;
+}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: var(--navy); }
+::-webkit-scrollbar-thumb { background: var(--teal2); border-radius: 3px; }
+
+/* ── Selection ── */
+::selection { background: var(--teal); color: #000; }
+
+/* ── Focus ── */
+:focus-visible { outline: 2px solid var(--teal); outline-offset: 3px; }
+
+/* ============================================================
+   LAYOUT
+============================================================ */
+.container { max-width: 1080px; margin: 0 auto; padding: 0 24px; }
+
+section { padding: 80px 24px; }
+section:nth-child(even) { background: var(--navy2); }
+
+h2 {
+  font-size: clamp(1.6rem, 3vw, 2.2rem);
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 8px;
+  text-align: center;
+  letter-spacing: -0.5px;
+}
+
+.section-tag {
+  display: inline-block;
+  background: var(--teal-dim);
+  color: var(--teal);
+  border: 1px solid rgba(0,201,184,0.25);
+  padding: 4px 14px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  font-family: var(--ff-mono);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin-bottom: 14px;
+}
+
+.section-sub {
+  text-align: center;
+  color: var(--text3);
+  font-size: 0.95rem;
+  margin-bottom: 48px;
+  max-width: 560px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* ============================================================
+   SCROLL REVEAL
+============================================================ */
+.reveal {
+  opacity: 0;
+  transform: translateY(28px);
+  transition: opacity 0.65s ease, transform 0.65s ease;
+}
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+.reveal-delay-1 { transition-delay: 0.1s; }
+.reveal-delay-2 { transition-delay: 0.2s; }
+.reveal-delay-3 { transition-delay: 0.3s; }
+.reveal-delay-4 { transition-delay: 0.4s; }
+
+/* ============================================================
+   NAVBAR
+============================================================ */
+nav {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 1000;
+  background: rgba(11,22,40,0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border2);
+  padding: 0 24px;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: background 0.3s;
+}
+
+.nav-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--text);
+  text-decoration: none;
+}
+
+.nav-brand .brand-dot {
+  width: 8px; height: 8px;
+  background: var(--teal);
+  border-radius: 50%;
+  box-shadow: 0 0 8px var(--teal);
+  animation: pulse-dot 2s ease infinite;
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity:1; transform: scale(1); }
+  50%       { opacity:0.5; transform: scale(0.8); }
+}
+
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  list-style: none;
+}
+
+.nav-links a {
+  color: var(--text2);
+  text-decoration: none;
+  font-size: 0.88rem;
+  font-weight: 500;
+  padding: 8px 14px;
+  border-radius: 8px;
+  transition: color 0.2s, background 0.2s;
+}
+
+.nav-links a:hover {
+  color: var(--teal);
+  background: var(--teal-dim);
+}
+
+.nav-cta {
+  background: var(--teal) !important;
+  color: #000 !important;
+  font-weight: 600 !important;
+  padding: 8px 18px !important;
+  border-radius: 8px !important;
+}
+
+.nav-cta:hover {
+  background: var(--teal2) !important;
+}
+
+/* Mobile nav */
+.nav-toggle {
+  display: none;
+  background: none;
+  border: none;
+  color: var(--text);
+  font-size: 1.4rem;
+  cursor: pointer;
+}
+
+@media (max-width: 700px) {
+  .nav-links { display: none; }
+  .nav-toggle { display: block; }
+  .nav-links.open {
+    display: flex;
+    flex-direction: column;
+    position: absolute;
+    top: 64px; left: 0; right: 0;
+    background: var(--navy2);
+    border-bottom: 1px solid var(--border);
+    padding: 12px;
+    gap: 4px;
+  }
+}
+
+/* ============================================================
+   HERO / HEADER
+============================================================ */
+#home {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 100px 24px 80px;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Animated background grid */
+#home::before {
+  content: '';
+  position: absolute; inset: 0;
+  background-image:
+    linear-gradient(rgba(0,201,184,0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,201,184,0.04) 1px, transparent 1px);
+  background-size: 60px 60px;
+  animation: grid-drift 20s linear infinite;
+}
+
+@keyframes grid-drift {
+  0%   { transform: translateY(0); }
+  100% { transform: translateY(60px); }
+}
+
+/* Radial glow */
+#home::after {
+  content: '';
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse 70% 50% at 50% 40%, rgba(0,201,184,0.08) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.hero-content {
+  position: relative;
+  z-index: 1;
+  max-width: 780px;
+}
+
+.hero-logos {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  margin-bottom: 32px;
+}
+
+.logo-box {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px 18px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  backdrop-filter: blur(10px);
+  transition: transform 0.3s, border-color 0.3s;
+}
+
+.logo-box:hover {
+  transform: translateY(-4px);
+  border-color: var(--teal);
+}
+
+.logo-box .logo-icon {
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.logo-box .logo-text {
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: var(--text2);
+  text-align: center;
+  letter-spacing: 0.3px;
+  max-width: 90px;
+}
+
+.logo-divider {
+  width: 1px;
+  height: 60px;
+  background: var(--border);
+}
+
+.hero-eyebrow {
+  font-family: var(--ff-mono);
+  font-size: 0.78rem;
+  color: var(--teal);
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  margin-bottom: 18px;
+}
+
+.hero-title {
+  font-size: clamp(2.2rem, 6vw, 4rem);
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -1.5px;
+  margin-bottom: 20px;
+  color: var(--text);
+}
+
+.hero-title .t-accent { color: var(--teal); }
+.hero-title .t-amber  { color: var(--amber); }
+
+.hero-sub {
+  font-size: 1.1rem;
+  color: var(--text2);
+  max-width: 520px;
+  margin: 0 auto 36px;
+  font-weight: 400;
+}
+
+.hero-badges {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-bottom: 40px;
+}
+
+.hbadge {
+  padding: 6px 16px;
+  border-radius: 20px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  font-family: var(--ff-mono);
+  letter-spacing: 0.3px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.hbadge.teal   { background: var(--teal-dim); color: var(--teal);  border: 1px solid rgba(0,201,184,0.3); }
+.hbadge.amber  { background: var(--amber-dim); color: var(--amber); border: 1px solid rgba(245,158,11,0.3); }
+.hbadge.green  { background: var(--green-dim); color: var(--green); border: 1px solid rgba(16,185,129,0.3); }
+
+.hero-btns {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+/* ============================================================
+   BUTTONS
+============================================================ */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 26px;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  font-family: var(--ff-body);
+  font-size: 0.92rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.25s;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn::after {
+  content: '';
+  position: absolute; inset: 0;
+  background: rgba(255,255,255,0.1);
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.btn:hover::after { opacity: 1; }
+.btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.btn:disabled::after { display: none; }
+
+.btn-teal {
+  background: var(--teal);
+  color: #000;
+  box-shadow: 0 4px 20px rgba(0,201,184,0.3);
+}
+.btn-teal:hover:not(:disabled) { background: var(--teal2); transform: translateY(-2px); box-shadow: 0 6px 24px rgba(0,201,184,0.45); }
+
+.btn-outline {
+  background: transparent;
+  color: var(--teal);
+  border: 1.5px solid var(--teal);
+}
+.btn-outline:hover:not(:disabled) { background: var(--teal-dim); transform: translateY(-2px); }
+
+.btn-ghost {
+  background: var(--card);
+  color: var(--text);
+  border: 1px solid var(--border2);
+}
+.btn-ghost:hover:not(:disabled) { border-color: var(--teal); color: var(--teal); transform: translateY(-2px); }
+
+.btn-red {
+  background: transparent;
+  color: var(--red);
+  border: 1.5px solid var(--red);
+}
+.btn-red:hover:not(:disabled) { background: var(--red-dim); transform: translateY(-2px); }
+
+.btn-amber {
+  background: var(--amber);
+  color: #000;
+}
+.btn-amber:hover:not(:disabled) { background: #D97706; transform: translateY(-2px); }
+
+.btn-sm { padding: 8px 18px; font-size: 0.84rem; }
+
+/* ============================================================
+   HOW IT WORKS
+============================================================ */
+#how {
+  padding: 80px 24px;
+}
+
+.pipeline {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0;
+  margin-top: 48px;
+}
+
+.p-step {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px 18px;
+  text-align: center;
+  width: 140px;
+  transition: transform 0.3s, border-color 0.3s, box-shadow 0.3s;
+  cursor: default;
+  backdrop-filter: blur(8px);
+}
+
+.p-step:hover {
+  transform: translateY(-6px);
+  border-color: var(--teal);
+  box-shadow: 0 12px 40px rgba(0,201,184,0.15);
+}
+
+.p-step .p-num {
+  font-family: var(--ff-mono);
+  font-size: 0.65rem;
+  color: var(--teal);
+  margin-bottom: 8px;
+  letter-spacing: 2px;
+}
+
+.p-step .p-icon { font-size: 2rem; margin-bottom: 10px; display: block; }
+
+.p-step h3 {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 6px;
+  letter-spacing: 0.5px;
+}
+
+.p-step p {
+  font-size: 0.7rem;
+  color: var(--text3);
+  line-height: 1.4;
+}
+
+.p-connector {
+  display: flex;
+  align-items: center;
+  padding: 0 6px;
+  color: var(--teal);
+  font-size: 0.9rem;
+  opacity: 0.5;
+  flex-shrink: 0;
+}
+
+.tech-tags {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-top: 48px;
+}
+
+.tech-tag {
+  background: var(--card);
+  border: 1px solid var(--border);
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  font-family: var(--ff-mono);
+  color: var(--text2);
+  transition: border-color 0.25s, color 0.25s, transform 0.25s;
+}
+
+.tech-tag:hover {
+  border-color: var(--teal);
+  color: var(--teal);
+  transform: translateY(-2px);
+}
+
+/* ============================================================
+   DEMO / TRY SECTION
+============================================================ */
+#try {
+  padding: 80px 24px;
+}
+
+.demo-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  max-width: 960px;
+  margin: 0 auto;
+}
+
+@media (max-width: 750px) {
+  .demo-grid { grid-template-columns: 1fr; }
+}
+
+.demo-panel {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 24px;
+  backdrop-filter: blur(10px);
+  transition: border-color 0.3s;
+}
+
+.demo-panel:hover { border-color: rgba(0,201,184,0.3); }
+
+.panel-title {
+  font-size: 0.75rem;
+  font-family: var(--ff-mono);
+  color: var(--teal);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.panel-title::before {
+  content: '';
+  display: inline-block;
+  width: 6px; height: 6px;
+  background: var(--teal);
+  border-radius: 50%;
+}
+
+/* Camera wrapper */
+.cam-wrap {
+  position: relative;
+  background: #050d1a;
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: 14px;
+  border: 1px solid var(--border2);
+  aspect-ratio: 4/3;
+}
+
+.cam-wrap video {
+  width: 100%; height: 100%;
+  object-fit: cover; display: block;
+}
+
+.cam-placeholder {
+  position: absolute; inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: var(--text3);
+  font-size: 0.88rem;
+  gap: 10px;
+}
+
+.cam-placeholder .ph-icon { font-size: 2.5rem; opacity: 0.5; }
+
+/* Annotated result frame */
+.annotated-frame {
+  display: none;
+  margin-bottom: 14px;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+
+.annotated-frame img {
+  width: 100%;
+  display: block;
+}
+
+.annotated-label {
+  font-size: 0.7rem;
+  color: var(--text3);
+  font-family: var(--ff-mono);
+  margin-bottom: 6px;
+}
+
+.cam-btns {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+
+/* Results display */
+.results-area { min-height: 60px; }
+
+.faces-count {
+  font-size: 0.72rem;
+  font-family: var(--ff-mono);
+  color: var(--text3);
+  text-align: center;
+  margin-bottom: 12px;
+  letter-spacing: 1px;
+}
+
+.faces-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+}
+
+.face-card {
+  border-radius: 10px;
+  padding: 14px 18px;
+  text-align: center;
+  min-width: 130px;
+  animation: pop-in 0.3s cubic-bezier(0.175,0.885,0.32,1.275);
+  flex: 1;
+}
+
+@keyframes pop-in {
+  from { opacity: 0; transform: scale(0.85); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+.face-card.present {
+  background: var(--green-dim);
+  border: 1px solid rgba(16,185,129,0.35);
+}
+
+.face-card.unknown {
+  background: var(--red-dim);
+  border: 1px solid rgba(239,68,68,0.35);
+}
+
+.face-card .fc-icon { font-size: 1.6rem; margin-bottom: 6px; }
+.face-card .fc-name { font-size: 0.88rem; font-weight: 600; color: var(--text); }
+.face-card .fc-status { font-size: 0.72rem; margin-top: 3px; }
+.face-card.present .fc-status { color: var(--green); }
+.face-card.unknown .fc-status { color: var(--red); }
+
+.no-face-msg {
+  text-align: center;
+  color: var(--text3);
+  padding: 20px;
+  font-size: 0.88rem;
+}
+
+/* Upload area */
+.upload-drop {
+  background: #050d1a;
+  border: 2px dashed var(--border);
+  border-radius: 12px;
+  padding: 28px 16px;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.3s, background 0.3s;
+  min-height: 150px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 14px;
+}
+
+.upload-drop:hover {
+  border-color: var(--teal);
+  background: rgba(0,201,184,0.03);
+}
+
+.upload-drop img {
+  width: 100%;
+  border-radius: 8px;
+  display: none;
+}
+
+.upload-ph { pointer-events: none; }
+.upload-ph .u-icon { font-size: 2.2rem; margin-bottom: 8px; opacity: 0.5; }
+.upload-ph p { color: var(--text3); font-size: 0.82rem; }
+
+/* ============================================================
+   ENROLL SECTION
+============================================================ */
+#enroll {
+  padding: 80px 24px;
+}
+
+.enroll-wrapper {
+  max-width: 560px;
+  margin: 0 auto;
+}
+
+.enroll-name-row {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.field-input {
+  flex: 1;
+  padding: 12px 16px;
+  background: var(--card);
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  color: var(--text);
+  font-size: 0.95rem;
+  font-family: var(--ff-body);
+  transition: border-color 0.25s, box-shadow 0.25s;
+}
+
+.field-input:focus {
+  outline: none;
+  border-color: var(--teal);
+  box-shadow: 0 0 0 3px rgba(0,201,184,0.12);
+}
+
+.field-input::placeholder { color: var(--text3); }
+
+/* Enroll camera wrap */
+.enroll-cam-wrap {
+  position: relative;
+  background: #050d1a;
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1.5px solid var(--border);
+  aspect-ratio: 4/3;
+  margin-bottom: 20px;
+  transition: border-color 0.3s, box-shadow 0.3s;
+  display: none;
+}
+
+.enroll-cam-wrap.active { display: block; }
+.enroll-cam-wrap.flash  {
+  border-color: var(--green);
+  box-shadow: 0 0 30px rgba(16,185,129,0.4);
+}
+
+.enroll-cam-wrap video {
+  width: 100%; height: 100%;
+  object-fit: cover; display: block;
+}
+
+/* Guide overlay on camera */
+.face-guide {
+  position: absolute; inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.guide-oval {
+  width: 45%; aspect-ratio: 0.8;
+  border: 2px dashed rgba(0,201,184,0.4);
+  border-radius: 50%;
+}
+
+/* Step dots */
+.step-dots {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  margin-bottom: 14px;
+}
+
+.s-dot {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  background: var(--navy3);
+  border: 2px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.78rem;
+  font-family: var(--ff-mono);
+  color: var(--text3);
+  transition: all 0.4s cubic-bezier(0.175,0.885,0.32,1.275);
+  flex-shrink: 0;
+}
+
+.s-dot.done {
+  background: var(--green-dim);
+  border-color: var(--green);
+  color: var(--green);
+  transform: scale(1.1);
+}
+
+.s-line {
+  height: 2px; width: 30px;
+  background: var(--border);
+  flex-shrink: 0;
+  transition: background 0.4s;
+}
+
+.s-line.done { background: var(--green); }
+
+/* Progress bar */
+.prog-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.prog-track {
+  flex: 1; height: 5px;
+  background: var(--navy3);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.prog-bar {
+  height: 100%;
+  background: linear-gradient(90deg, var(--teal), var(--green));
+  border-radius: 3px;
+  width: 0%;
+  transition: width 0.5s ease;
+}
+
+.prog-text {
+  font-family: var(--ff-mono);
+  font-size: 0.8rem;
+  color: var(--green);
+  font-weight: 600;
+  min-width: 36px;
+  text-align: right;
+}
+
+/* Feedback message */
+.enroll-fb {
+  min-height: 48px;
+  text-align: center;
+  font-size: 0.9rem;
+  margin-bottom: 14px;
+  padding: 10px;
+  border-radius: 8px;
+  display: none;
+  transition: all 0.3s;
+}
+
+.enroll-fb.visible { display: block; }
+.enroll-fb.ok      { background: var(--green-dim); color: var(--green); border: 1px solid rgba(16,185,129,0.3); }
+.enroll-fb.warn    { background: var(--amber-dim); color: var(--amber); border: 1px solid rgba(245,158,11,0.3); }
+.enroll-fb.err     { background: var(--red-dim);   color: var(--red);   border: 1px solid rgba(239,68,68,0.3); }
+
+/* Success card */
+.enroll-success {
+  background: var(--green-dim);
+  border: 1px solid rgba(16,185,129,0.35);
+  border-radius: 16px;
+  padding: 36px 24px;
+  text-align: center;
+  animation: pop-in 0.4s cubic-bezier(0.175,0.885,0.32,1.275);
+  display: none;
+}
+
+.enroll-success.visible { display: block; }
+.enroll-success .s-big  { font-size: 3rem; margin-bottom: 12px; }
+.enroll-success h3      { color: var(--green); font-size: 1.3rem; margin-bottom: 8px; }
+.enroll-success p       { color: var(--text2); margin-bottom: 6px; font-size: 0.92rem; }
+.enroll-success strong  { color: var(--text); }
+
+/* ============================================================
+   ABOUT
+============================================================ */
+#about { padding: 80px 24px; }
+
+.about-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 40px;
+  align-items: start;
+  max-width: 920px;
+  margin: 0 auto;
+}
+
+@media (max-width: 680px) {
+  .about-grid { grid-template-columns: 1fr; }
+}
+
+.about-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 28px 24px;
+  transition: transform 0.3s, border-color 0.3s;
+  backdrop-filter: blur(10px);
+}
+
+.about-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(0,201,184,0.3);
+}
+
+.about-card .ac-icon {
+  font-size: 2rem;
+  margin-bottom: 14px;
+  display: block;
+}
+
+.about-card h3 {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 10px;
+}
+
+.about-card p {
+  font-size: 0.88rem;
+  color: var(--text2);
+  line-height: 1.7;
+}
+
+.team-list {
+  margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.team-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.84rem;
+  color: var(--text2);
+}
+
+.team-item::before {
+  content: '';
+  width: 6px; height: 6px;
+  background: var(--teal);
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* ============================================================
+   CONTACT
+============================================================ */
+#contact { padding: 80px 24px; }
+
+.contact-box {
+  max-width: 560px;
+  margin: 0 auto;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 40px 36px;
+  text-align: center;
+  backdrop-filter: blur(10px);
+}
+
+.contact-box p {
+  color: var(--text2);
+  margin-bottom: 28px;
+  font-size: 0.95rem;
+}
+
+.contact-links {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.contact-link {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 20px;
+  border-radius: 10px;
+  background: var(--navy3);
+  border: 1px solid var(--border);
+  color: var(--text2);
+  text-decoration: none;
+  font-size: 0.88rem;
+  font-weight: 500;
+  transition: all 0.25s;
+}
+
+.contact-link:hover {
+  border-color: var(--teal);
+  color: var(--teal);
+  background: var(--teal-dim);
+  transform: translateY(-3px);
+}
+
+/* ============================================================
+   FOOTER
+============================================================ */
+footer {
+  background: #060f1e;
+  border-top: 1px solid var(--border2);
+  padding: 40px 24px 32px;
+  text-align: center;
+}
+
+.footer-inner { max-width: 700px; margin: 0 auto; }
+
+.footer-brand {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 10px;
+}
+
+.footer-brand span { color: var(--teal); }
+
+.footer-sub {
+  color: var(--text3);
+  font-size: 0.82rem;
+  margin-bottom: 20px;
+}
+
+.footer-links {
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-bottom: 24px;
+}
+
+.footer-links a {
+  color: var(--text3);
+  text-decoration: none;
+  font-size: 0.82rem;
+  transition: color 0.2s;
+}
+
+.footer-links a:hover { color: var(--teal); }
+
+.footer-copy {
+  color: var(--text3);
+  font-size: 0.75rem;
+  opacity: 0.6;
+}
+
+/* ============================================================
+   TABS
+============================================================ */
+.tab-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.tab-btn {
+  padding: 8px 20px;
+  border-radius: 8px;
+  border: 1.5px solid var(--border);
+  background: transparent;
+  color: var(--text3);
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 500;
+  font-family: var(--ff-body);
+  transition: all 0.25s;
+}
+
+.tab-btn:hover { border-color: var(--teal); color: var(--teal); }
+.tab-btn.active { background: var(--teal); color: #000; border-color: var(--teal); font-weight: 600; }
+
+.tab-pane { display: none; }
+.tab-pane.active { display: block; }
+</style>
+</head>
+<body>
+
+<!-- ============================================================
+     NAVBAR
+============================================================ -->
+<nav id="navbar">
+  <a class="nav-brand" href="#home">
+    <div class="brand-dot"></div>
+    Smart Attendance
+  </a>
+  <button class="nav-toggle" onclick="toggleNav()">☰</button>
+  <ul class="nav-links" id="navLinks">
+    <li><a href="#how">How It Works</a></li>
+    <li><a href="#about">About Us</a></li>
+    <li><a href="#try">Try the System</a></li>
+    <li><a href="#enroll">Enroll Student</a></li>
+    <li><a href="#contact">Contact</a></li>
+    <li><a href="https://github.com/Haneenmohammed1311/Smart-Attendance-System" target="_blank" class="nav-cta">GitHub</a></li>
+  </ul>
+</nav>
+
+<!-- ============================================================
+     HERO
+============================================================ -->
+<section id="home">
+  <div class="hero-content">
+
+    <!-- University Logos -->
+    <div class="hero-logos reveal">
+      <div class="logo-box">
+        <div class="logo-icon">🎓</div>
+        <div class="logo-text">Mansoura University</div>
+      </div>
+      <div class="logo-divider"></div>
+      <div class="logo-box">
+        <div class="logo-icon">📊</div>
+        <div class="logo-text">Statistics and Computer Science</div>
+      </div>
+    </div>
+
+    <p class="hero-eyebrow reveal reveal-delay-1">Graduation Project 2026</p>
+
+    <h1 class="hero-title reveal reveal-delay-2">
+      Smart <span class="t-accent">Attendance</span><br>
+      with <span class="t-amber">Face Recognition</span>
+    </h1>
+
+    <p class="hero-sub reveal reveal-delay-3">
+      An AI-powered system that automatically marks student attendance
+      by recognizing all faces in a classroom frame simultaneously.
+      No manual attendence.
+    </p>
+
+    <div class="hero-badges reveal reveal-delay-3">
+      <span class="hbadge green">YOLOv8 + ArcFace</span>
+    </div>
+
+    <div class="hero-btns reveal reveal-delay-4">
+      <a href="#try" class="btn btn-teal">Try the System →</a>
+      <a href="#how" class="btn btn-outline">How It Works</a>
+      <a href="https://github.com/Haneenmohammed1311/Smart-Attendance-System"
+         target="_blank" class="btn btn-ghost">GitHub</a>
+    </div>
+
+  </div>
+</section>
+
+<!-- ============================================================
+     HOW IT WORKS
+============================================================ -->
+<section id="how">
+  <div class="container">
+    <div style="text-align:center;margin-bottom:8px">
+      <span class="section-tag">Pipeline</span>
+    </div>
+    <h2 class="reveal">How It Works</h2>
+    <p class="section-sub reveal reveal-delay-1">
+      A five-stage AI pipeline processes every camera frame in milliseconds,
+      identifying all faces simultaneously.
+    </p>
+
+    <div class="pipeline">
+      <div class="p-step reveal reveal-delay-1">
+        <div class="p-num">01</div>
+        <span class="p-icon">📸</span>
+        <h3>Detect</h3>
+        <p>YOLOv8s-Face finds every face in the frame at once</p>
+      </div>
+      <div class="p-connector reveal">→</div>
+      <div class="p-step reveal reveal-delay-2">
+        <div class="p-num">02</div>
+        <span class="p-icon">✂️</span>
+        <h3>Align</h3>
+        <p>insightface aligns and normalizes each face to 112×112</p>
+      </div>
+      <div class="p-connector reveal">→</div>
+      <div class="p-step reveal reveal-delay-3">
+        <div class="p-num">03</div>
+        <span class="p-icon">🧠</span>
+        <h3>Embed</h3>
+        <p>ArcFace converts each face into a 512-number identity vector</p>
+      </div>
+      <div class="p-connector reveal">→</div>
+      <div class="p-step reveal reveal-delay-4">
+        <div class="p-num">04</div>
+        <span class="p-icon">🔍</span>
+        <h3>Match</h3>
+        <p>Cosine similarity compares against the enrolled database</p>
+      </div>
+      <div class="p-connector reveal">→</div>
+      <div class="p-step reveal reveal-delay-4">
+        <div class="p-num">05</div>
+        <span class="p-icon">✅</span>
+        <h3>Log</h3>
+        <p>Each recognized student is marked present and saved to File</p>
+      </div>
+    </div>
+
+    <div class="tech-tags reveal" style="margin-top:48px">
+      <span class="tech-tag">YOLOv8s-Face</span>
+      <span class="tech-tag">insightface buffalo_sc</span>
+      <span class="tech-tag">ArcFace w600k_mbf</span>
+      <span class="tech-tag">ONNX Runtime</span>
+      <span class="tech-tag">Cosine Similarity</span>
+      <span class="tech-tag">OpenCV</span>
+      <span class="tech-tag">Flask</span>
+      <span class="tech-tag">Python 3.9</span>
+      <span class="tech-tag">Docker</span>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     TRY THE SYSTEM
+============================================================ -->
+<section id="try">
+  <div class="container">
+    <div style="text-align:center;margin-bottom:8px">
+      <span class="section-tag">Live Demo</span>
+    </div>
+    <h2 class="reveal">Try the System</h2>
+    <p class="section-sub reveal reveal-delay-1">
+      Use your camera or upload a photo. The system detects and identifies
+      every face in the image at the same time.
+    </p>
+
+    <div class="demo-grid reveal reveal-delay-2">
+
+      <!-- LEFT: Camera -->
+      <div class="demo-panel">
+        <div class="panel-title">Live Camera</div>
+
+        <div class="cam-wrap" id="recogCamWrap">
+          <video id="recogVideo" autoplay playsinline muted></video>
+          <div class="cam-placeholder" id="recogPlaceholder">
+            <div class="ph-icon">📷</div>
+            <p>Start camera to begin</p>
+          </div>
+        </div>
+
+        <p class="annotated-label" id="annotatedLabel" style="display:none">Last captured frame:</p>
+        <div class="annotated-frame" id="annotatedFrame">
+          <img id="annotatedImg" src="" alt="">
+        </div>
+
+        <div class="cam-btns">
+          <button class="btn btn-teal btn-sm"    id="startRecogBtn"  onclick="startRecogCam()">📷 Start</button>
+          <button class="btn btn-ghost btn-sm"   id="captureBtn"     onclick="captureOnce()" disabled>🔍 Capture</button>
+          <button class="btn btn-ghost btn-sm"   id="autoBtn"        onclick="toggleAuto()"  disabled>🔄 Auto</button>
+          <button class="btn btn-red btn-sm"     id="stopRecogBtn"   onclick="stopRecogCam()" disabled>⏹ Stop</button>
+        </div>
+
+        <div class="results-area" id="recogResults"></div>
+      </div>
+
+      <!-- RIGHT: Upload -->
+      <div class="demo-panel">
+        <div class="panel-title">Upload Photo</div>
+
+        <div class="upload-drop" id="uploadDrop" onclick="document.getElementById('uploadInput').click()">
+          <input type="file" id="uploadInput" accept="image/*" hidden onchange="previewUpload(this)">
+          <div class="upload-ph" id="uploadPh">
+            <div class="u-icon">🖼️</div>
+            <p>Click to upload image</p>
+            <p style="font-size:0.72rem;margin-top:4px;opacity:0.6">Supports multiple faces in one photo</p>
+          </div>
+          <img id="uploadPreviewImg" src="" alt="">
+        </div>
+
+        <div style="text-align:center;margin-bottom:14px">
+          <button class="btn btn-teal btn-sm" onclick="recognizeUpload()">🔍 Recognize All Faces</button>
+        </div>
+
+        <div class="results-area" id="uploadResults"></div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     ENROLL NEW STUDENT
+============================================================ -->
+<section id="enroll">
+  <div class="container">
+    <div style="text-align:center;margin-bottom:8px">
+      <span class="section-tag">Enrollment</span>
+    </div>
+    <h2 class="reveal">Enroll New Student</h2>
+    <p class="section-sub reveal reveal-delay-1">
+      Five photos are captured with quality checks, just like Face ID.
+      The system averages all captures for a robust identity profile.
+    </p>
+
+    <div class="enroll-wrapper reveal reveal-delay-2">
+
+      <!-- Name + start button -->
+      <div id="enrollStart">
+        <div class="enroll-name-row">
+          <input type="text" id="enrollNameField"
+                 class="field-input"
+                 placeholder="Enter student full name">
+          <button class="btn btn-teal" onclick="beginEnroll()">
+            📷 Start Camera
+          </button>
+        </div>
+      </div>
+
+      <!-- Camera + progress (shown after start) -->
+      <div id="enrollCamSection" style="display:none">
+
+        <div class="enroll-cam-wrap active" id="enrollCamWrap">
+          <video id="enrollVideo" autoplay playsinline muted></video>
+          <div class="face-guide">
+            <div class="guide-oval"></div>
+          </div>
+        </div>
+
+        <!-- Progress dots -->
+        <div class="step-dots" id="stepDots">
+          <div class="s-dot" id="sd1">1</div>
+          <div class="s-line" id="sl1"></div>
+          <div class="s-dot" id="sd2">2</div>
+          <div class="s-line" id="sl2"></div>
+          <div class="s-dot" id="sd3">3</div>
+          <div class="s-line" id="sl3"></div>
+          <div class="s-dot" id="sd4">4</div>
+          <div class="s-line" id="sl4"></div>
+          <div class="s-dot" id="sd5">5</div>
+        </div>
+
+        <!-- Progress bar -->
+        <div class="prog-row">
+          <div class="prog-track">
+            <div class="prog-bar" id="enrollProgBar"></div>
+          </div>
+          <span class="prog-text" id="enrollProgText">0/5</span>
+        </div>
+
+        <!-- Feedback per capture -->
+        <div class="enroll-fb" id="enrollFb"></div>
+
+        <!-- Capture button -->
+        <button class="btn btn-amber" style="width:100%;justify-content:center;font-size:1rem;padding:14px"
+                id="capturePicBtn" onclick="capturePic()">
+          📸 Capture Photo
+        </button>
+
+      </div>
+
+      <!-- Success (shown after all 5 saved) -->
+      <div class="enroll-success" id="enrollSuccess">
+        <div class="s-big">🎉</div>
+        <h3>Enrolled Successfully!</h3>
+        <p><strong id="successName"></strong> has been added to the database.</p>
+        <p>Total enrolled: <strong id="successTotal"></strong> students</p>
+        <div style="display:flex;gap:10px;justify-content:center;margin-top:20px;flex-wrap:wrap">
+          <button class="btn btn-teal btn-sm" onclick="enrollAnother()">
+            Enroll Another Student
+          </button>
+          <button class="btn btn-outline btn-sm" onclick="document.getElementById('try').scrollIntoView({behavior:'smooth'})">
+            Try Recognition
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     ABOUT
+============================================================ -->
+<section id="about">
+  <div class="container">
+    <div style="text-align:center;margin-bottom:8px">
+      <span class="section-tag">About</span>
+    </div>
+    <h2 class="reveal">About the Project</h2>
+    <p class="section-sub reveal reveal-delay-1">
+      A graduation project combining Computer Vision and Deep Learning
+      to solve a real problem in academic institutions.
+    </p>
+
+    <div class="about-grid">
+
+      <div class="about-card reveal reveal-delay-1">
+        <span class="ac-icon">🎯</span>
+        <h3>The Problem</h3>
+        <p>
+          Manual attendance in university classrooms is time-consuming,
+          error-prone, and disruptive to lectures. For large classes,
+          it can take up to 10 minutes per session and leads to
+          inaccurate records.
+        </p>
+      </div>
+
+      <div class="about-card reveal reveal-delay-2">
+        <span class="ac-icon">💡</span>
+        <h3>Our Solution</h3>
+        <p>
+          A camera placed at the classroom entrance captures a single frame
+          as students walk in. The AI pipeline detects, embeds, and matches
+          every face in milliseconds. Attendance is logged automatically
+          with zero human intervention.
+        </p>
+      </div>
+
+      <div class="about-card reveal reveal-delay-3">
+        <span class="ac-icon">📈</span>
+        <h3>Results</h3>
+        <p>
+          Training done on students images fro MAnsoura University in diverse in lighting, positions , and different movements
+        </p>
+      </div>
+
+      <div class="about-card reveal reveal-delay-4">
+        <span class="ac-icon">👩‍💻</span>
+        <h3>The Team</h3>
+        <div class="team-list">
+          <div class="team-item">Haneen Mohammed Mousa</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     CONTACT
+============================================================ -->
+<section id="contact">
+  <div class="container">
+    <div style="text-align:center;margin-bottom:8px">
+      <span class="section-tag">Contact</span>
+    </div>
+    <h2 class="reveal">Get in Touch</h2>
+    <p class="section-sub reveal reveal-delay-1">
+      Find the full source code, documentation, and dataset information
+      on GitHub. Feel free to open issues or contribute.
+    </p>
+
+    <div class="contact-box reveal reveal-delay-2">
+      <p>
+        This project is open-source and available for academic use.
+        For questions about the methodology, dataset, or results,
+        reach out through GitHub.
+      </p>
+      <div class="contact-links">
+        <a href="https://github.com/Haneenmohammed1311/Smart-Attendance-System"
+           target="_blank" class="contact-link">
+          🐙 GitHub Repository
+        </a>
+        <a href="https://www.linkedin.com/in/haneen-mohammed13/" target="_blank" class="contact-link">
+          🏫 LinkedIn
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     FOOTER
+============================================================ -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-brand">Smart <span>Attendance</span> System</div>
+    <div class="footer-sub">Faculty of Statistics and Computer Science, Mansoura University</div>
+    <div class="footer-links">
+      <a href="#home">Home</a>
+      <a href="#how">How It Works</a>
+      <a href="#try">Try It</a>
+      <a href="#enroll">Enroll</a>
+      <a href="#about">About</a>
+      <a href="#contact">Contact</a>
+      <a href="https://github.com/Haneenmohammed1311/Smart-Attendance-System" target="_blank">GitHub</a>
+    </div>
+    <div class="footer-copy">YOLOv8 + ArcFace + Flask + Docker + Hugging Face, Graduation Project 2026</div>
+  </div>
+</footer>
+
+<script>
+// ============================================================
+// NAVBAR
+// ============================================================
+function toggleNav() {
+  document.getElementById('navLinks').classList.toggle('open');
+}
+
+// Close nav on link click (mobile)
+document.querySelectorAll('.nav-links a').forEach(a => {
+  a.addEventListener('click', () => {
+    document.getElementById('navLinks').classList.remove('open');
+  });
+});
+
+// Navbar shadow on scroll
+window.addEventListener('scroll', () => {
+  const nav = document.getElementById('navbar');
+  if (window.scrollY > 40) {
+    nav.style.background = 'rgba(11,22,40,0.97)';
+    nav.style.boxShadow  = '0 4px 24px rgba(0,0,0,0.4)';
+  } else {
+    nav.style.background = 'rgba(11,22,40,0.85)';
+    nav.style.boxShadow  = 'none';
+  }
+});
+
+// ============================================================
+// SCROLL REVEAL
+// ============================================================
+const revealObs = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      e.target.classList.add('visible');
+    }
+  });
+}, { threshold: 0.12 });
+
+document.querySelectorAll('.reveal').forEach(el => revealObs.observe(el));
+
+// ============================================================
+// RECOGNITION — CAMERA
+// ============================================================
+let recogStream  = null;
+let autoRunning  = false;
+let autoInterval = null;
+
+async function startRecogCam() {
+  try {
+    recogStream = await navigator.mediaDevices.getUserMedia({
+      video: { width:{ideal:640}, height:{ideal:480} }, audio: false
+    });
+    document.getElementById('recogVideo').srcObject = recogStream;
+    document.getElementById('recogPlaceholder').style.display = 'none';
+    document.getElementById('startRecogBtn').disabled  = true;
+    document.getElementById('captureBtn').disabled     = false;
+    document.getElementById('autoBtn').disabled        = false;
+    document.getElementById('stopRecogBtn').disabled   = false;
+  } catch(e) {
+    showRecogMsg('<div class="no-face-msg">Camera access denied. Please allow camera permission.</div>');
+  }
+}
+
+function stopRecogCam() {
+  stopAuto();
+  if (recogStream) { recogStream.getTracks().forEach(t => t.stop()); recogStream = null; }
+  document.getElementById('recogVideo').srcObject = null;
+  document.getElementById('recogPlaceholder').style.display = 'flex';
+  document.getElementById('startRecogBtn').disabled  = false;
+  document.getElementById('captureBtn').disabled     = true;
+  document.getElementById('autoBtn').disabled        = true;
+  document.getElementById('stopRecogBtn').disabled   = true;
+  document.getElementById('annotatedFrame').style.display = 'none';
+  document.getElementById('annotatedLabel').style.display = 'none';
+}
+
+async function captureOnce() { await processFrame(); }
+
+function toggleAuto() {
+  if (autoRunning) { stopAuto(); }
+  else             { startAuto(); }
+}
+
+function startAuto() {
+  autoRunning = true;
+  document.getElementById('autoBtn').textContent = '⏹ Stop';
+  document.getElementById('autoBtn').className   = 'btn btn-red btn-sm';
+  autoInterval = setInterval(processFrame, 2200);
+}
+
+function stopAuto() {
+  autoRunning = false;
+  clearInterval(autoInterval);
+  const btn = document.getElementById('autoBtn');
+  if (btn) { btn.textContent = '🔄 Auto'; btn.className = 'btn btn-ghost btn-sm'; }
+}
+
+async function processFrame() {
+  const video = document.getElementById('recogVideo');
+  if (!video.srcObject) return;
+  const blob = await snapBlob(video);
+  const fd   = new FormData();
+  fd.append('file', blob, 'frame.jpg');
+  showRecogMsg('<div class="no-face-msg" style="color:var(--teal)">Recognizing all faces...</div>');
+  try {
+    const res  = await fetch('/recognize', { method:'POST', body:fd });
+    const data = await res.json();
+    renderResults(data, 'recogResults', 'annotatedFrame', 'annotatedImg', 'annotatedLabel');
+  } catch(e) {
+    showRecogMsg('<div class="no-face-msg" style="color:var(--red)">Server error</div>');
+  }
+}
+
+function showRecogMsg(html) {
+  document.getElementById('recogResults').innerHTML = html;
+}
+
+// ============================================================
+// RECOGNITION — UPLOAD
+// ============================================================
+function previewUpload(input) {
+  if (!input.files[0]) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const img = document.getElementById('uploadPreviewImg');
+    const ph  = document.getElementById('uploadPh');
+    img.src = e.target.result;
+    img.style.display = 'block';
+    ph.style.display  = 'none';
+  };
+  reader.readAsDataURL(input.files[0]);
+}
+
+async function recognizeUpload() {
+  const input = document.getElementById('uploadInput');
+  if (!input.files[0]) { alert('Please select an image first'); return; }
+  const fd = new FormData();
+  fd.append('file', input.files[0]);
+  document.getElementById('uploadResults').innerHTML =
+    '<div class="no-face-msg" style="color:var(--teal)">Recognizing...</div>';
+  try {
+    const res  = await fetch('/recognize', { method:'POST', body:fd });
+    const data = await res.json();
+    // Replace preview with annotated version
+    if (data.annotated) {
+      const img = document.getElementById('uploadPreviewImg');
+      img.src = 'data:image/jpeg;base64,' + data.annotated;
+      img.style.display = 'block';
+      document.getElementById('uploadPh').style.display = 'none';
+    }
+    renderResults(data, 'uploadResults', null, null, null);
+  } catch(e) {
+    document.getElementById('uploadResults').innerHTML =
+      '<div class="no-face-msg" style="color:var(--red)">Server error</div>';
+  }
+}
+
+// ============================================================
+// RENDER RECOGNITION RESULTS — ALL FACES SIDE BY SIDE
+// ============================================================
+function renderResults(data, resultsId, frameWrapId, frameImgId, frameLabelId) {
+  // Show annotated frame
+  if (frameWrapId && data.annotated) {
+    document.getElementById(frameImgId).src = 'data:image/jpeg;base64,' + data.annotated;
+    document.getElementById(frameWrapId).style.display = 'block';
+    if (frameLabelId) document.getElementById(frameLabelId).style.display = 'block';
+  }
+
+  const div = document.getElementById(resultsId);
+
+  if (!data.results || data.results.length === 0) {
+    div.innerHTML = '<div class="no-face-msg">No faces detected in this frame</div>';
+    return;
+  }
+
+  let html = `<p class="faces-count">${data.total_faces} FACE(S) DETECTED</p>
+              <div class="faces-row">`;
+
+  data.results.forEach(p => {
+    const ok = p.status === 'present';
+    // No confidence shown (requirement #6)
+    html += `
+      <div class="face-card ${ok ? 'present' : 'unknown'}">
+        <div class="fc-icon">${ok ? '✅' : '❓'}</div>
+        <div class="fc-name">${p.name}</div>
+        <div class="fc-status">${ok ? 'Present' : 'Not recognized'}</div>
+      </div>`;
+  });
+
+  html += '</div>';
+  div.innerHTML = html;
+}
+
+// ============================================================
+// ENROLLMENT — 5 CAPTURE FLOW
+// ============================================================
+let enrollStream = null;
+let enrollName   = '';
+let capCount     = 0;
+const CAP_NEEDED = 5;
+
+// Instructions shown after each capture
+const INSTRUCTIONS = [
+  'Look straight at the camera',
+  'Turn your head slightly left',
+  'Turn your head slightly right',
+  'Look up a little',
+  'Look down slightly and smile'
+];
+
+async function beginEnroll() {
+  const name = document.getElementById('enrollNameField').value.trim();
+  if (!name) { alert('Please enter the student full name first'); return; }
+
+  enrollName = name;
+  capCount   = 0;
+
+  // Cancel any previous incomplete session
+  try {
+    await fetch('/enroll/cancel', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ name })
+    });
+  } catch(e) {}
+
+  try {
+    enrollStream = await navigator.mediaDevices.getUserMedia({
+      video: { width:{ideal:640}, height:{ideal:480} }, audio: false
+    });
+    document.getElementById('enrollVideo').srcObject = enrollStream;
+    document.getElementById('enrollStart').style.display      = 'none';
+    document.getElementById('enrollCamSection').style.display = 'block';
+    document.getElementById('enrollSuccess').classList.remove('visible');
+
+    setProgress(0);
+    showFb('ok', `📷 Camera ready. ${INSTRUCTIONS[0]}`);
+
+  } catch(e) {
+    alert('Camera access denied. Please allow camera permission.');
+  }
+}
+
+async function capturePic() {
+  if (!enrollStream) return;
+
+  const btn   = document.getElementById('capturePicBtn');
+  btn.disabled = true;
+
+  const video = document.getElementById('enrollVideo');
+  const blob  = await snapBlob(video);
+
+  // Flash border
+  const wrap = document.getElementById('enrollCamWrap');
+  wrap.classList.add('flash');
+  setTimeout(() => wrap.classList.remove('flash'), 400);
+
+  showFb('ok', 'Processing...');
+
+  const fd = new FormData();
+  fd.append('name', enrollName);
+  fd.append('file', blob, 'enroll.jpg');
+
+  try {
+    const res  = await fetch('/enroll/capture', { method:'POST', body:fd });
+    const data = await res.json();
+    btn.disabled = false;
+
+    if (data.success) {
+      capCount = data.captured;
+      setProgress(capCount);
+
+      if (data.done) {
+        showFb('ok', 'All 5 captures done. Saving...');
+        btn.disabled = true;
+        await saveEnrollment();
+      } else {
+        // Show next instruction
+        const nextInstr = INSTRUCTIONS[capCount] || 'Keep going!';
+        showFb('ok', `Capture ${capCount}/5 accepted. Now: ${nextInstr}`);
+      }
+
+    } else {
+      // Quality check failed
+      const hint = getQualityHint(data.message);
+      showFb('warn', hint);
+    }
+
+  } catch(e) {
+    btn.disabled = false;
+    showFb('err', 'Server error. Please try again.');
+  }
+}
+
+function getQualityHint(msg) {
+  const m = (msg || '').toLowerCase();
+  if (m.includes('no face'))   return 'No face detected. Look directly at the camera.';
+  if (m.includes('blur'))      return 'Image is blurry. Hold still and try again.';
+  if (m.includes('center'))    return 'Center your face in the oval guide.';
+  if (m.includes('closer'))    return 'Move a little closer to the camera.';
+  if (m.includes('far'))       return 'Move a little farther from the camera.';
+  return msg || 'Please try again.';
+}
+
+async function saveEnrollment() {
+  try {
+    const res  = await fetch('/enroll/save', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ name: enrollName })
+    });
+    const data = await res.json();
+
+    // Stop camera
+    if (enrollStream) { enrollStream.getTracks().forEach(t => t.stop()); enrollStream = null; }
+    document.getElementById('enrollVideo').srcObject = null;
+
+    document.getElementById('enrollCamSection').style.display = 'none';
+
+    if (data.success) {
+      document.getElementById('successName').textContent  = enrollName;
+      document.getElementById('successTotal').textContent = data.total_enrolled;
+      document.getElementById('enrollSuccess').classList.add('visible');
+    } else {
+      // Show start again with error
+      document.getElementById('enrollStart').style.display = 'block';
+      alert(data.error || 'Enrollment failed. Please try again.');
+    }
+
+  } catch(e) {
+    document.getElementById('enrollStart').style.display = 'block';
+    document.getElementById('enrollCamSection').style.display = 'none';
+    showFb('err', 'Error saving. Please try again.');
+  }
+}
+
+function enrollAnother() {
+  enrollName = ''; capCount = 0;
+  document.getElementById('enrollNameField').value           = '';
+  document.getElementById('enrollStart').style.display       = 'block';
+  document.getElementById('enrollCamSection').style.display  = 'none';
+  document.getElementById('enrollSuccess').classList.remove('visible');
+  setProgress(0);
+  hideFb();
+}
+
+function setProgress(n) {
+  document.getElementById('enrollProgBar').style.width  = (n / CAP_NEEDED * 100) + '%';
+  document.getElementById('enrollProgText').textContent = `${n}/${CAP_NEEDED}`;
+
+  for (let i = 1; i <= CAP_NEEDED; i++) {
+    const dot  = document.getElementById(`sd${i}`);
+    const line = document.getElementById(`sl${i}`);
+    if (!dot) continue;
+    if (i <= n) {
+      dot.classList.add('done');
+      dot.textContent = '✓';
+    } else {
+      dot.classList.remove('done');
+      dot.textContent = i;
+    }
+    if (line) {
+      if (i < n) line.classList.add('done');
+      else       line.classList.remove('done');
+    }
+  }
+}
+
+function showFb(type, msg) {
+  const fb = document.getElementById('enrollFb');
+  fb.className   = `enroll-fb visible ${type}`;
+  fb.textContent = msg;
+}
+
+function hideFb() {
+  document.getElementById('enrollFb').className = 'enroll-fb';
+}
+
+// ============================================================
+// UTILITY
+// ============================================================
+function snapBlob(video) {
+  return new Promise(resolve => {
+    const c = document.createElement('canvas');
+    c.width  = video.videoWidth  || 640;
+    c.height = video.videoHeight || 480;
+    c.getContext('2d').drawImage(video, 0, 0);
+    c.toBlob(b => resolve(b), 'image/jpeg', 0.92);
+  });
+}
+</script>
+
+</body>
+</html>

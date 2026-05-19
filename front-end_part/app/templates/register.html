@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Register - Student System</title>
+        <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/favicon.png') }}?v=3">
+        <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+
+<body>
+        <div class="login-container">
+                <!-- RIGHT COLUMN — Animated image chains -->
+                <div class="login-left">
+                        <div class="login-left-content">
+                                <div class="login-illustration">
+
+                                        <!-- STRIP 1 — starts with image_1 -->
+                                        <div class="symbols-container">
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_1.jpg') }}"
+                                                                alt="1">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_2.jpg') }}"
+                                                                alt="laptop"></div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_3.jpg') }}"
+                                                                alt="3">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_4.jpg') }}"
+                                                                alt="4">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_5.jpg') }}"
+                                                                alt="teacher"></div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_20.jpg') }}"
+                                                                alt="1">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_6.jpg') }}"
+                                                                alt="laptop"></div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_12.jpg') }}"
+                                                                alt="3">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_2.jpg') }}"
+                                                                alt="4">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_17.jpg') }}"
+                                                                alt="teacher"></div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_10.jpg') }}"
+                                                                alt="1">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_18.jpg') }}"
+                                                                alt="laptop"></div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_12.jpg') }}"
+                                                                alt="3">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_16.jpg') }}"
+                                                                alt="4">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_10.jpg') }}"
+                                                                alt="teacher"></div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_1.jpg') }}"
+                                                                alt="1">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_2.jpg') }}"
+                                                                alt="laptop"></div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_3.jpg') }}"
+                                                                alt="3">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_4.jpg') }}"
+                                                                alt="4">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_5.jpg') }}"
+                                                                alt="teacher"></div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_20.jpg') }}"
+                                                                alt="1">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_6.jpg') }}"
+                                                                alt="laptop"></div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_12.jpg') }}"
+                                                                alt="3">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_2.jpg') }}"
+                                                                alt="4">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_17.jpg') }}"
+                                                                alt="teacher"></div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_10.jpg') }}"
+                                                                alt="1">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_18.jpg') }}"
+                                                                alt="laptop"></div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_12.jpg') }}"
+                                                                alt="3">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_16.jpg') }}"
+                                                                alt="4">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_10.jpg') }}"
+                                                                alt="teacher"></div>
+                                        </div>
+
+                                        <!-- STRIP 2 -->
+                                        <div class="symbols-container">
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_11.jpg') }}"
+                                                                alt="laptop"></div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_13.jpg') }}"
+                                                                alt="3">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_1.jpg') }}"
+                                                                alt="1">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_9.jpg') }}"
+                                                                alt="teacher"></div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_12.jpg') }}"
+                                                                alt="4">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_6.jpg') }}"
+                                                                alt="laptop"></div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_3.jpg') }}"
+                                                                alt="3">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_18.jpg') }}"
+                                                                alt="1">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_10.jpg') }}"
+                                                                alt="teacher"></div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_12.jpg') }}"
+                                                                alt="4">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_14.jpg') }}"
+                                                                alt="laptop"></div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_20.jpg') }}"
+                                                                alt="3">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_13.jpg') }}"
+                                                                alt="1">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_16.jpg') }}"
+                                                                alt="teacher"></div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_1.jpg') }}"
+                                                                alt="4">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_11.jpg') }}"
+                                                                alt="laptop"></div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_13.jpg') }}"
+                                                                alt="3">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_1.jpg') }}"
+                                                                alt="1">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_9.jpg') }}"
+                                                                alt="teacher"></div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_12.jpg') }}"
+                                                                alt="4">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_6.jpg') }}"
+                                                                alt="laptop"></div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_3.jpg') }}"
+                                                                alt="3">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_18.jpg') }}"
+                                                                alt="1">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_10.jpg') }}"
+                                                                alt="teacher"></div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_12.jpg') }}"
+                                                                alt="4">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_14.jpg') }}"
+                                                                alt="laptop"></div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_20.jpg') }}"
+                                                                alt="3">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_13.jpg') }}"
+                                                                alt="1">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_16.jpg') }}"
+                                                                alt="teacher"></div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_11.jpg') }}"
+                                                                alt="4">
+                                                </div>
+                                        </div>
+
+                                        <!-- STRIP 3 -->
+                                        <div class="symbols-container">
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_18.jpg') }}"
+                                                                alt="3">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_11.jpg') }}"
+                                                                alt="4">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_9.jpg') }}"
+                                                                alt="1">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_5.jpg') }}"
+                                                                alt="laptop"></div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_12.jpg') }}"
+                                                                alt="teacher"></div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_3.jpg') }}"
+                                                                alt="3">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_6.jpg') }}"
+                                                                alt="4">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_1.jpg') }}"
+                                                                alt="1">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_12.jpg') }}"
+                                                                alt="laptop"></div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_4.jpg') }}"
+                                                                alt="teacher"></div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_10.jpg') }}"
+                                                                alt="clock"></div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_20.jpg') }}"
+                                                                alt="extra"></div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_15.jpg') }}"
+                                                                alt="extra"></div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_7.jpg') }}"
+                                                                alt="extra"></div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_8.jpg') }}"
+                                                                alt="extra"></div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_18.jpg') }}"
+                                                                alt="3">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_11.jpg') }}"
+                                                                alt="4">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_9.jpg') }}"
+                                                                alt="1">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_5.jpg') }}"
+                                                                alt="laptop"></div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_12.jpg') }}"
+                                                                alt="teacher"></div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_3.jpg') }}"
+                                                                alt="3">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_6.jpg') }}"
+                                                                alt="4">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_1.jpg') }}"
+                                                                alt="1">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_12.jpg') }}"
+                                                                alt="laptop"></div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_4.jpg') }}"
+                                                                alt="teacher"></div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_10.jpg') }}"
+                                                                alt="clock"></div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_20.jpg') }}"
+                                                                alt="extra"></div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_15.jpg') }}"
+                                                                alt="extra"></div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_7.jpg') }}"
+                                                                alt="extra"></div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_18.jpg') }}"
+                                                                alt="extra"></div>
+                                        </div>
+
+                                        <!-- STRIP 4 -->
+                                        <div class="symbols-container">
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_12.jpg') }}"
+                                                                alt="4">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_17.jpg') }}"
+                                                                alt="1">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_12.jpg') }}"
+                                                                alt="laptop"></div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_3.jpg') }}"
+                                                                alt="3">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_15.jpg') }}"
+                                                                alt="teacher"></div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_14.jpg') }}"
+                                                                alt="4">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_18.jpg') }}"
+                                                                alt="1">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_13.jpg') }}"
+                                                                alt="laptop"></div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_3.jpg') }}"
+                                                                alt="3">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_2.jpg') }}"
+                                                                alt="teacher"></div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_10.jpg') }}"
+                                                                alt="clock"></div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_1.jpg') }}"
+                                                                alt="extra"></div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_6.jpg') }}"
+                                                                alt="extra"></div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_19.jpg') }}"
+                                                                alt="extra"></div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_11.jpg') }}"
+                                                                alt="extra"></div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_12.jpg') }}"
+                                                                alt="4">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_17.jpg') }}"
+                                                                alt="1">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_12.jpg') }}"
+                                                                alt="laptop"></div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_3.jpg') }}"
+                                                                alt="3">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_15.jpg') }}"
+                                                                alt="teacher"></div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_14.jpg') }}"
+                                                                alt="4">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_18.jpg') }}"
+                                                                alt="1">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_13.jpg') }}"
+                                                                alt="laptop"></div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_3.jpg') }}"
+                                                                alt="3">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_2.jpg') }}"
+                                                                alt="teacher"></div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_10.jpg') }}"
+                                                                alt="clock"></div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_1.jpg') }}"
+                                                                alt="extra"></div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_6.jpg') }}"
+                                                                alt="extra"></div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_19.jpg') }}"
+                                                                alt="extra"></div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_11.jpg') }}"
+                                                                alt="extra"></div>
+                                        </div>
+
+                                        <!-- STRIP 5 -->
+                                        <div class="symbols-container">
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_10.jpg') }}"
+                                                                alt="clock"></div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_15.jpg') }}"
+                                                                alt="5">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_6.jpg') }}"
+                                                                alt="6">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_2.jpg') }}"
+                                                                alt="7">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_1.jpg') }}"
+                                                                alt="8">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_7.jpg') }}"
+                                                                alt="clock"></div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_13.jpg') }}"
+                                                                alt="5">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_9.jpg') }}"
+                                                                alt="6">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_20.jpg') }}"
+                                                                alt="7">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_8.jpg') }}"
+                                                                alt="8">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_11.jpg') }}"
+                                                                alt="clock"></div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_12.jpg') }}"
+                                                                alt="5">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_6.jpg') }}"
+                                                                alt="6">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_17.jpg') }}"
+                                                                alt="7">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_18.jpg') }}"
+                                                                alt="8">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_10.jpg') }}"
+                                                                alt="clock"></div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_15.jpg') }}"
+                                                                alt="5">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_6.jpg') }}"
+                                                                alt="6">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_2.jpg') }}"
+                                                                alt="7">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_1.jpg') }}"
+                                                                alt="8">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_7.jpg') }}"
+                                                                alt="clock"></div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_13.jpg') }}"
+                                                                alt="5">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_9.jpg') }}"
+                                                                alt="6">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_20.jpg') }}"
+                                                                alt="7">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_8.jpg') }}"
+                                                                alt="8">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_10.jpg') }}"
+                                                                alt="clock"></div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_15.jpg') }}"
+                                                                alt="5">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_6.jpg') }}"
+                                                                alt="6">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_2.jpg') }}"
+                                                                alt="7">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_1.jpg') }}"
+                                                                alt="8">
+                                                </div>
+                                        </div>
+
+                                </div><!-- /.login-illustration -->
+                        </div>
+                </div>
+
+                <!-- Right Side - Register Form -->
+                <div class="login-right">
+                        <div class="login-form-container">
+                                <h2>Create Account</h2>
+
+                                <form id="registerForm" novalidate>
+                                        <div class="form-group">
+                                                <label for="email">Email Address</label>
+                                                <div class="input-wrapper">
+                                                        <input type="email" id="email" name="email"
+                                                                placeholder="Enter your email" required>
+                                                </div>
+                                                <span class="input-error" id="emailError"></span>
+                                        </div>
+
+                                        <div class="form-group">
+                                                <label for="password">Password</label>
+                                                <div class="input-wrapper">
+                                                        <input type="password" id="password" name="password"
+                                                                placeholder="Min 6 characters" required minlength="6">
+                                                        <button type="button" class="password-toggle lamp-off"
+                                                                data-target="password" aria-label="Show password">
+                                                                💡
+                                                        </button>
+                                                </div>
+                                                <span class="input-error" id="passwordError"></span>
+                                        </div>
+
+                                        <div class="form-group">
+                                                <label for="confirm_password">Confirm Password</label>
+                                                <div class="input-wrapper">
+                                                        <input type="password" id="confirm_password"
+                                                                name="confirm_password" placeholder="Confirm password"
+                                                                required minlength="6">
+                                                        <button type="button" class="password-toggle lamp-off"
+                                                                data-target="confirm_password"
+                                                                aria-label="Show password">
+                                                                💡
+                                                        </button>
+                                                </div>
+                                                <span class="input-error" id="confirmError"></span>
+                                        </div>
+
+                                        <div id="errorMessage" class="error-message" style="display: none;"></div>
+                                        <div id="successMessage" class="success-message" style="display: none;"></div>
+
+                                        <button type="submit" class="btn btn-primary btn-login">
+                                                <span>Register</span>
+                                                <span class="btn-icon">→</span>
+                                        </button>
+                                </form>
+
+                                <div class="login-footer">
+                                        <p>Already have an account? <a href="{{ url_for('login') }}">Login here</a></p>
+                                </div>
+                        </div>
+                </div>
+        </div>
+
+        <script>
+                (function () {
+                        function enableSymbolHover() {
+                                document.body.classList.add('enable-symbol-hover');
+                                window.removeEventListener('mousemove', enableSymbolHover);
+                                window.removeEventListener('touchstart', enableSymbolHover);
+                        }
+
+                        function syncMobileStripLoopDistance() {
+                                const isMobile = window.matchMedia('(max-width: 1024px)').matches;
+                                const firstStrip = document.querySelector('.login-illustration .symbols-container:first-child');
+                                if (!firstStrip) {
+                                        return;
+                                }
+
+                                if (!isMobile) {
+                                        if (firstStrip.dataset.mobileTickerReady === '1') {
+                                                if (firstStrip.dataset.originalHtml) {
+                                                        firstStrip.innerHTML = firstStrip.dataset.originalHtml;
+                                                }
+                                                firstStrip.dataset.mobileTickerReady = '0';
+                                        }
+                                        return;
+                                }
+
+                                if (firstStrip.dataset.mobileTickerReady !== '1') {
+                                        if (!firstStrip.dataset.originalHtml) {
+                                                firstStrip.dataset.originalHtml = firstStrip.innerHTML;
+                                        }
+                                        const originalSymbols = Array.from(firstStrip.querySelectorAll('.symbol'));
+                                        if (!originalSymbols.length) {
+                                                return;
+                                        }
+
+                                        const baseCount = Math.max(1, Math.floor(originalSymbols.length / 2));
+                                        const baseMarkup = originalSymbols
+                                                .slice(0, baseCount)
+                                                .map(symbol => symbol.outerHTML)
+                                                .join('');
+
+                                        firstStrip.innerHTML = baseMarkup + baseMarkup + baseMarkup;
+                                        firstStrip.dataset.mobileBaseCount = String(baseCount);
+                                        firstStrip.dataset.mobileTickerReady = '1';
+                                }
+
+                                const renderedSymbols = Array.from(firstStrip.querySelectorAll('.symbol'));
+                                if (!renderedSymbols.length) {
+                                        return;
+                                }
+
+                                const baseCount = Number(firstStrip.dataset.mobileBaseCount || '0');
+                                if (!baseCount) {
+                                        return;
+                                }
+
+                                requestAnimationFrame(function () {
+                                        let loopDistance = 0;
+                                        for (let index = 0; index < baseCount; index += 1) {
+                                                const currentSymbol = renderedSymbols[index];
+                                                if (!currentSymbol) {
+                                                        break;
+                                                }
+                                                loopDistance += currentSymbol.getBoundingClientRect().width;
+                                        }
+
+                                        if (loopDistance > 0) {
+                                                firstStrip.style.setProperty('--mobile-loop-distance', `${loopDistance}px`);
+                                        }
+                                });
+                        }
+
+                        window.addEventListener('mousemove', enableSymbolHover, { once: true });
+                        window.addEventListener('touchstart', enableSymbolHover, { once: true });
+                        window.addEventListener('load', syncMobileStripLoopDistance);
+                        window.addEventListener('resize', syncMobileStripLoopDistance);
+                })();
+        </script>
+
+        <script src="{{ url_for('static', filename='js/register.js') }}"></script>
+</body>
+
+</html>
