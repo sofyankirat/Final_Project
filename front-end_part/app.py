@@ -1227,17 +1227,17 @@ def attendance():
 @app.route('/api/attendance/enroll', methods=['POST'])
 @login_required
 def attendance_enroll():
-    """Accept five browser captures, save to disk, run YOLO+ArcFace via subprocess."""
+    """Accept 5 browser captures, save to disk, run YOLO+ArcFace in one subprocess."""
     payload = request.get_json(silent=True) or {}
     captures = payload.get('captures', [])
 
     if not isinstance(captures, list) or len(captures) != 5:
-        return jsonify({'success': False, 'message': 'Please send exactly 5 captures.'}), 400
+        return jsonify({'success': False, 'message': 'Please capture all 5 positions.'}), 400
 
     user_id = to_int_value(session.get('user_id'))
     email = session.get('email', '')
 
-    # ── Resolve student name ──
+    # Resolve student name
     student_name = email.split('@')[0].capitalize() if email else f'user_{user_id}'
     try:
         conn = get_db_connection()
@@ -1252,44 +1252,31 @@ def attendance_enroll():
     except Exception:
         pass
 
-    # ── Save captured images to disk ──
+    # Save captured images to disk
     static_root = get_static_root()
     upload_dir = os.path.join(static_root, 'uploads', 'attendance', f'user_{user_id}')
     os.makedirs(upload_dir, exist_ok=True)
-
-    saved_paths: list[str] = []
     timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+    saved_paths: list[str] = []
 
-    for index, entry in enumerate(captures, start=1):
+    for idx, entry in enumerate(captures, 1):
         if not isinstance(entry, dict):
-            return jsonify({'success': False, 'message': 'Capture payload format is invalid.'}), 400
-
+            return jsonify({'success': False, 'message': 'Invalid capture format.'}), 400
         data_url = to_clean_string(entry.get('dataUrl'))
-        label = to_clean_string(entry.get('label', f'position_{index}'))
         if not data_url.startswith('data:image/') or ',' not in data_url:
-            return jsonify({'success': False, 'message': 'Capture image data is invalid.'}), 400
-
-        safe_label = ''.join(ch for ch in label.lower() if ch.isalnum() or ch in ('-', '_'))
-        if not safe_label:
-            safe_label = f'position_{index}'
-
+            return jsonify({'success': False, 'message': 'Invalid image data.'}), 400
         _, encoded = data_url.split(',', 1)
         try:
-            image_bytes = base64.b64decode(encoded)
+            img_bytes = base64.b64decode(encoded)
         except (ValueError, binascii.Error):
-            return jsonify({'success': False, 'message': 'Could not decode image data.'}), 400
+            return jsonify({'success': False, 'message': 'Could not decode image.'}), 400
+        fpath = os.path.join(upload_dir, f'{timestamp}_{idx}.jpg')
+        with open(fpath, 'wb') as fh:
+            fh.write(img_bytes)
+        saved_paths.append(fpath)
 
-        filename = f'{timestamp}_{index}_{safe_label}.jpg'
-        file_path = os.path.join(upload_dir, filename)
-        with open(file_path, 'wb') as fh:
-            fh.write(image_bytes)
-        saved_paths.append(file_path)
-
-    # ── Run the face pipeline via subprocess ──
+    # Run face pipeline in ONE subprocess (models load once)
     script_path = os.path.join(_ATTENDANCE_ROOT, 'web_enroll.py')
-    if not os.path.exists(script_path):
-        return jsonify({'success': False, 'message': 'Enrollment script not found.'}), 500
-
     venv_python = os.path.join(_ATTENDANCE_ROOT, 'venv', 'Scripts', 'python.exe')
     if not os.path.exists(venv_python):
         venv_python = sys.executable
@@ -1300,37 +1287,21 @@ def attendance_enroll():
         proc = subprocess.run(
             [venv_python, script_path, student_name] + saved_paths,
             cwd=_ATTENDANCE_ROOT,
-            capture_output=True,
-            text=True,
-            encoding='utf-8',
-            errors='replace',
-            env=env,
-            timeout=300,
+            capture_output=True, text=True, encoding='utf-8', errors='replace',
+            env=env, timeout=120,
         )
-
-        stdout_text = proc.stdout or ''
-        result = None
-        for line in stdout_text.splitlines():
+        for line in (proc.stdout or '').splitlines():
             if line.startswith('__RESULT_JSON__'):
                 try:
-                    result = json.loads(line[len('__RESULT_JSON__'):])
+                    return jsonify(json.loads(line[len('__RESULT_JSON__'):]))
                 except json.JSONDecodeError:
                     pass
-
-        if result:
-            return jsonify(result)
-
-        if proc.returncode == 0:
-            return jsonify({'success': True, 'message': 'Enrollment completed successfully.'})
-        else:
-            detail = (proc.stderr or stdout_text or 'Unknown error').strip()
-            return jsonify({'success': False, 'message': f'Enrollment failed: {detail}'}), 500
-
+        error_detail = (proc.stderr or proc.stdout or 'Unknown error').strip()[-500:]
+        return jsonify({'success': False, 'message': f'Processing error: {error_detail}'}), 500
     except subprocess.TimeoutExpired:
-        return jsonify({'success': False, 'message': 'Enrollment timed out. Please try again.'}), 504
+        return jsonify({'success': False, 'message': 'Processing timed out.'}), 504
     except Exception as err:
-        print(f"Enrollment subprocess error: {err}")
-        return jsonify({'success': False, 'message': f'Could not run enrollment: {err}'}), 500
+        return jsonify({'success': False, 'message': f'Error: {err}'}), 500
 
 
 # ================== ERROR HANDLERS ==================
