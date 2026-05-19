@@ -559,9 +559,9 @@
 
                 <div class="attendance-hero">
                     <h1 class="attendance-title">Smart <span class="attendance-accent">Attendance</span> Enrollment</h1>
-                    <p class="attendance-subtitle">Capture five guided face positions so the attendance system can
-                        recognize you quickly and accurately. Click the box below to open your camera and follow each
-                        prompt.</p>
+                    <p class="attendance-subtitle">Click the button below to open the face enrollment camera.
+                        A desktop window will appear where you'll capture five face positions with real-time quality
+                        checks. Press SPACE to capture each position and Q to cancel.</p>
                 </div>
 
                 <div class="attendance-center">
@@ -569,41 +569,44 @@
                         <div class="attendance-card-header">
                             <div>
                                 <p class="attendance-card-title">Face Capture Studio</p>
-                                <p class="attendance-card-note">Five quick captures, guided step-by-step.</p>
+                                <p class="attendance-card-note">Five positions: straight, left, right, up, down — with AI quality checks.</p>
                             </div>
-                            <p class="attendance-card-note" id="attendanceCounter">0 / 5 captured</p>
                         </div>
-                        <div class="attendance-card-body">
-                            <div>
-                                <div class="attendance-video-wrap" id="attendanceVideoWrap">
-                                    <video class="attendance-video" id="attendanceVideo" autoplay muted
-                                        playsinline></video>
-                                    <canvas id="attendanceCanvas" width="640" height="480"
-                                        style="display:none;"></canvas>
-                                    <div class="attendance-overlay" id="attendanceOverlay">
-                                        <div class="attendance-overlay-icon">CAM</div>
-                                        <strong>Click to start camera</strong>
-                                        <span>Make sure your face is centered and well-lit.</span>
+                        <div class="attendance-card-body" style="display:flex;flex-direction:column;align-items:center;gap:22px;padding:34px 24px 40px;">
+
+                            <div class="attendance-video-wrap" id="attendanceVideoWrap" style="min-height:220px;max-width:540px;width:100%;cursor:pointer;"
+                                 onclick="launchEnrollment()">
+                                <div class="attendance-overlay" id="attendanceOverlay">
+                                    <div class="attendance-overlay-icon">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                                            <circle cx="12" cy="13" r="4"></circle>
+                                        </svg>
                                     </div>
+                                    <strong id="overlayTitle">Click to open enrollment camera</strong>
+                                    <span id="overlayHint">An OpenCV window will open on your desktop with face quality checks.</span>
                                 </div>
-                                <div class="attendance-actions">
-                                    <button class="attendance-btn primary" id="startCaptureBtn" type="button">Start
-                                        Camera</button>
-                                    <button class="attendance-btn primary" id="takeSnapshotBtn" type="button"
-                                        disabled>Capture
-                                        Next</button>
-                                    <button class="attendance-btn secondary" id="retakeLastBtn" type="button"
-                                        disabled>Retake
-                                        Last</button>
-                                    <button class="attendance-btn secondary" id="submitEnrollmentBtn" type="button"
-                                        disabled>Send to Attendance System</button>
-                                </div>
-                                <div class="attendance-status" id="attendanceStatus">Ready when you are.</div>
                             </div>
 
-                            <div>
-                                <div class="attendance-progress" id="attendanceSteps"></div>
-                                <div class="attendance-thumbs" id="attendanceThumbs"></div>
+                            <div class="attendance-actions" style="justify-content:center;">
+                                <button class="attendance-btn primary" id="launchBtn" type="button" onclick="launchEnrollment()"
+                                    style="padding:14px 32px;font-size:15px;">
+                                    <span id="launchBtnText">🎥 Start Face Enrollment</span>
+                                </button>
+                            </div>
+                            <div class="attendance-status" id="attendanceStatus" style="text-align:center;max-width:600px;white-space:pre-wrap;">
+                                Ready when you are. Click the button or the camera box above.
+                            </div>
+
+                            <div id="enrollmentSteps" style="display:none;max-width:480px;width:100%;">
+                                <p style="font-size:13px;font-weight:700;margin:0 0 10px;color:inherit;">Positions to capture in the desktop window:</p>
+                                <div class="attendance-progress" id="attendanceSteps">
+                                    <div class="attendance-step"><span>Step 1</span> Look straight</div>
+                                    <div class="attendance-step"><span>Step 2</span> Turn left</div>
+                                    <div class="attendance-step"><span>Step 3</span> Turn right</div>
+                                    <div class="attendance-step"><span>Step 4</span> Look up</div>
+                                    <div class="attendance-step"><span>Step 5</span> Look down</div>
+                                </div>
                             </div>
                         </div>
                     </section>
@@ -707,225 +710,72 @@
             document.querySelectorAll('.header-popup.open').forEach(p => p.classList.remove('open'));
         });
 
-        const attendanceCard = document.getElementById('attendanceCard');
-        const startBtn = document.getElementById('startCaptureBtn');
-        const captureBtn = document.getElementById('takeSnapshotBtn');
-        const retakeBtn = document.getElementById('retakeLastBtn');
-        const submitBtn = document.getElementById('submitEnrollmentBtn');
+        /* ─── Enrollment launcher ─── */
+        const launchBtn = document.getElementById('launchBtn');
+        const launchBtnText = document.getElementById('launchBtnText');
         const statusEl = document.getElementById('attendanceStatus');
-        const counterEl = document.getElementById('attendanceCounter');
-        const video = document.getElementById('attendanceVideo');
-        const canvas = document.getElementById('attendanceCanvas');
-        const overlay = document.getElementById('attendanceOverlay');
-        const stepsWrap = document.getElementById('attendanceSteps');
-        const thumbsWrap = document.getElementById('attendanceThumbs');
+        const overlayTitle = document.getElementById('overlayTitle');
+        const overlayHint = document.getElementById('overlayHint');
+        const overlayIcon = document.querySelector('.attendance-overlay-icon');
+        const stepsPanel = document.getElementById('enrollmentSteps');
+        let enrolling = false;
 
-        const positions = [
-            { id: 'front', label: 'Look straight' },
-            { id: 'left', label: 'Turn left' },
-            { id: 'right', label: 'Turn right' },
-            { id: 'up', label: 'Look up' },
-            { id: 'down', label: 'Look down' }
-        ];
+        async function launchEnrollment() {
+            if (enrolling) return;
+            enrolling = true;
 
-        const captures = [];
-        let captureIndex = 0;
-        let stream = null;
-
-        function renderSteps() {
-            stepsWrap.innerHTML = '';
-            positions.forEach((pos, index) => {
-                const step = document.createElement('div');
-                step.className = 'attendance-step';
-                if (index === captureIndex) step.classList.add('active');
-                if (index < captureIndex) step.classList.add('completed');
-                step.innerHTML = `<span>Step ${index + 1}</span> ${pos.label}`;
-                stepsWrap.appendChild(step);
-            });
-        }
-
-        function renderThumbs() {
-            thumbsWrap.innerHTML = '';
-            positions.forEach((pos, index) => {
-                const thumb = document.createElement('div');
-                thumb.className = 'attendance-thumb';
-                const img = document.createElement('img');
-                if (captures[index]) {
-                    thumb.classList.add('filled');
-                    img.src = captures[index].dataUrl;
-                }
-                thumb.appendChild(img);
-                const label = document.createElement('span');
-                label.textContent = `Step ${index + 1}: ${pos.label}`;
-                thumb.appendChild(label);
-                thumbsWrap.appendChild(thumb);
-            });
-        }
-
-        function updateStatus(message) {
-            statusEl.textContent = message;
-        }
-
-        function updateCounter() {
-            counterEl.textContent = `${captureIndex} / ${positions.length} captured`;
-        }
-
-        async function startCamera() {
-            if (stream) return;
-            try {
-                stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
-                video.srcObject = stream;
-                video.classList.add('active');
-                overlay.style.display = 'none';
-                captureBtn.disabled = false;
-                updateStatus('Camera ready. Follow the prompt and capture each position.');
-            } catch (error) {
-                updateStatus('Camera access denied. Please allow camera permissions.');
-            }
-        }
-
-        function stopCamera() {
-            if (!stream) return;
-            stream.getTracks().forEach(track => track.stop());
-            stream = null;
-            video.classList.remove('active');
-            overlay.style.display = 'flex';
-        }
-
-        function captureFrame() {
-            if (!stream) {
-                updateStatus('Start the camera first.');
-                return;
-            }
-            if (captureIndex >= positions.length) return;
-
-            const context = canvas.getContext('2d');
-            const width = video.videoWidth || 640;
-            const height = video.videoHeight || 480;
-            canvas.width = width;
-            canvas.height = height;
-            context.save();
-            context.scale(-1, 1);
-            context.drawImage(video, -width, 0, width, height);
-            context.restore();
-
-            const dataUrl = canvas.toDataURL('image/jpeg', 0.92);
-            captures[captureIndex] = {
-                label: positions[captureIndex].label,
-                dataUrl
-            };
-
-            captureIndex += 1;
-            renderSteps();
-            renderThumbs();
-            updateCounter();
-
-            if (captureIndex >= positions.length) {
-                captureBtn.disabled = true;
-                submitBtn.disabled = false;
-                updateStatus('All positions captured. Send them to the attendance system.');
-                stopCamera();
-            } else {
-                updateStatus(`Captured. Next: ${positions[captureIndex].label}.`);
-            }
-
-            retakeBtn.disabled = captureIndex === 0;
-        }
-
-        function retakeLast() {
-            if (captureIndex === 0) return;
-            captureIndex -= 1;
-            captures.splice(captureIndex, 1);
-            renderSteps();
-            renderThumbs();
-            updateCounter();
-            captureBtn.disabled = false;
-            submitBtn.disabled = true;
-            retakeBtn.disabled = captureIndex === 0;
-            updateStatus(`Retake step ${captureIndex + 1}: ${positions[captureIndex].label}.`);
-        }
-
-        async function submitEnrollment() {
-            if (captures.length !== positions.length) {
-                updateStatus('Please capture all five positions before submitting.');
-                return;
-            }
-
-            submitBtn.disabled = true;
-            updateStatus('⏳ Uploading captures & running face detection AI...');
+            launchBtn.disabled = true;
+            launchBtnText.textContent = '⏳ Camera opening...';
             statusEl.style.color = '';
+            statusEl.textContent = '⏳ The enrollment camera window is opening on your desktop.\n\nFollow the prompts:\n  → Press SPACE when the quality indicator is green\n  → Capture all 5 positions\n  → Press Q to cancel';
+            overlayTitle.textContent = '📷 Camera is running on your desktop...';
+            overlayHint.textContent = 'Complete the 5 captures in the OpenCV window, then the result will appear here.';
+            if (overlayIcon) overlayIcon.style.background = 'linear-gradient(135deg, #27ae60, #2ecc71)';
+            stepsPanel.style.display = 'block';
 
             try {
                 const response = await fetch('/api/attendance/enroll', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ captures })
+                    body: JSON.stringify({})
                 });
                 const payload = await response.json();
 
-                if (!response.ok || !payload.success) {
-                    // Show per-image details if available
-                    let detail = payload.message || 'Enrollment failed.';
-                    if (payload.details && payload.details.per_image) {
-                        const summary = payload.details.per_image
-                            .map((r, i) => `  Step ${i+1}: ${r.status === 'ok' ? '✅' : '❌'} ${r.reason}`)
-                            .join('\n');
-                        detail += '\n' + summary;
+                if (payload.success) {
+                    statusEl.style.color = '#27ae60';
+                    statusEl.textContent = '✅ ' + payload.message;
+                    overlayTitle.textContent = '✅ Enrollment successful!';
+                    overlayHint.textContent = 'You are now registered in the attendance system.';
+                    if (overlayIcon) {
+                        overlayIcon.style.background = 'linear-gradient(135deg, #27ae60, #2ecc71)';
+                        overlayIcon.innerHTML = '✓';
                     }
-                    statusEl.style.color = '#e74c3c';
-                    updateStatus(detail);
-                    submitBtn.disabled = false;
-                    return;
-                }
+                    launchBtnText.textContent = '🎥 Enroll Again';
 
-                // Success — show enriched result
-                statusEl.style.color = '#27ae60';
-                let successMsg = `✅ ${payload.message}`;
-                if (payload.details && payload.details.per_image) {
-                    const perImg = payload.details.per_image;
-                    const okCount = perImg.filter(r => r.status === 'ok').length;
-                    successMsg += ` (${okCount}/${perImg.length} faces detected)`;
-
-                    // Mark thumbnails with detection status
-                    const thumbEls = thumbsWrap.querySelectorAll('.attendance-thumb');
-                    perImg.forEach((r, i) => {
-                        if (thumbEls[i]) {
-                            const badge = document.createElement('span');
-                            badge.style.cssText = 'font-size:11px;font-weight:700;margin-top:2px;';
-                            if (r.status === 'ok') {
-                                badge.textContent = '✅ Face detected';
-                                badge.style.color = '#27ae60';
-                            } else {
-                                badge.textContent = '❌ ' + r.reason;
-                                badge.style.color = '#e74c3c';
-                            }
-                            thumbEls[i].appendChild(badge);
-                        }
+                    // Mark all steps as completed
+                    document.querySelectorAll('.attendance-step').forEach(s => {
+                        s.classList.add('completed');
                     });
+                } else {
+                    statusEl.style.color = '#e74c3c';
+                    statusEl.textContent = '❌ ' + payload.message;
+                    overlayTitle.textContent = 'Enrollment did not complete';
+                    overlayHint.textContent = 'Click to try again.';
+                    if (overlayIcon) {
+                        overlayIcon.style.background = '';
+                        overlayIcon.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>';
+                    }
+                    launchBtnText.textContent = '🎥 Try Again';
                 }
-                updateStatus(successMsg);
             } catch (error) {
                 statusEl.style.color = '#e74c3c';
-                updateStatus(error.message || 'Failed to upload captures. Try again.');
-                submitBtn.disabled = false;
+                statusEl.textContent = '❌ ' + (error.message || 'Failed to launch enrollment.');
+                launchBtnText.textContent = '🎥 Try Again';
+            } finally {
+                launchBtn.disabled = false;
+                enrolling = false;
             }
         }
-
-        if (attendanceCard) {
-            attendanceCard.addEventListener('click', (event) => {
-                if (event.target.closest('button')) return;
-                startCamera();
-            });
-        }
-
-        if (startBtn) startBtn.addEventListener('click', startCamera);
-        if (captureBtn) captureBtn.addEventListener('click', captureFrame);
-        if (retakeBtn) retakeBtn.addEventListener('click', retakeLast);
-        if (submitBtn) submitBtn.addEventListener('click', submitEnrollment);
-
-        renderSteps();
-        renderThumbs();
-        updateCounter();
     </script>
 </body>
 
