@@ -1254,9 +1254,14 @@ def attendance_enroll():
             'message': 'Enrollment script not found. Check Smart-Attendance-System setup.',
         }), 500
 
+    # Use the Smart-Attendance-System venv Python (has cv2, ultralytics, onnxruntime)
+    venv_python = os.path.join(_ATTENDANCE_ROOT, 'venv', 'Scripts', 'python.exe')
+    if not os.path.exists(venv_python):
+        venv_python = sys.executable  # fallback
+
     try:
         proc = subprocess.run(
-            [sys.executable, script_path, student_name],
+            [venv_python, script_path, student_name],
             cwd=_ATTENDANCE_ROOT,
             capture_output=True,
             text=True,
