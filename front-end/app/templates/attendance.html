@@ -15,6 +15,7 @@
     <script src="https://cdn.jsdelivr.net/npm/tsparticles@2.12.0/tsparticles.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.10.0/dist/tf.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/blazeface@0.0.7/dist/blazeface.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.js"></script>
     <style>
         .attendance-hero{margin-top:0;padding:18px 0 14px}
         .attendance-title{font-size:clamp(26px,3vw,34px);font-weight:800;color:#2c2420;margin:0 0 6px;letter-spacing:-.4px}
@@ -110,6 +111,35 @@
         .pipeline-spinner{display:inline-block;width:14px;height:14px;border:2px solid rgba(255,107,53,.3);border-top-color:#ff6b35;border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:6px}
         @keyframes spin{to{transform:rotate(360deg)}}
         body.dark-mode .pipeline-spinner{border-color:rgba(79,212,255,.3);border-top-color:#4fd4ff}
+        /* ── Post-enrollment dashboard ── */
+        .post-enroll{display:none}
+        .post-enroll.visible{display:block}
+        .post-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:16px}
+        @media(max-width:920px){.post-grid{grid-template-columns:1fr}}
+        .post-panel{border-radius:18px;border:1px solid rgba(255,107,53,.18);
+            background:radial-gradient(circle at 16% 20%,rgba(255,210,176,.4),transparent 42%),linear-gradient(145deg,rgba(255,255,255,.95),rgba(255,241,230,.86));
+            box-shadow:0 12px 30px rgba(0,0,0,.08);padding:22px 24px}
+        body.dark-mode .post-panel{border-color:rgba(79,212,255,.22);
+            background:radial-gradient(circle at 16% 20%,rgba(79,212,255,.1),transparent 42%),linear-gradient(160deg,rgba(10,14,36,.96),rgba(10,12,36,.88));
+            box-shadow:0 12px 30px rgba(0,0,0,.25)}
+        .post-panel-title{font-size:15px;font-weight:800;color:#2c2420;margin:0 0 14px;display:flex;align-items:center;gap:8px}
+        body.dark-mode .post-panel-title{color:#e8f0ff}
+        .test-cam-area{position:relative;border-radius:14px;overflow:hidden;min-height:220px;background:#0d0f1a;display:flex;align-items:center;justify-content:center;border:2px dashed rgba(255,107,53,.2)}
+        body.dark-mode .test-cam-area{border-color:rgba(79,212,255,.25)}
+        .test-cam-video{width:100%;height:100%;object-fit:cover;display:none;transform:scaleX(-1)}
+        .test-cam-video.active{display:block}
+        .test-upload-zone{border:2px dashed rgba(255,107,53,.25);border-radius:14px;padding:30px;text-align:center;cursor:pointer;transition:border-color .2s,background .2s;min-height:120px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:#6a5a4a;font-size:13px}
+        .test-upload-zone:hover{border-color:rgba(255,107,53,.5);background:rgba(255,107,53,.04)}
+        body.dark-mode .test-upload-zone{border-color:rgba(79,212,255,.3);color:#9fb3d9}
+        body.dark-mode .test-upload-zone:hover{border-color:rgba(79,212,255,.6);background:rgba(79,212,255,.06)}
+        .test-upload-zone img{max-width:100%;max-height:180px;border-radius:10px;display:none}
+        .test-result{margin-top:14px;padding:14px 18px;border-radius:12px;font-size:13px;display:none}
+        .test-result.success{display:block;background:rgba(39,174,96,.1);border:1px solid rgba(39,174,96,.3);color:#27ae60}
+        .test-result.fail{display:block;background:rgba(231,76,60,.1);border:1px solid rgba(231,76,60,.3);color:#e74c3c}
+        body.dark-mode .test-result.success{background:rgba(39,174,96,.15);color:#2ecc71}
+        body.dark-mode .test-result.fail{background:rgba(231,76,60,.15);color:#e74c3c}
+        .chart-placeholder{background:rgba(255,255,255,.5);border-radius:14px;padding:20px;min-height:160px;display:flex;align-items:center;justify-content:center}
+        body.dark-mode .chart-placeholder{background:rgba(12,16,42,.7)}
     </style>
 </head>
 
@@ -334,7 +364,7 @@
                     <p class="attendance-subtitle">Capture five face positions directly in the browser. The AI will detect your face and register you in the attendance system.</p>
                 </div>
 
-                <div class="attendance-center">
+                <div class="attendance-center" id="enrollmentSection">
                     <section class="attendance-card" aria-label="Attendance capture">
                         <div class="attendance-card-header">
                             <div>
@@ -381,6 +411,51 @@
                             </div>
                         </div>
                     </section>
+                </div>
+
+                <!-- ══ Post-enrollment dashboard ══ -->
+                <div class="post-enroll" id="postEnrollView">
+                    <div class="post-grid">
+                        <!-- Left: Charts -->
+                        <div class="post-panel">
+                            <div class="post-panel-title">📊 Attendance Overview</div>
+                            <div class="chart-placeholder" id="chartWeekly">
+                                <canvas id="weeklyChart" style="width:100%;max-height:200px"></canvas>
+                            </div>
+                            <div style="height:18px"></div>
+                            <div class="chart-placeholder" id="chartMonthly">
+                                <canvas id="monthlyChart" style="width:100%;max-height:200px"></canvas>
+                            </div>
+                        </div>
+                        <!-- Right: Recognition Test -->
+                        <div class="post-panel">
+                            <div class="post-panel-title">🔍 Enrollment Test</div>
+                            <p style="font-size:12.5px;color:#6a5a4a;margin:0 0 12px;line-height:1.5" class="test-desc">Verify your enrollment by uploading a photo or using the camera. The system will check if it recognizes you.</p>
+                            <!-- Camera test -->
+                            <div class="test-cam-area" id="testCamArea">
+                                <video class="test-cam-video" id="testVideo" autoplay muted playsinline></video>
+                                <canvas id="testCanvas" style="display:none" width="640" height="480"></canvas>
+                                <div id="testCamOverlay" style="color:#6b82b0;text-align:center;font-size:13px">
+                                    <div style="font-size:28px;margin-bottom:6px">📷</div>
+                                    Click "Open Camera" to test live
+                                </div>
+                            </div>
+                            <div style="display:flex;gap:10px;margin-top:10px;flex-wrap:wrap">
+                                <button class="att-btn primary" id="btnTestCam" onclick="testOpenCamera()">Open Camera</button>
+                                <button class="att-btn primary" id="btnTestCapture" onclick="testCaptureAndRecognize()" disabled>Capture & Recognize</button>
+                                <button class="att-btn ghost" id="btnTestStop" onclick="testStopCamera()" style="display:none">Stop Camera</button>
+                            </div>
+                            <div style="margin-top:14px;font-size:12.5px;font-weight:700;color:#6a5a4a;text-align:center" class="test-desc">— or upload a photo —</div>
+                            <div class="test-upload-zone" id="testUploadZone" onclick="document.getElementById('testFileInput').click()">
+                                <div style="font-size:28px">🖼️</div>
+                                <div>Click to upload an image</div>
+                                <img id="testPreview" alt="">
+                                <input type="file" id="testFileInput" accept="image/*" style="display:none" onchange="testHandleUpload(event)">
+                            </div>
+                            <button class="att-btn primary" id="btnTestUpload" onclick="testRecognizeUpload()" style="display:none;margin-top:10px;width:100%;justify-content:center">Recognize Face</button>
+                            <div class="test-result" id="testResult"></div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </main>
@@ -665,17 +740,14 @@
             }
             if(data.success){
                 statusEl.style.color='#27ae60';
-                statusEl.innerHTML=`<div style="display:flex;flex-direction:column;gap:5px;">
-                    <div><strong>✅ ${data.message}</strong></div>
-                    <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:6px;">
-                        <span class="result-badge ok">Aligned: ${d.aligned_faces||'?'}</span>
-                        <span class="result-badge ok">Augmented: ${d.augmented_total||'?'}</span>
-                        <span class="result-badge ok">Embeddings: ${d.embeddings_extracted||'?'}</span>
-                        <span class="result-badge ok">DB Size: ${d.database_size||'?'}</span>
+                statusEl.innerHTML=`<div style="display:flex;flex-direction:column;gap:8px;">
+                    <div style="font-size:18px;font-weight:800">Welcome aboard! 🎉</div>
+                    <div style="font-size:13.5px;line-height:1.6;opacity:.9">Your face has been successfully enrolled into the Smart Attendance System. You're all set to be recognized automatically in future sessions.</div>
+                    <div style="display:flex;gap:10px;margin-top:6px;">
+                        <button class="att-btn ghost" onclick="resetEnroll()">Enroll Again</button>
+                        <button class="att-btn primary" onclick="showPostEnroll()">Continue →</button>
                     </div>
                 </div>`;
-                btnSubmit.textContent='Enroll Again';btnSubmit.disabled=false;
-                btnSubmit.onclick=()=>{captures.length=0;capIdx=0;btnSubmit.style.display='none';btnStart.style.display='';btnStart.disabled=false;btnStart.textContent='Open Camera';statusEl.textContent='Ready — click "Open Camera" to begin.';statusEl.style.color='';updateUI()};
                 stepList.querySelectorAll('.step-item').forEach(s=>s.className='step-item done');
             }else{
                 statusEl.style.color='#e74c3c';
@@ -696,7 +768,177 @@
         }
         btnRetake.disabled=false;
     }
+
+    function resetEnroll(){
+        captures.length=0;capIdx=0;
+        btnSubmit.style.display='none';btnStart.style.display='';btnStart.disabled=false;btnStart.textContent='Open Camera';
+        statusEl.textContent='Ready — click "Open Camera" to begin.';statusEl.style.color='';
+        updateUI();
+    }
+
+    function showPostEnroll(){
+        document.getElementById('enrollmentSection').style.display='none';
+        document.querySelector('.attendance-hero').style.display='none';
+        document.getElementById('postEnrollView').classList.add('visible');
+        initCharts();
+    }
+
     renderSteps();renderThumbs();
+
+    /* ══════════════════════════════════════════════════════
+       Post-Enrollment: Charts + Recognition Test
+       ══════════════════════════════════════════════════════ */
+
+    function initCharts(){
+        const isDark=document.body.classList.contains('dark-mode');
+        const txtColor=isDark?'#c0d0f0':'#4a3a2a';
+        const gridColor=isDark?'rgba(79,212,255,.1)':'rgba(0,0,0,.06)';
+        const accent1=isDark?'rgba(79,212,255,.8)':'rgba(255,107,53,.8)';
+        const accent1bg=isDark?'rgba(79,212,255,.15)':'rgba(255,107,53,.15)';
+        const accent2=isDark?'rgba(162,89,255,.8)':'rgba(99,102,241,.8)';
+        const accent2bg=isDark?'rgba(162,89,255,.15)':'rgba(99,102,241,.15)';
+
+        const days=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+        new Chart(document.getElementById('weeklyChart'),{
+            type:'bar',
+            data:{
+                labels:days,
+                datasets:[{
+                    label:'Attendance Hours',
+                    data:[8,7.5,8,6,8,0,0],
+                    backgroundColor:accent1,
+                    borderRadius:6,
+                    borderSkipped:false,
+                }]
+            },
+            options:{
+                responsive:true,
+                plugins:{legend:{display:false},
+                    title:{display:true,text:'Weekly Attendance',color:txtColor,font:{size:14,weight:700}}},
+                scales:{
+                    x:{ticks:{color:txtColor},grid:{display:false}},
+                    y:{ticks:{color:txtColor},grid:{color:gridColor},beginAtZero:true,max:10}
+                }
+            }
+        });
+
+        const months=['Jan','Feb','Mar','Apr','May','Jun'];
+        new Chart(document.getElementById('monthlyChart'),{
+            type:'line',
+            data:{
+                labels:months,
+                datasets:[{
+                    label:'Attendance Rate (%)',
+                    data:[92,88,95,90,97,94],
+                    borderColor:accent2,
+                    backgroundColor:accent2bg,
+                    tension:.4,fill:true,pointRadius:5,pointBackgroundColor:accent2,
+                },{
+                    label:'Class Average (%)',
+                    data:[85,83,87,84,89,86],
+                    borderColor:accent1,
+                    backgroundColor:accent1bg,
+                    tension:.4,fill:true,pointRadius:4,pointBackgroundColor:accent1,
+                    borderDash:[5,5],
+                }]
+            },
+            options:{
+                responsive:true,
+                plugins:{legend:{labels:{color:txtColor}},
+                    title:{display:true,text:'Monthly Attendance Trend',color:txtColor,font:{size:14,weight:700}}},
+                scales:{
+                    x:{ticks:{color:txtColor},grid:{display:false}},
+                    y:{ticks:{color:txtColor},grid:{color:gridColor},min:70,max:100}
+                }
+            }
+        });
+    }
+
+    /* ── Recognition Test ── */
+    let testStream=null, testUploadData=null;
+
+    async function testOpenCamera(){
+        if(testStream) return;
+        const tv=document.getElementById('testVideo');
+        const ov=document.getElementById('testCamOverlay');
+        try{
+            testStream=await navigator.mediaDevices.getUserMedia({video:{width:{ideal:640},height:{ideal:480},facingMode:'user'},audio:false});
+            tv.srcObject=testStream;tv.classList.add('active');ov.style.display='none';
+            document.getElementById('btnTestCapture').disabled=false;
+            document.getElementById('btnTestStop').style.display='';
+            document.getElementById('btnTestCam').style.display='none';
+        }catch(e){
+            document.getElementById('testResult').className='test-result fail';
+            document.getElementById('testResult').innerHTML='<strong>Camera access denied.</strong> Please allow camera permissions.';
+        }
+    }
+    function testStopCamera(){
+        if(!testStream) return;
+        testStream.getTracks().forEach(t=>t.stop());testStream=null;
+        const tv=document.getElementById('testVideo');
+        tv.classList.remove('active');tv.srcObject=null;
+        document.getElementById('testCamOverlay').style.display='';
+        document.getElementById('btnTestCapture').disabled=true;
+        document.getElementById('btnTestStop').style.display='none';
+        document.getElementById('btnTestCam').style.display='';
+    }
+    async function testCaptureAndRecognize(){
+        if(!testStream) return;
+        const tv=document.getElementById('testVideo'),tc=document.getElementById('testCanvas');
+        const w=tv.videoWidth||640,h=tv.videoHeight||480;
+        tc.width=w;tc.height=h;
+        const ctx=tc.getContext('2d');
+        ctx.save();ctx.scale(-1,1);ctx.drawImage(tv,-w,0,w,h);ctx.restore();
+        const dataUrl=tc.toDataURL('image/jpeg',0.92);
+        await sendRecognize(dataUrl);
+    }
+    function testHandleUpload(e){
+        const file=e.target.files[0];
+        if(!file) return;
+        const reader=new FileReader();
+        reader.onload=function(ev){
+            testUploadData=ev.target.result;
+            const prev=document.getElementById('testPreview');
+            prev.src=testUploadData;prev.style.display='block';
+            document.getElementById('btnTestUpload').style.display='';
+        };
+        reader.readAsDataURL(file);
+    }
+    async function testRecognizeUpload(){
+        if(!testUploadData) return;
+        await sendRecognize(testUploadData);
+    }
+    async function sendRecognize(imageData){
+        const rEl=document.getElementById('testResult');
+        rEl.className='test-result';rEl.style.display='block';
+        rEl.innerHTML='<span class="pipeline-spinner"></span> Analyzing...';
+        try{
+            const res=await fetch('/api/attendance/test-recognize',{
+                method:'POST',
+                headers:{'Content-Type':'application/json'},
+                body:JSON.stringify({image:imageData})
+            });
+            const data=await res.json();
+            if(data.success && data.recognized_count>0){
+                const names=data.faces.filter(f=>f.name!=='Unknown').map(f=>`<strong>${f.name}</strong> (${f.confidence}% match)`).join(', ');
+                rEl.className='test-result success';
+                rEl.innerHTML=`<div style="font-size:15px;font-weight:800;margin-bottom:4px">✅ Recognized!</div>
+                    <div>${names}</div>
+                    <div style="font-size:11.5px;opacity:.8;margin-top:4px">${data.total_faces} face(s) detected, ${data.recognized_count} recognized</div>`;
+            } else if(data.success){
+                rEl.className='test-result fail';
+                rEl.innerHTML=`<div style="font-size:15px;font-weight:800;margin-bottom:4px">Not Recognized</div>
+                    <div>${data.total_faces} face(s) detected but none matched the database.</div>
+                    <div style="font-size:11.5px;opacity:.8;margin-top:4px">Try a clearer photo or re-enroll.</div>`;
+            } else {
+                rEl.className='test-result fail';
+                rEl.innerHTML=`<div style="font-weight:700;margin-bottom:4px">Detection Failed</div><div>${data.message}</div>`;
+            }
+        }catch(e){
+            rEl.className='test-result fail';
+            rEl.innerHTML='<strong>Connection Error</strong> — could not reach the server.';
+        }
+    }
     </script>
 </body>
 </html>

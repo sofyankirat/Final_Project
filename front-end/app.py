@@ -1304,6 +1304,60 @@ def attendance_enroll():
         return jsonify({'success': False, 'message': f'Error: {err}'}), 500
 
 
+@app.route('/api/attendance/test-recognize', methods=['POST'])
+@login_required
+def attendance_test_recognize():
+    """Accept a single image and run recognition against the enrolled database."""
+    payload = request.get_json(silent=True) or {}
+    data_url = payload.get('image', '')
+
+    if not data_url or not data_url.startswith('data:image/') or ',' not in data_url:
+        return jsonify({'success': False, 'message': 'Invalid image data.'}), 400
+
+    _, encoded = data_url.split(',', 1)
+    try:
+        img_bytes = base64.b64decode(encoded)
+    except (ValueError, binascii.Error):
+        return jsonify({'success': False, 'message': 'Could not decode image.'}), 400
+
+    # Save to temp file
+    static_root = get_static_root()
+    test_dir = os.path.join(static_root, 'uploads', 'attendance', 'test')
+    os.makedirs(test_dir, exist_ok=True)
+    timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+    fpath = os.path.join(test_dir, f'test_{timestamp}.jpg')
+    with open(fpath, 'wb') as fh:
+        fh.write(img_bytes)
+
+    # Run recognition
+    script_path = os.path.join(_ATTENDANCE_ROOT, 'web_recognize.py')
+    venv_python = os.path.join(_ATTENDANCE_ROOT, 'venv', 'Scripts', 'python.exe')
+    if not os.path.exists(venv_python):
+        venv_python = sys.executable
+
+    try:
+        env = os.environ.copy()
+        env['PYTHONIOENCODING'] = 'utf-8'
+        proc = subprocess.run(
+            [venv_python, script_path, fpath],
+            cwd=_ATTENDANCE_ROOT,
+            capture_output=True, text=True, encoding='utf-8', errors='replace',
+            env=env, timeout=60,
+        )
+        for line in (proc.stdout or '').splitlines():
+            if line.startswith('__RESULT_JSON__'):
+                try:
+                    return jsonify(json.loads(line[len('__RESULT_JSON__'):]))
+                except json.JSONDecodeError:
+                    pass
+        error_detail = (proc.stderr or proc.stdout or 'Unknown error').strip()[-500:]
+        return jsonify({'success': False, 'message': f'Recognition error: {error_detail}'}), 500
+    except subprocess.TimeoutExpired:
+        return jsonify({'success': False, 'message': 'Recognition timed out.'}), 504
+    except Exception as err:
+        return jsonify({'success': False, 'message': f'Error: {err}'}), 500
+
+
 # ================== ERROR HANDLERS ==================
 
 @app.errorhandler(404)
