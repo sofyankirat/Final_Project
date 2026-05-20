@@ -401,11 +401,11 @@
 
     /* ── Enrollment Logic with real-time face detection ── */
     const positions=[
-        {id:'front',label:'Look straight ahead',icon:'⊙',arrow:''},
-        {id:'left',label:'Turn slightly left',icon:'‹',arrow:'←'},
-        {id:'right',label:'Turn slightly right',icon:'›',arrow:'→'},
-        {id:'up',label:'Look slightly up',icon:'∧',arrow:'↑'},
-        {id:'down',label:'Look slightly down',icon:'∨',arrow:'↓'}
+        {id:'front',label:'Look straight ahead',icon:'◉',arrow:''},
+        {id:'left',label:'Turn slightly left',icon:'◀',arrow:'←'},
+        {id:'right',label:'Turn slightly right',icon:'▶',arrow:'→'},
+        {id:'up',label:'Look slightly up',icon:'▲',arrow:'↑'},
+        {id:'down',label:'Look slightly down',icon:'▼',arrow:'↓'}
     ];
     const captures=[];
     let capIdx=0, stream=null, detecting=false, faceOK=false;
@@ -536,8 +536,8 @@
                                 posMsg='Turn your head to your RIGHT →';
                                 break;
                             case 'up':
-                                posOK=pitch<0.24 && Math.abs(yaw)<0.12;
-                                if(Math.abs(yaw)>=0.12) posMsg='Face the camera, then look UP ↑';
+                                posOK=pitch<0.22 && Math.abs(yaw)<0.08;
+                                if(Math.abs(yaw)>=0.08) posMsg='Face the camera, then look UP ↑';
                                 else posMsg='Tilt your head UP more ↑';
                                 break;
                             case 'down':

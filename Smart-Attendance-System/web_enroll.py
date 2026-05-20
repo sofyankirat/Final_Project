@@ -202,6 +202,16 @@ def process_images(name, paths):
         })
         aligned_faces.append(face)
 
+    # ── Fail if ANY photo is missing a face ──
+    bad_images = [r for r in per_image if r["status"] in ("no_face", "error")]
+    if bad_images:
+        bad_names = ", ".join(r["file"] for r in bad_images)
+        return {
+            "success": False,
+            "message": f"{len(bad_images)} of {len(paths)} photos had no face detected ({bad_names}). Please retake all photos with your face clearly visible.",
+            "details": {"per_image": per_image, "augmented_total": 0},
+        }
+
     if len(aligned_faces) < 3:
         return {
             "success": False,
