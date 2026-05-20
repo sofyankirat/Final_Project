@@ -152,15 +152,18 @@ def load_db():
     if os.path.exists(p):
         try:
             with open(p, "rb") as f:
-                return pickle.load(f)
-        except (ModuleNotFoundError, Exception) as e:
-            # Database was created with incompatible numpy version — reset it
+                db = pickle.load(f)
+            return {name: np.array(emb, dtype=np.float32) for name, emb in db.items()}
+        except Exception as e:
+            print(f"⚠️  Error reading database.pkl: {e}. Trying backup...")
             backup = p + ".bak"
-            try:
-                os.rename(p, backup)
-            except OSError:
-                os.remove(p)
-            print(f"⚠️  Database corrupted ({e}), reset to empty. Backup: {backup}")
+            if os.path.exists(backup):
+                try:
+                    with open(backup, "rb") as f:
+                        bdb = pickle.load(f)
+                    return {name: np.array(emb, dtype=np.float32) for name, emb in bdb.items()}
+                except Exception:
+                    pass
             return {}
     return {}
 
@@ -168,8 +171,26 @@ def load_db():
 def save_db(db):
     p = _resolve(config.DATABASE_PATH)
     os.makedirs(os.path.dirname(p), exist_ok=True)
+    # Convert numpy arrays to lists before saving
+    serializable = {}
+    for name, emb in db.items():
+        if hasattr(emb, 'tolist'):
+            serializable[name] = emb.tolist()
+        else:
+            serializable[name] = list(emb)
+            
+    # Save a backup of the current database before overwriting
+    if os.path.exists(p):
+        backup = p + ".bak"
+        try:
+            if os.path.exists(backup):
+                os.remove(backup)
+            os.rename(p, backup)
+        except OSError:
+            pass
+
     with open(p, "wb") as f:
-        pickle.dump(db, f)
+        pickle.dump(serializable, f)
 
 
 # ── Main processing ──────────────────────────────────────────

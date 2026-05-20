@@ -20,9 +20,9 @@
         .attendance-hero{margin-top:0;padding:18px 0 14px}
         .attendance-title{font-size:clamp(26px,3vw,34px);font-weight:800;color:#2c2420;margin:0 0 6px;letter-spacing:-.4px}
         .attendance-accent{color:#ff6b35}
-        .attendance-subtitle{font-size:14.5px;color:#5a4a3a;margin:0;max-width:760px;line-height:1.6}
+        .attendance-subtitle{font-size:14.5px;color:#7a6a5a;margin:0;max-width:none;line-height:1.6}
         body.dark-mode .attendance-title{color:#e8f0ff}
-        body.dark-mode .attendance-subtitle{color:#b8d4ff}
+        body.dark-mode .attendance-subtitle{color:#9ba4c7}
         .attendance-center{display:flex;justify-content:center;margin-top:24px}
         .attendance-card{width:min(1020px,100%);border-radius:24px;border:1px solid rgba(255,107,53,.2);
             background:radial-gradient(circle at 14% 16%,rgba(255,210,176,.65),transparent 42%),radial-gradient(circle at 86% 18%,rgba(255,159,117,.25),transparent 36%),linear-gradient(145deg,rgba(255,255,255,.95),rgba(255,241,230,.86));
@@ -375,7 +375,7 @@
 
                 <div class="attendance-hero">
                     <h1 class="attendance-title">Smart <span class="attendance-accent">Attendance</span> Enrollment</h1>
-                    <p class="attendance-subtitle">Follow the five guided positions below to register your profile. Our real-time AI will verify your face for seamless automated attendance.</p>
+                    <p class="attendance-subtitle">Quickly register your face profile using our guided camera setup to enable automated attendance, track your weekly class statistics, and test your recognition status.</p>
                 </div>
 
                 <div class="attendance-center" id="enrollmentSection">
@@ -448,35 +448,35 @@
                                         <div class="course-bar-track">
                                             <div class="course-bar-fill" style="--pct:76%; --clr:#ff6b35;"></div>
                                         </div>
-                                        <span class="course-bar-pct">8</span>
+                                        <span class="course-bar-pct">76%</span>
                                     </div>
                                     <div class="course-bar-row">
                                         <span class="course-bar-label">Physics</span>
                                         <div class="course-bar-track">
                                             <div class="course-bar-fill" style="--pct:90%; --clr:#e8c547;"></div>
                                         </div>
-                                        <span class="course-bar-pct">9</span>
+                                        <span class="course-bar-pct">90%</span>
                                     </div>
                                     <div class="course-bar-row">
                                         <span class="course-bar-label">Computer Sci.</span>
                                         <div class="course-bar-track">
                                             <div class="course-bar-fill" style="--pct:60%; --clr:#3b82f6;"></div>
                                         </div>
-                                        <span class="course-bar-pct">6</span>
+                                        <span class="course-bar-pct">60%</span>
                                     </div>
                                     <div class="course-bar-row">
                                         <span class="course-bar-label">Data Structures</span>
                                         <div class="course-bar-track">
                                             <div class="course-bar-fill" style="--pct:80%; --clr:#22c55e;"></div>
                                         </div>
-                                        <span class="course-bar-pct">8</span>
+                                        <span class="course-bar-pct">80%</span>
                                     </div>
                                     <div class="course-bar-row">
                                         <span class="course-bar-label">English</span>
                                         <div class="course-bar-track">
                                             <div class="course-bar-fill" style="--pct:50%; --clr:#a855f7;"></div>
                                         </div>
-                                        <span class="course-bar-pct">5</span>
+                                        <span class="course-bar-pct">50%</span>
                                     </div>
                                 </div>
                                 <p class="chart-coming-soon" style="text-align: center; margin-top: 12px;">Real course data will appear here once backend is connected</p>
@@ -553,8 +553,8 @@
         {id:'down',label:'Look slightly down',icon:'<svg class="step-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><polyline points="19 12 12 19 5 12"></polyline></svg>',arrow:'↓'}
     ];
     const captures=[];
-    let capIdx=0, stream=null, detecting=false, faceOK=false, stepErrors=[null,null,null,null,null];
-    let goodSince=0;
+    let capIdx=0, stream=null, detecting=false, faceOK=false, stepErrors=[null,null,null,null,null], stepResults=[null,null,null,null,null];
+    let goodSince=0, hasSubmitted=false, isProcessing=false;
     const HOLD_MS=400;
     const video=document.getElementById('camVideo'),canvas=document.getElementById('camCanvas'),
           overlay=document.getElementById('camOverlay'),faceGuide=document.getElementById('faceGuide'),
@@ -644,7 +644,7 @@
                 } else {
                     /* ── Centering check ── */
                     const cx=(fx1+fx2)/2, cy=(fy1+fy2)/2;
-                    if(cx<vw*0.15||cx>vw*0.85||cy<vh*0.1||cy>vh*0.9){
+                    if(cx<vw*0.35||cx>vw*0.65||cy<vh*0.25||cy>vh*0.75){
                         setGuide(false,'Center your face in the oval');
                     } else {
                         /* ── Head pose from landmarks ── */
@@ -686,7 +686,7 @@
                                 else posMsg='Tilt your head UP more ↑';
                                 break;
                             case 'down':
-                                posOK=pitch>0.32 && Math.abs(yaw)<0.12;
+                                posOK=pitch>0.28 && Math.abs(yaw)<0.12;
                                 if(Math.abs(yaw)>=0.12) posMsg='Face the camera, then look DOWN ↓';
                                 else posMsg='Tilt your head DOWN more ↓';
                                 break;
@@ -741,8 +741,25 @@
         positions.forEach((_,i)=>{
             const slot=document.createElement('div');
             slot.className='thumb-slot'+(captures[i]?' filled':'');
-            if(captures[i]){const img=document.createElement('img');img.src=captures[i].dataUrl;slot.appendChild(img);}
-            else slot.innerHTML=`<span>${i+1}</span>`;
+            if(captures[i]){
+                const img=document.createElement('img');
+                img.src=captures[i].dataUrl;
+                slot.appendChild(img);
+            } else {
+                slot.innerHTML=`<span>${i+1}</span>`;
+            }
+            
+            // Re-render the error/status badge if it exists
+            if (stepResults[i]) {
+                const r = stepResults[i];
+                const b = document.createElement('div');
+                b.className = 'result-badge ' + (r.status === 'ok' ? 'ok' : r.status === 'no_face' ? 'fail' : 'warn');
+                b.textContent = r.reason;
+                b.style.cssText = 'position:absolute;bottom:2px;left:2px;right:2px;text-align:center';
+                slot.style.position = 'relative';
+                slot.appendChild(b);
+            }
+            
             thumbGrid.appendChild(slot);
         });
     }
@@ -757,7 +774,12 @@
         if(capturesCount>=positions.length){
             btnCapture.disabled=true;
             btnSubmit.style.display='';btnSubmit.disabled=false;
-            statusEl.textContent='All 5 positions captured! Click "Enroll Now" to process.';
+            if (hasSubmitted) {
+                btnSubmit.textContent = 'Retry';
+            } else {
+                btnSubmit.textContent = 'Enroll Now';
+            }
+            statusEl.textContent=`All 5 positions captured! Click "${btnSubmit.textContent}" to process.`;
             statusEl.style.color='';arrowHint.style.display='none';
             faceStatusText.textContent='All done!';faceStatusText.className='face-status-text good';
             faceOval.className='face-guide-oval good';
@@ -769,10 +791,30 @@
         }
     }
 
+    function getFirstActionableStep(){
+        for(let i=0;i<positions.length;i++){
+            if(stepErrors[i]) return i;
+        }
+        for(let i=0;i<positions.length;i++){
+            if(!captures[i]) return i;
+        }
+        return 0;
+    }
+
     async function startCamera(){
+        if(isProcessing) return;
+        if(capIdx>=positions.length){
+            const target=getFirstActionableStep();
+            capIdx=target;
+            captures[target]=null;
+            stepErrors[target]=null;
+            stepResults[target]=null;
+        }
         detecting=false; // clear lock
         if(stream)return;
         btnStart.disabled=true;btnStart.textContent='Opening...';
+        statusEl.textContent='Opening camera...';
+        statusEl.style.color='';
         try{
             stream=await navigator.mediaDevices.getUserMedia({video:{width:{ideal:640},height:{ideal:480},facingMode:'user'},audio:false});
             video.srcObject=stream;video.classList.add('active');
@@ -801,37 +843,46 @@
         canvas.width=w;canvas.height=h;ctx.save();ctx.scale(-1,1);ctx.drawImage(video,-w,0,w,h);ctx.restore();
         const dataUrl=canvas.toDataURL('image/jpeg',0.92);
         captures[capIdx]={label:positions[capIdx].label,dataUrl};
-        
-        // Find next step to capture (wrapping around to find any empty or failed step)
-        let nextIdx = -1;
-        for (let offset = 1; offset <= positions.length; offset++) {
-            let checkIdx = (capIdx + offset) % positions.length;
-            if (!captures[checkIdx] || stepErrors[checkIdx]) {
-                nextIdx = checkIdx;
-                break;
-            }
-        }
+        stepErrors[capIdx]=null; // Clear error for this step
         
         detecting = false;
         goodSince = 0;
         
-        if (nextIdx === -1) {
-            capIdx = positions.length;
+        if (hasSubmitted) {
+            capIdx = positions.length; // 5
             updateUI();
             stopCamera();
         } else {
-            capIdx = nextIdx;
-            updateUI();
-            statusEl.textContent = `Captured! Next: ${positions[capIdx].label}`;
-            setTimeout(detectLoop, 200);
+            // Find next step to capture (wrapping around to find any empty or failed step)
+            let nextIdx = -1;
+            for (let offset = 1; offset <= positions.length; offset++) {
+                let checkIdx = (capIdx + offset) % positions.length;
+                if (!captures[checkIdx] || stepErrors[checkIdx]) {
+                    nextIdx = checkIdx;
+                    break;
+                }
+            }
+            
+            if (nextIdx === -1) {
+                capIdx = positions.length;
+                updateUI();
+                stopCamera();
+            } else {
+                capIdx = nextIdx;
+                updateUI();
+                statusEl.textContent = `Captured! Next: ${positions[capIdx].label}`;
+                setTimeout(detectLoop, 200);
+            }
         }
     }
     async function jumpToStep(i){
+        if(isProcessing) return;
         if(i >= positions.length) return;
         
         capIdx=i;
         captures[i]=null;
         stepErrors[i]=null;
+        stepResults[i]=null;
         
         detecting=false; // Reset detecting lock
         
@@ -849,6 +900,8 @@
     async function submitAll(){
         const capturesCount = captures.filter(c => c !== null && c !== undefined).length;
         if(capturesCount!==5)return;
+        isProcessing=true; // Lock interactions!
+        hasSubmitted=true; // Set flag
         btnSubmit.disabled=true;btnSubmit.textContent='Processing...';
         statusEl.style.color='';
         statusEl.innerHTML=`<div style="display:flex;align-items:center;gap:8px;"><span class="pipeline-spinner"></span> <span>Processing your captures...</span></div>`;
@@ -872,26 +925,18 @@
             /* Show per-image badges on thumbnails and update step errors */
             if(d.per_image){
                 d.per_image.forEach((r,i)=>{
+                    stepResults[i] = {
+                        status: r.status,
+                        reason: r.status === 'ok' ? '✓ OK' : (r.reason || 'Failed')
+                    };
                     if(r.status!=='ok') {
                         stepErrors[i] = r.reason || 'Quality checks failed';
                     } else {
                         stepErrors[i] = null;
                     }
-                    
-                    const slots=thumbGrid.querySelectorAll('.thumb-slot');
-                    if(slots[i]){
-                        // Clear old badge
-                        const oldB = slots[i].querySelector('.result-badge');
-                        if(oldB) oldB.remove();
-                        
-                        const b=document.createElement('div');
-                        b.className='result-badge '+(r.status==='ok'?'ok':r.status==='no_face'?'fail':'warn');
-                        b.textContent=r.status==='ok'?'✓ OK':(r.reason||'Failed');
-                        b.style.cssText='position:absolute;bottom:2px;left:2px;right:2px;text-align:center';
-                        slots[i].style.position='relative';slots[i].appendChild(b);
-                    }
                 });
                 renderSteps();
+                renderThumbs();
             }
             
             if(data.success){
@@ -923,12 +968,17 @@
                 <div style="font-size:12.5px;">${e.message || 'Could not reach the server. Please check your connection and try again.'}</div>
             </div>`;
             btnSubmit.textContent='Retry';btnSubmit.disabled=false;
+        }finally{
+            isProcessing=false; // Unlock interactions!
         }
     }
 
     function resetEnroll(){
         captures.length=0;capIdx=0;
         stepErrors=[null,null,null,null,null];
+        stepResults=[null,null,null,null,null];
+        hasSubmitted=false;
+        isProcessing=false;
         btnSubmit.style.display='none';btnStart.style.display='';btnStart.disabled=false;btnStart.textContent='Open Camera';
         statusEl.textContent='Ready — click "Open Camera" to begin.';statusEl.style.color='';
         updateUI();
@@ -953,7 +1003,7 @@
         resetEnroll();
     }
 
-    const isEnrolledServerSide = {{ 'true' if enrolled else 'false' }};
+    const isEnrolledServerSide = "{{ enrolled }}" === "True" || "{{ enrolled }}" === "true";
     if (isEnrolledServerSide) {
         showPostEnroll();
     } else {

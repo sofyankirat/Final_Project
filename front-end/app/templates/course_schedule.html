@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Course Schedule Setup - Student System</title>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/favicon.png') }}?v=3">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        /* Swapped desktop styles */
+        .schedule-container {
+            display: flex;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        .schedule-left-form {
+            flex: 1.2;
+            background: #ff6b35;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .schedule-left-form::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(38, 18, 4, 0.22) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(38, 18, 4, 0.22) 1px, transparent 1px);
+            background-size: 42px 42px;
+            opacity: 0.24;
+            animation: gridPulse 3s ease-in-out infinite;
+            pointer-events: none;
+        }
+
+        .schedule-right-strips {
+            flex: 0.8;
+            background: #ffd7bf;
+            position: relative;
+            overflow: hidden;
+            min-height: 100vh;
+        }
+
+        .schedule-illustration {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-evenly;
+            overflow: hidden;
+            flex-wrap: nowrap;
+        }
+
+        .schedule-illustration::before,
+        .schedule-illustration::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            right: 0;
+            height: 150px;
+            z-index: 2;
+            pointer-events: none;
+        }
+
+        .schedule-illustration::before {
+            top: 0;
+            background: linear-gradient(to bottom, #ffd7bf 0%, transparent 100%);
+        }
+
+        .schedule-illustration::after {
+            bottom: 0;
+            background: linear-gradient(to top, #ffd7bf 0%, transparent 100%);
+        }
+
+        .schedule-right-strips .symbols-container {
+            --strip-offset: 0px;
+            animation: scrollSeamless 20s linear infinite;
+        }
+
+        .schedule-right-strips .symbols-container:nth-child(1) {
+            --strip-offset: -24px;
+            animation-delay: -8s;
+        }
+
+        .schedule-right-strips .symbols-container:nth-child(2) {
+            --strip-offset: 14px;
+            animation-delay: -4s;
+        }
+
+        .schedule-right-strips .symbols-container:nth-child(3) {
+            --strip-offset: -24px;
+            animation-delay: -8s;
+        }
+
+        .schedule-right-strips .symbols-container:nth-child(4) {
+            --strip-offset: 14px;
+            animation-delay: -12s;
+        }
+
+        .schedule-right-strips .symbols-container:nth-child(5) {
+            --strip-offset: -24px;
+            animation-delay: -16s;
+        }
+
+        .course-row-card {
+            background: rgba(255, 231, 216, 0.45);
+            border: 1px solid rgba(42, 20, 6, 0.25);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 24px;
+            position: relative;
+            box-shadow: 0 8px 16px rgba(42, 20, 6, 0.05);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .course-row-card:hover {
+            box-shadow: 0 12px 24px rgba(42, 20, 6, 0.08);
+            transform: translateY(-2px);
+        }
+
+        .remove-course-btn {
+            position: absolute;
+            right: 12px;
+            top: 12px;
+            background: rgba(138, 43, 226, 0.1);
+            border: 1px solid rgba(138, 43, 226, 0.2);
+            font-size: 16px;
+            color: #8a2be2;
+            cursor: pointer;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+
+        .remove-course-btn:hover {
+            background: #8a2be2;
+            color: #fff;
+            transform: scale(1.1);
+        }
+
+        .days-checklist {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .day-checkbox-label {
+            cursor: pointer;
+        }
+
+        .day-checkbox-label input {
+            display: none;
+        }
+
+        .day-checkbox-label span {
+            display: inline-block;
+            padding: 8px 14px;
+            background: #ffd7bf;
+            color: #2a1406;
+            border: 1px solid rgba(42, 20, 6, 0.35);
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            user-select: none;
+        }
+
+        .day-checkbox-label span:hover {
+            background: #ffe7d8;
+        }
+
+        .day-checkbox-label input:checked + span {
+            background: #2a1406;
+            color: #ffd7bf;
+            border-color: #2a1406;
+        }
+
+        #addCourseBtn {
+            width: 48px;
+            height: 48px;
+            font-size: 24px;
+            font-weight: bold;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid rgba(42, 20, 6, 0.45);
+            background: #ffd7bf;
+            color: #2a1406;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 10px rgba(42, 20, 6, 0.1);
+        }
+
+        #addCourseBtn:hover {
+            background: #ffe7d8;
+            transform: scale(1.1) rotate(90deg);
+            box-shadow: 0 6px 14px rgba(42, 20, 6, 0.15);
+        }
+
+        .scrollable-form-container {
+            max-height: calc(100vh - 180px);
+            overflow-y: auto;
+            padding-right: 12px;
+            margin-bottom: 20px;
+        }
+
+        /* Custom scrollbar for form container */
+        .scrollable-form-container::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .scrollable-form-container::-webkit-scrollbar-track {
+            background: rgba(42, 20, 6, 0.05);
+            border-radius: 3px;
+        }
+
+        .scrollable-form-container::-webkit-scrollbar-thumb {
+            background: rgba(42, 20, 6, 0.25);
+            border-radius: 3px;
+        }
+
+        .scrollable-form-container::-webkit-scrollbar-thumb:hover {
+            background: rgba(42, 20, 6, 0.4);
+        }
+
+        /* Mobile overrides */
+        @media (max-width: 1024px) {
+            .schedule-container {
+                flex-direction: column;
+                height: auto;
+            }
+
+            .schedule-right-strips {
+                min-height: 80px !important;
+                max-height: 100px !important;
+                height: 100px !important;
+                order: 1;
+            }
+
+            .schedule-left-form {
+                min-height: 500px;
+                padding: 40px 20px;
+                order: 2;
+            }
+
+            .scrollable-form-container {
+                max-height: none;
+                overflow-y: visible;
+                padding-right: 0;
+            }
+
+            .schedule-illustration {
+                flex-direction: row;
+                align-items: center;
+                justify-content: flex-start;
+                height: 100px;
+                min-height: 80px;
+                max-height: 100px;
+                flex-wrap: nowrap;
+                padding: 0;
+                margin: 0;
+                position: relative;
+            }
+
+            .schedule-illustration .symbols-container {
+                flex-direction: row;
+                width: auto;
+                margin-top: 0 !important;
+                padding-bottom: 0 !important;
+                gap: 0;
+                padding: 0;
+                --strip-offset: 0vw;
+                --mobile-loop-distance: 50%;
+                animation: scrollSeamlessH 28s linear infinite;
+                align-items: center;
+                will-change: transform;
+            }
+
+            .schedule-illustration .symbols-container:not(:first-child) {
+                display: none !important;
+            }
+
+            .schedule-illustration .symbols-container:nth-child(1) {
+                animation: scrollSeamlessH 28s linear infinite;
+                animation-delay: 0s;
+                width: max-content;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="schedule-container">
+        <!-- LEFT: Form window -->
+        <div class="schedule-left-form">
+            <div class="additional-form-window" style="max-width: 580px;">
+                <h2>SET UP YOUR COURSE SCHEDULE</h2>
+                <p style="color: #3a1e0a; margin-bottom: 26px;">Please select your courses for this semester, set their starting and ending times, and choose the days of class.</p>
+
+                <form method="post" id="courseScheduleForm" novalidate>
+                    <div class="scrollable-form-container" id="courseRowsContainer">
+                        <!-- Rows will be dynamically added/managed here -->
+                    </div>
+
+                    <div style="text-align: center; margin-bottom: 28px;">
+                        <button type="button" id="addCourseBtn" title="Add another course" aria-label="Add course">+</button>
+                        <div style="font-size: 11px; color: #2a1406; font-weight: 700; margin-top: 8px; text-transform: uppercase; letter-spacing: 0.05em;">Add Course</div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary" style="width: 100%;">
+                        <span>Continue</span>
+                        <span class="btn-icon">→</span>
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- RIGHT: Strips illustration -->
+        <div class="schedule-right-strips">
+            <div class="schedule-illustration">
+                <!-- STRIP 1 -->
+                <div class="symbols-container">
+                    <div class="symbol"><img src="{{ url_for('static', filename='images/image_1.jpg') }}" alt="1"></div>
+                    <div class="symbol"><img src="{{ url_for('static', filename='images/image_2.jpg') }}" alt="laptop"></div>
+                    <div class="symbol"><img src="{{ url_for('static', filename='images/image_3.jpg') }}" alt="3"></div>
+                    <div class="symbol"><img src="{{ url_for('static', filename='images/image_4.jpg') }}" alt="4"></div>
+                    <div class="symbol"><img src="{{ url_for('static', filename='images/image_5.jpg') }}" alt="teacher"></div>
+                    <div class="symbol"><img src="{{ url_for('static', filename='images/image_20.jpg') }}" alt="1"></div>
+                    <div class="symbol"><img src="{{ url_for('static', filename='images/image_6.jpg') }}" alt="laptop"></div>
+                    <div class="symbol"><img src="{{ url_for('static', filename='images/image_12.jpg') }}" alt="3"></div>
+                    <div class="symbol"><img src="{{ url_for('static', filename='images/image_2.jpg') }}" alt="4"></div>
+                    <div class="symbol"><img src="{{ url_for('static', filename='images/image_17.jpg') }}" alt="teacher"></div>
+                    <div class="symbol"><img src="{{ url_for('static', filename='images/image_11.jpg') }}" alt="1"></div>
+                    <div class="symbol"><img src="{{ url_for('static', filename='images/image_18.jpg') }}" alt="laptop"></div>
+                    <div class="symbol"><img src="{{ url_for('static', filename='images/image_12.jpg') }}" alt="3"></div>
+                    <div class="symbol"><img src="{{ url_for('static', filename='images/image_16.jpg') }}" alt="4"></div>
+                    <div class="symbol"><img src="{{ url_for('static', filename='images/image_11.jpg') }}" alt="teacher"></div>
+                </div>
+
+                <!-- STRIP 2 -->
+                <div class="symbols-container">
+                    <div class="symbol"><img src="{{ url_for('static', filename='images/image_11.jpg') }}" alt="laptop"></div>
+                    <div class="symbol"><img src="{{ url_for('static', filename='images/image_13.jpg') }}" alt="3"></div>
+                    <div class="symbol"><img src="{{ url_for('static', filename='images/image_1.jpg') }}" alt="1"></div>
+                    <div class="symbol"><img src="{{ url_for('static', filename='images/image_9.jpg') }}" alt="teacher"></div>
+                    <div class="symbol"><img src="{{ url_for('static', filename='images/image_12.jpg') }}" alt="4"></div>
+                    <div class="symbol"><img src="{{ url_for('static', filename='images/image_6.jpg') }}" alt="laptop"></div>
+                    <div class="symbol"><img src="{{ url_for('static', filename='images/image_3.jpg') }}" alt="3"></div>
+                    <div class="symbol"><img src="{{ url_for('static', filename='images/image_18.jpg') }}" alt="1"></div>
+                    <div class="symbol"><img src="{{ url_for('static', filename='images/image_11.jpg') }}" alt="teacher"></div>
+                    <div class="symbol"><img src="{{ url_for('static', filename='images/image_12.jpg') }}" alt="4"></div>
+                    <div class="symbol"><img src="{{ url_for('static', filename='images/image_14.jpg') }}" alt="laptop"></div>
+                    <div class="symbol"><img src="{{ url_for('static', filename='images/image_20.jpg') }}" alt="3"></div>
+                    <div class="symbol"><img src="{{ url_for('static', filename='images/image_13.jpg') }}" alt="1"></div>
+                    <div class="symbol"><img src="{{ url_for('static', filename='images/image_16.jpg') }}" alt="teacher"></div>
+                    <div class="symbol"><img src="{{ url_for('static', filename='images/image_1.jpg') }}" alt="4"></div>
+                </div>
+
+                <!-- STRIP 3 -->
+                <div class="symbols-container">
+                    <div class="symbol"><img src="{{ url_for('static', filename='images/image_18.jpg') }}" alt="3"></div>
+                    <div class="symbol"><img src="{{ url_for('static', filename='images/image_11.jpg') }}" alt="4"></div>
+                    <div class="symbol"><img src="{{ url_for('static', filename='images/image_9.jpg') }}" alt="1"></div>
+                    <div class="symbol"><img src="{{ url_for('static', filename='images/image_5.jpg') }}" alt="laptop"></div>
+                    <div class="symbol"><img src="{{ url_for('static', filename='images/image_12.jpg') }}" alt="teacher"></div>
+                    <div class="symbol"><img src="{{ url_for('static', filename='images/image_3.jpg') }}" alt="3"></div>
+                    <div class="symbol"><img src="{{ url_for('static', filename='images/image_6.jpg') }}" alt="4"></div>
+                    <div class="symbol"><img src="{{ url_for('static', filename='images/image_1.jpg') }}" alt="1"></div>
+                    <div class="symbol"><img src="{{ url_for('static', filename='images/image_12.jpg') }}" alt="laptop"></div>
+                    <div class="symbol"><img src="{{ url_for('static', filename='images/image_4.jpg') }}" alt="teacher"></div>
+                    <div class="symbol"><img src="{{ url_for('static', filename='images/image_11.jpg') }}" alt="clock"></div>
+                    <div class="symbol"><img src="{{ url_for('static', filename='images/image_20.jpg') }}" alt="extra"></div>
+                    <div class="symbol"><img src="{{ url_for('static', filename='images/image_12.jpg') }}" alt="extra"></div>
+                    <div class="symbol"><img src="{{ url_for('static', filename='images/image_7.jpg') }}" alt="extra"></div>
+                    <div class="symbol"><img src="{{ url_for('static', filename='images/image_8.jpg') }}" alt="extra"></div>
+                </div>
+
+                <!-- STRIP 4 -->
+                <div class="symbols-container">
+                    <div class="symbol"><img src="{{ url_for('static', filename='images/image_12.jpg') }}" alt="4"></div>
+                    <div class="symbol"><img src="{{ url_for('static', filename='images/image_17.jpg') }}" alt="1"></div>
+                    <div class="symbol"><img src="{{ url_for('static', filename='images/image_12.jpg') }}" alt="laptop"></div>
+                    <div class="symbol"><img src="{{ url_for('static', filename='images/image_3.jpg') }}" alt="3"></div>
+                    <div class="symbol"><img src="{{ url_for('static', filename='images/image_12.jpg') }}" alt="teacher"></div>
+                    <div class="symbol"><img src="{{ url_for('static', filename='images/image_14.jpg') }}" alt="4"></div>
+                    <div class="symbol"><img src="{{ url_for('static', filename='images/image_18.jpg') }}" alt="1"></div>
+                    <div class="symbol"><img src="{{ url_for('static', filename='images/image_13.jpg') }}" alt="laptop"></div>
+                    <div class="symbol"><img src="{{ url_for('static', filename='images/image_3.jpg') }}" alt="3"></div>
+                    <div class="symbol"><img src="{{ url_for('static', filename='images/image_2.jpg') }}" alt="teacher"></div>
+                    <div class="symbol"><img src="{{ url_for('static', filename='images/image_11.jpg') }}" alt="clock"></div>
+                    <div class="symbol"><img src="{{ url_for('static', filename='images/image_1.jpg') }}" alt="extra"></div>
+                    <div class="symbol"><img src="{{ url_for('static', filename='images/image_6.jpg') }}" alt="extra"></div>
+                    <div class="symbol"><img src="{{ url_for('static', filename='images/image_19.jpg') }}" alt="extra"></div>
+                    <div class="symbol"><img src="{{ url_for('static', filename='images/image_11.jpg') }}" alt="extra"></div>
+                </div>
+
+                <!-- STRIP 5 -->
+                <div class="symbols-container">
+                    <div class="symbol"><img src="{{ url_for('static', filename='images/image_11.jpg') }}" alt="clock"></div>
+                    <div class="symbol"><img src="{{ url_for('static', filename='images/image_12.jpg') }}" alt="5"></div>
+                    <div class="symbol"><img src="{{ url_for('static', filename='images/image_6.jpg') }}" alt="6"></div>
+                    <div class="symbol"><img src="{{ url_for('static', filename='images/image_2.jpg') }}" alt="7"></div>
+                    <div class="symbol"><img src="{{ url_for('static', filename='images/image_1.jpg') }}" alt="8"></div>
+                    <div class="symbol"><img src="{{ url_for('static', filename='images/image_7.jpg') }}" alt="clock"></div>
+                    <div class="symbol"><img src="{{ url_for('static', filename='images/image_13.jpg') }}" alt="5"></div>
+                    <div class="symbol"><img src="{{ url_for('static', filename='images/image_9.jpg') }}" alt="6"></div>
+                    <div class="symbol"><img src="{{ url_for('static', filename='images/image_20.jpg') }}" alt="7"></div>
+                    <div class="symbol"><img src="{{ url_for('static', filename='images/image_8.jpg') }}" alt="8"></div>
+                    <div class="symbol"><img src="{{ url_for('static', filename='images/image_11.jpg') }}" alt="clock"></div>
+                    <div class="symbol"><img src="{{ url_for('static', filename='images/image_12.jpg') }}" alt="5"></div>
+                    <div class="symbol"><img src="{{ url_for('static', filename='images/image_6.jpg') }}" alt="6"></div>
+                    <div class="symbol"><img src="{{ url_for('static', filename='images/image_17.jpg') }}" alt="7"></div>
+                    <div class="symbol"><img src="{{ url_for('static', filename='images/image_18.jpg') }}" alt="8"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Template for new course row cards -->
+    <template id="courseRowTemplate">
+        <div class="course-row-card">
+            <button type="button" class="remove-course-btn" title="Remove course" aria-label="Remove course">&times;</button>
+            
+            <div class="form-group" style="margin-bottom: 16px;">
+                <label>Course Name</label>
+                <div class="input-wrapper">
+                    <select name="course_name" required>
+                        <option value="" disabled selected>Select a Course</option>
+                        <option value="Calculus 1">Calculus 1</option>
+                        <option value="Mechanics 1">Mechanics 1</option>
+                        <option value="Properties of Heat and Matter">Properties of Heat and Matter</option>
+                        <option value="Electricity Magnetism and Light">Electricity Magnetism and Light</option>
+                        <option value="General Chemistry 2">General Chemistry 2</option>
+                        <option value="Human Rights and Anti-Corruption">Human Rights and Anti-Corruption</option>
+                        <option value="Algebra and Geometry">Algebra and Geometry</option>
+                        <option value="Calculus 2">Calculus 2</option>
+                        <option value="Mechanics 2">Mechanics 2</option>
+                        <option value="Electrical Circuits">Electrical Circuits</option>
+                        <option value="General Chemistry 1">General Chemistry 1</option>
+                        <option value="Introduction to Computer Science">Introduction to Computer Science</option>
+                        <option value="Abstract Algebra 1">Abstract Algebra 1</option>
+                        <option value="Differential Equations 1">Differential Equations 1</option>
+                        <option value="Advanced Calculus">Advanced Calculus</option>
+                        <option value="Mechanics 3">Mechanics 3</option>
+                        <option value="Introduction to Statistics and Probability">Introduction to Statistics and Probability</option>
+                        <option value="Scientific Terminology in English">Scientific Terminology in English</option>
+                        <option value="Real Analysis">Real Analysis</option>
+                        <option value="Linear Algebra 1">Linear Algebra 1</option>
+                        <option value="Analytical Geometry">Analytical Geometry</option>
+                        <option value="Mechanics 4">Mechanics 4</option>
+                        <option value="Fundamentals of Electromagnetic Theory">Fundamentals of Electromagnetic Theory</option>
+                        <option value="Introduction to Logic">Introduction to Logic</option>
+                        <option value="Cultural Studies">Cultural Studies</option>
+                        <option value="Measure Theory">Measure Theory</option>
+                        <option value="Complex Analysis 1">Complex Analysis 1</option>
+                        <option value="Numerical Analysis 1">Numerical Analysis 1</option>
+                        <option value="Topology 1">Topology 1</option>
+                        <option value="Analytical Mechanics">Analytical Mechanics</option>
+                        <option value="Differential Equations 2">Differential Equations 2</option>
+                        <option value="Number Theory">Number Theory</option>
+                        <option value="Abstract Algebra 2">Abstract Algebra 2</option>
+                        <option value="Integral Equations">Integral Equations</option>
+                        <option value="Electrodynamics">Electrodynamics</option>
+                        <option value="Theory of Elasticity 1">Theory of Elasticity 1</option>
+                        <option value="Special Functions">Special Functions</option>
+                        <option value="Statistical Theory">Statistical Theory</option>
+                        <option value="Linear Algebra 2">Linear Algebra 2</option>
+                        <option value="Statistical Mechanics">Statistical Mechanics</option>
+                        <option value="Theory of Differential Equations">Theory of Differential Equations</option>
+                        <option value="Numerical Analysis 2">Numerical Analysis 2</option>
+                        <option value="Lie Algebra">Lie Algebra</option>
+                        <option value="Differential Geometry">Differential Geometry</option>
+                        <option value="Operations Research">Operations Research</option>
+                        <option value="Quantum Mechanics">Quantum Mechanics</option>
+                        <option value="Network Theory">Network Theory</option>
+                        <option value="Topology 2">Topology 2</option>
+                        <option value="Functional Analysis">Functional Analysis</option>
+                        <option value="General Relativity">General Relativity</option>
+                        <option value="Advanced Mechanics">Advanced Mechanics</option>
+                        <option value="Hydrodynamics">Hydrodynamics</option>
+                        <option value="Partial Differential Equations">Partial Differential Equations</option>
+                        <option value="Graph Theory">Graph Theory</option>
+                        <option value="Modeling and Simulation">Modeling and Simulation</option>
+                        <option value="Computer Organization and Assembly Language">Computer Organization and Assembly Language</option>
+                        <option value="Discrete Mathematics">Discrete Mathematics</option>
+                        <option value="Probability Theory 1">Probability Theory 1</option>
+                        <option value="Computer Algebra Systems">Computer Algebra Systems</option>
+                        <option value="Computer Network Theory">Computer Network Theory</option>
+                        <option value="Probability Theory 2">Probability Theory 2</option>
+                        <option value="Sampling Distributions and Methods">Sampling Distributions and Methods</option>
+                        <option value="Data Structures">Data Structures</option>
+                        <option value="Database Systems">Database Systems</option>
+                        <option value="Order Statistics">Order Statistics</option>
+                        <option value="Systems Analysis and Design">Systems Analysis and Design</option>
+                        <option value="Estimation Theory">Estimation Theory</option>
+                        <option value="Hypothesis Testing">Hypothesis Testing</option>
+                        <option value="Operating Systems">Operating Systems</option>
+                        <option value="Artificial Intelligence">Artificial Intelligence</option>
+                        <option value="Structured Programming">Structured Programming</option>
+                        <option value="Data Analysis Using Statistical Software">Data Analysis Using Statistical Software</option>
+                        <option value="Selected Topics in Computing">Selected Topics in Computing</option>
+                        <option value="Analysis of Variance">Analysis of Variance</option>
+                        <option value="Stochastic Processes">Stochastic Processes</option>
+                        <option value="Software Engineering">Software Engineering</option>
+                        <option value="Neural Networks">Neural Networks</option>
+                        <option value="Non-Parametric Statistics">Non-Parametric Statistics</option>
+                        <option value="Expert Systems">Expert Systems</option>
+                        <option value="Regression Analysis">Regression Analysis</option>
+                        <option value="Reliability Theory">Reliability Theory</option>
+                        <option value="Computer Graphics Systems">Computer Graphics Systems</option>
+                        <option value="Algorithm Design and Analysis">Algorithm Design and Analysis</option>
+                        <option value="Time Series and Forecasting">Time Series and Forecasting</option>
+                        <option value="Image Processing">Image Processing</option>
+                    </select>
+                </div>
+                <span class="input-error error-course"></span>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px;">
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label>Start Time</label>
+                    <div class="input-wrapper">
+                        <input type="time" name="start_time" required>
+                    </div>
+                    <span class="input-error error-start"></span>
+                </div>
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label>End Time</label>
+                    <div class="input-wrapper">
+                        <input type="time" name="end_time" required>
+                    </div>
+                    <span class="input-error error-end"></span>
+                </div>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 0;">
+                <label>Days of class</label>
+                <input type="hidden" name="days" class="days-hidden-input">
+                <div class="days-checklist">
+                    <label class="day-checkbox-label"><input type="checkbox" value="Saturday"><span>Sat</span></label>
+                    <label class="day-checkbox-label"><input type="checkbox" value="Sunday"><span>Sun</span></label>
+                    <label class="day-checkbox-label"><input type="checkbox" value="Monday"><span>Mon</span></label>
+                    <label class="day-checkbox-label"><input type="checkbox" value="Tuesday"><span>Tue</span></label>
+                    <label class="day-checkbox-label"><input type="checkbox" value="Wednesday"><span>Wed</span></label>
+                    <label class="day-checkbox-label"><input type="checkbox" value="Thursday"><span>Thu</span></label>
+                    <label class="day-checkbox-label"><input type="checkbox" value="Friday"><span>Fri</span></label>
+                </div>
+                <span class="input-error error-days"></span>
+            </div>
+        </div>
+    </template>
+
+    <script>
+        (function () {
+            const courseRowsContainer = document.getElementById('courseRowsContainer');
+            const addCourseBtn = document.getElementById('addCourseBtn');
+            const courseScheduleForm = document.getElementById('courseScheduleForm');
+            const courseRowTemplate = document.getElementById('courseRowTemplate');
+
+            function enableSymbolHover() {
+                document.body.classList.add('enable-symbol-hover');
+                window.removeEventListener('mousemove', enableSymbolHover);
+                window.removeEventListener('touchstart', enableSymbolHover);
+            }
+
+            function syncMobileStripLoopDistance() {
+                const isMobile = window.matchMedia('(max-width: 1024px)').matches;
+                const firstStrip = document.querySelector('.schedule-illustration .symbols-container:first-child');
+                if (!firstStrip) return;
+
+                if (!isMobile) {
+                    if (firstStrip.dataset.mobileTickerReady === '1') {
+                        if (firstStrip.dataset.originalHtml) {
+                            firstStrip.innerHTML = firstStrip.dataset.originalHtml;
+                        }
+                        firstStrip.dataset.mobileTickerReady = '0';
+                    }
+                    return;
+                }
+
+                if (firstStrip.dataset.mobileTickerReady !== '1') {
+                    if (!firstStrip.dataset.originalHtml) {
+                        firstStrip.dataset.originalHtml = firstStrip.innerHTML;
+                    }
+                    const originalSymbols = Array.from(firstStrip.querySelectorAll('.symbol'));
+                    if (!originalSymbols.length) return;
+
+                    const baseCount = Math.max(1, Math.floor(originalSymbols.length / 2));
+                    const baseMarkup = originalSymbols
+                        .slice(0, baseCount)
+                        .map(symbol => symbol.outerHTML)
+                        .join('');
+
+                    firstStrip.innerHTML = baseMarkup + baseMarkup + baseMarkup;
+                    firstStrip.dataset.mobileBaseCount = String(baseCount);
+                    firstStrip.dataset.mobileTickerReady = '1';
+                }
+
+                const renderedSymbols = Array.from(firstStrip.querySelectorAll('.symbol'));
+                if (!renderedSymbols.length) return;
+
+                const baseCount = Number(firstStrip.dataset.mobileBaseCount || '0');
+                if (!baseCount) return;
+
+                requestAnimationFrame(function () {
+                    let loopDistance = 0;
+                    for (let index = 0; index < baseCount; index++) {
+                        const currentSymbol = renderedSymbols[index];
+                        if (!currentSymbol) break;
+                        loopDistance += currentSymbol.getBoundingClientRect().width;
+                    }
+                    if (loopDistance > 0) {
+                        firstStrip.style.setProperty('--mobile-loop-distance', `${loopDistance}px`);
+                    }
+                });
+            }
+
+            window.addEventListener('mousemove', enableSymbolHover, { once: true });
+            window.addEventListener('touchstart', enableSymbolHover, { once: true });
+            window.addEventListener('load', syncMobileStripLoopDistance);
+            window.addEventListener('resize', syncMobileStripLoopDistance);
+
+            // Update the hidden days field value based on checked checkboxes in a card
+            function updateDaysHiddenInput(card) {
+                const checkedCheckboxes = Array.from(card.querySelectorAll('.days-checklist input[type="checkbox"]:checked'));
+                const daysVal = checkedCheckboxes.map(cb => cb.value).join(',');
+                card.querySelector('.days-hidden-input').value = daysVal;
+            }
+
+            // Bind change events to validation and days collection
+            function bindRowEvents(card) {
+                const courseSelect = card.querySelector('select[name="course_name"]');
+                const startTimeInput = card.querySelector('input[name="start_time"]');
+                const endTimeInput = card.querySelector('input[name="end_time"]');
+                const daysCheckboxes = card.querySelectorAll('.days-checklist input[type="checkbox"]');
+
+                courseSelect.addEventListener('change', () => validateField(courseSelect, card.querySelector('.error-course'), 'Please select a course.'));
+                startTimeInput.addEventListener('input', () => {
+                    validateField(startTimeInput, card.querySelector('.error-start'), 'Start time is required.');
+                    validateTimeRange(card);
+                });
+                endTimeInput.addEventListener('input', () => {
+                    validateField(endTimeInput, card.querySelector('.error-end'), 'End time is required.');
+                    validateTimeRange(card);
+                });
+
+                daysCheckboxes.forEach(cb => {
+                    cb.addEventListener('change', () => {
+                        updateDaysHiddenInput(card);
+                        validateDays(card);
+                    });
+                });
+
+                const removeBtn = card.querySelector('.remove-course-btn');
+                removeBtn.addEventListener('click', () => {
+                    card.remove();
+                    updateRemoveButtonsVisibility();
+                });
+            }
+
+            function validateField(input, errorSpan, emptyMsg) {
+                if (!input.value) {
+                    errorSpan.textContent = emptyMsg;
+                    input.closest('.input-wrapper').classList.add('invalid-wrapper');
+                    return false;
+                }
+                errorSpan.textContent = '';
+                input.closest('.input-wrapper').classList.remove('invalid-wrapper');
+                return true;
+            }
+
+            function validateTimeRange(card) {
+                const startTimeInput = card.querySelector('input[name="start_time"]');
+                const endTimeInput = card.querySelector('input[name="end_time"]');
+                const startError = card.querySelector('.error-start');
+                const endError = card.querySelector('.error-end');
+
+                if (startTimeInput.value && endTimeInput.value) {
+                    if (startTimeInput.value >= endTimeInput.value) {
+                        endError.textContent = 'End time must be after start time.';
+                        endTimeInput.closest('.input-wrapper').classList.add('invalid-wrapper');
+                        return false;
+                    } else {
+                        endError.textContent = '';
+                        endTimeInput.closest('.input-wrapper').classList.remove('invalid-wrapper');
+                    }
+                }
+                return true;
+            }
+
+            function validateDays(card) {
+                const hiddenInput = card.querySelector('.days-hidden-input');
+                const daysError = card.querySelector('.error-days');
+                if (!hiddenInput.value) {
+                    daysError.textContent = 'Please select at least one day.';
+                    return false;
+                }
+                daysError.textContent = '';
+                return true;
+            }
+
+            function validateRow(card) {
+                const courseSelect = card.querySelector('select[name="course_name"]');
+                const startTimeInput = card.querySelector('input[name="start_time"]');
+                const endTimeInput = card.querySelector('input[name="end_time"]');
+
+                const isCourseValid = validateField(courseSelect, card.querySelector('.error-course'), 'Please select a course.');
+                const isStartValid = validateField(startTimeInput, card.querySelector('.error-start'), 'Start time is required.');
+                const isEndValid = validateField(endTimeInput, card.querySelector('.error-end'), 'End time is required.');
+                const isRangeValid = validateTimeRange(card);
+                const isDaysValid = validateDays(card);
+
+                return isCourseValid && isStartValid && isEndValid && isRangeValid && isDaysValid;
+            }
+
+            function updateRemoveButtonsVisibility() {
+                const cards = courseRowsContainer.querySelectorAll('.course-row-card');
+                cards.forEach(card => {
+                    const removeBtn = card.querySelector('.remove-course-btn');
+                    if (cards.length > 1) {
+                        removeBtn.style.display = 'flex';
+                    } else {
+                        removeBtn.style.display = 'none';
+                    }
+                });
+            }
+
+            function createNewRow() {
+                const clone = courseRowTemplate.content.cloneNode(true);
+                const card = clone.querySelector('.course-row-card');
+                courseRowsContainer.appendChild(clone);
+                bindRowEvents(card);
+                updateRemoveButtonsVisibility();
+                return card;
+            }
+
+            // Add first course row on load
+            createNewRow();
+
+            addCourseBtn.addEventListener('click', () => {
+                const newCard = createNewRow();
+                newCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            });
+
+            courseScheduleForm.addEventListener('submit', (e) => {
+                const cards = courseRowsContainer.querySelectorAll('.course-row-card');
+                let allValid = true;
+
+                cards.forEach(card => {
+                    const isValid = validateRow(card);
+                    if (!isValid) {
+                        allValid = false;
+                    }
+                });
+
+                if (!allValid) {
+                    e.preventDefault();
+                    // Scroll to the first invalid field/card
+                    const firstInvalid = courseRowsContainer.querySelector('.invalid-wrapper, .error-days:not(:empty)');
+                    if (firstInvalid) {
+                        firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }
+                }
+            });
+
+        })();
+    </script>
+</body>
+
+</html>

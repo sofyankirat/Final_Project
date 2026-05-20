@@ -1,3 +1,52 @@
+function clearLoginMessages() {
+    const errorMessage = document.getElementById('errorMessage');
+    const successMessage = document.getElementById('successMessage');
+    const resendMessage = document.getElementById('resendMessage');
+
+    errorMessage.style.display = 'none';
+    successMessage.style.display = 'none';
+    resendMessage.style.display = 'none';
+}
+
+async function requestVerificationResend(emailValue) {
+    const errorMessage = document.getElementById('errorMessage');
+    const successMessage = document.getElementById('successMessage');
+    const resendMessage = document.getElementById('resendMessage');
+
+    clearLoginMessages();
+    resendMessage.textContent = 'Sending verification email...';
+    resendMessage.style.display = 'block';
+
+    try {
+        const response = await fetch('/resend-verification', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                email: emailValue
+            })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            successMessage.textContent = data.message;
+            successMessage.style.display = 'block';
+            resendMessage.style.display = 'none';
+        } else {
+            errorMessage.textContent = data.message;
+            errorMessage.style.display = 'block';
+            resendMessage.style.display = 'none';
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        errorMessage.textContent = 'An error occurred. Please try again.';
+        errorMessage.style.display = 'block';
+        resendMessage.style.display = 'none';
+    }
+}
+
 document.getElementById('loginForm').addEventListener('submit', async (e) => {
     e.preventDefault();
 
@@ -5,12 +54,12 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
     const password = document.getElementById('password');
     const errorMessage = document.getElementById('errorMessage');
     const successMessage = document.getElementById('successMessage');
+    const resendMessage = document.getElementById('resendMessage');
     const emailError = document.getElementById('emailError');
     const passwordError = document.getElementById('passwordError');
 
     // Clear previous messages and error states
-    errorMessage.style.display = 'none';
-    successMessage.style.display = 'none';
+    clearLoginMessages();
     email.classList.remove('error-input');
     password.classList.remove('error-input');
     emailError.textContent = '';
@@ -70,12 +119,68 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
                 password.classList.add('error-input');
                 errorMessage.textContent = 'Invalid email or password';
             }
+
+            if (data.message.toLowerCase().includes('verify')) {
+                resendMessage.textContent = 'Didn\'t receive the email? Click "Resend verification email".';
+                resendMessage.style.display = 'block';
+            }
         }
     } catch (error) {
         console.error('Error:', error);
         errorMessage.textContent = 'An error occurred. Please try again.';
         errorMessage.style.display = 'block';
     }
+});
+
+document.getElementById('resendVerification').addEventListener('click', async () => {
+    const email = document.getElementById('email');
+    const errorMessage = document.getElementById('errorMessage');
+    const successMessage = document.getElementById('successMessage');
+    const resendMessage = document.getElementById('resendMessage');
+    const emailError = document.getElementById('emailError');
+
+    clearLoginMessages();
+    emailError.textContent = '';
+    email.classList.remove('error-input');
+
+    if (!email.value.trim()) {
+        emailError.textContent = 'Email is required';
+        email.classList.add('error-input');
+        return;
+    }
+
+    if (!isValidEmail(email.value)) {
+        emailError.textContent = 'Please enter a valid email address';
+        email.classList.add('error-input');
+        return;
+    }
+
+    await requestVerificationResend(email.value);
+});
+
+window.addEventListener('DOMContentLoaded', () => {
+    const emailInput = document.getElementById('email');
+    const pendingEmail = localStorage.getItem('pendingVerificationEmail');
+    const pendingAt = Number(localStorage.getItem('pendingVerificationAt') || '0');
+    const maxAgeMs = 10 * 60 * 1000;
+
+    if (!pendingEmail) {
+        return;
+    }
+
+    const isFresh = pendingAt && (Date.now() - pendingAt) <= maxAgeMs;
+    localStorage.removeItem('pendingVerificationEmail');
+    localStorage.removeItem('pendingVerificationAt');
+
+    if (!isFresh) {
+        return;
+    }
+
+    if (emailInput && !emailInput.value) {
+        emailInput.value = pendingEmail;
+    }
+
+    requestVerificationResend(pendingEmail);
 });
 
 // Clear error state when user starts typing

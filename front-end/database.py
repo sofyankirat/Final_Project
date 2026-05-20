@@ -175,6 +175,22 @@ def init_db():
         )
         """
         cursor.execute(create_help_requests_table)
+
+        # Create user course schedule table
+        create_course_schedule_table = """
+        CREATE TABLE IF NOT EXISTS user_course_schedule (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            user_id INT NOT NULL,
+            course_name VARCHAR(255) NOT NULL,
+            start_time TIME NOT NULL,
+            end_time TIME NOT NULL,
+            days VARCHAR(255) NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+            INDEX idx_course_schedule_user (user_id)
+        )
+        """
+        cursor.execute(create_course_schedule_table)
         
         connection.commit()
         cursor.close()

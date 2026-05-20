@@ -116,17 +116,50 @@ def detect_and_crop(frame):
 
 def load_database():
     """Load existing database or create empty one"""
+    import numpy as np
     os.makedirs(os.path.dirname(config.DATABASE_PATH), exist_ok=True)
     if os.path.exists(config.DATABASE_PATH):
-        with open(config.DATABASE_PATH, "rb") as f:
-            return pickle.load(f)
+        try:
+            with open(config.DATABASE_PATH, "rb") as f:
+                db = pickle.load(f)
+            return {name: np.array(emb, dtype=np.float32) for name, emb in db.items()}
+        except Exception as e:
+            print(f"⚠️ Error reading database: {e}. Trying backup...")
+            backup = config.DATABASE_PATH + ".bak"
+            if os.path.exists(backup):
+                try:
+                    with open(backup, "rb") as f:
+                        bdb = pickle.load(f)
+                    return {name: np.array(emb, dtype=np.float32) for name, emb in bdb.items()}
+                except Exception:
+                    pass
+            return {}
     return {}
 
 
 def save_database(database):
     """Save updated database to disk"""
+    import os
+    # Convert numpy arrays to lists before saving
+    serializable = {}
+    for name, emb in database.items():
+        if hasattr(emb, 'tolist'):
+            serializable[name] = emb.tolist()
+        else:
+            serializable[name] = list(emb)
+            
+    # Save a backup of the current database before overwriting
+    if os.path.exists(config.DATABASE_PATH):
+        backup = config.DATABASE_PATH + ".bak"
+        try:
+            if os.path.exists(backup):
+                os.remove(backup)
+            os.rename(config.DATABASE_PATH, backup)
+        except OSError:
+            pass
+
     with open(config.DATABASE_PATH, "wb") as f:
-        pickle.dump(database, f)
+        pickle.dump(serializable, f)
 
 
 # ============================================================

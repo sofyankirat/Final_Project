@@ -49,8 +49,17 @@ def _load_db():
     try:
         with open(p, "rb") as f:
             db = pickle.load(f)
-        return {name: np.array(emb).flatten() for name, emb in db.items()}
-    except Exception:
+        return {name: np.array(emb, dtype=np.float32).flatten() for name, emb in db.items()}
+    except Exception as e:
+        print(f"⚠️ Error loading database in recognize: {e}")
+        backup = p + ".bak"
+        if os.path.exists(backup):
+            try:
+                with open(backup, "rb") as f:
+                    bdb = pickle.load(f)
+                return {name: np.array(emb, dtype=np.float32).flatten() for name, emb in bdb.items()}
+            except Exception:
+                pass
         return {}
 
 def _find_match(query_emb, database):

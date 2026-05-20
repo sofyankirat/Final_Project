@@ -446,35 +446,35 @@
                                 <div class="course-bar-track">
                                     <div class="course-bar-fill" style="--pct:76%; --clr:#ff6b35;"></div>
                                 </div>
-                                <span class="course-bar-pct">8</span>
+                                <span class="course-bar-pct">76%</span>
                             </div>
                             <div class="course-bar-row">
                                 <span class="course-bar-label">Physics</span>
                                 <div class="course-bar-track">
                                     <div class="course-bar-fill" style="--pct:90%; --clr:#e8c547;"></div>
                                 </div>
-                                <span class="course-bar-pct">9</span>
+                                <span class="course-bar-pct">90%</span>
                             </div>
                             <div class="course-bar-row">
                                 <span class="course-bar-label">Computer Sci.</span>
                                 <div class="course-bar-track">
                                     <div class="course-bar-fill" style="--pct:60%; --clr:#3b82f6;"></div>
                                 </div>
-                                <span class="course-bar-pct">6</span>
+                                <span class="course-bar-pct">60%</span>
                             </div>
                             <div class="course-bar-row">
                                 <span class="course-bar-label">Data Structures</span>
                                 <div class="course-bar-track">
                                     <div class="course-bar-fill" style="--pct:80%; --clr:#22c55e;"></div>
                                 </div>
-                                <span class="course-bar-pct">8</span>
+                                <span class="course-bar-pct">80%</span>
                             </div>
                             <div class="course-bar-row">
                                 <span class="course-bar-label">English</span>
                                 <div class="course-bar-track">
                                     <div class="course-bar-fill" style="--pct:50%; --clr:#a855f7;"></div>
                                 </div>
-                                <span class="course-bar-pct">5</span>
+                                <span class="course-bar-pct">50%</span>
                             </div>
                         </div>
                         <p class="chart-coming-soon">Real course data will appear here once backend is connected</p>
@@ -485,8 +485,12 @@
         </main>
     </div>
 
-    <!-- Scripts -->
     <script>
+        // Check local storage for initial state immediately to avoid chart FOUC
+        if (localStorage.getItem('theme') === 'dark') {
+            document.body.classList.add('dark-mode');
+        }
+
         let weeklyChartInst = null;
         function initCharts(){
             if(weeklyChartInst) weeklyChartInst.destroy();
@@ -563,10 +567,9 @@
         const darkModeBtn = document.getElementById('btnDarkMode');
         const darkModeText = darkModeBtn.querySelector('.sidebar-text');
 
-        // Check local storage for initial state
+        // Check local storage for initial state to style toggle button
         const isDark = localStorage.getItem('theme') === 'dark';
         if (isDark) {
-            document.body.classList.add('dark-mode');
             darkModeText.textContent = 'Dark mode (on)';
             darkModeBtn.classList.add('active');
         }

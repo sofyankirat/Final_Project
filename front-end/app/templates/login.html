@@ -601,12 +601,20 @@
 
                                         <div id="errorMessage" class="error-message" style="display: none;"></div>
                                         <div id="successMessage" class="success-message" style="display: none;"></div>
+                                        <div id="resendMessage" class="success-message" style="display: none;"></div>
 
                                         <button type="submit" class="btn btn-primary btn-login">
                                                 <span>Login</span>
                                                 <span class="btn-icon">→</span>
                                         </button>
                                 </form>
+
+                                <div class="login-footer">
+                                        <button type="button" id="resendVerification"
+                                                class="btn btn-secondary btn-login">
+                                                <span>Resend verification email</span>
+                                        </button>
+                                </div>
 
                                 <div class="login-footer">
                                         <p>Don't have an account? <a href="{{ url_for('register') }}">Register here</a>

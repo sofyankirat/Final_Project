@@ -104,11 +104,43 @@ def has_additional_info(user_id: int):
     finally:
         connection.close()
 
+
+def has_course_schedule(user_id: int):
+    """Check if the user already submitted their course schedule."""
+    connection = get_db_connection()
+    if connection is None:
+        return False
+
+    try:
+        cursor = connection.cursor()
+        cursor.execute("SELECT 1 FROM user_course_schedule WHERE user_id = %s LIMIT 1", (user_id,))
+        result = cursor.fetchone()
+        cursor.close()
+        return result is not None
+    except Exception as error:
+        print(f"Course schedule check error: {str(error)}")
+        return False
+    finally:
+        connection.close()
+
 def send_verification_email(email, verification_token):
     """Send verification email to the user"""
     try:
         subject = "Email Verification - Hamas"
         verification_link = f"{request.host_url}verify-email/{verification_token}"
+        
+        # Normalize sender and recipient emails for header and envelope
+        sender_email = normalize_email_address(EMAIL_ADDRESS)
+        recipient_email = normalize_email_address(email)
+        
+        print(f"\n[EMAIL VERIFICATION LINK FOR {recipient_email}]: {verification_link}\n")
+        
+        try:
+            log_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'email_logs.txt')
+            with open(log_path, 'a', encoding='utf-8') as f:
+                f.write(f"[{datetime.now().isoformat()}] Verification link for {recipient_email}: {verification_link}\n")
+        except Exception as log_err:
+            print(f"Error writing email log: {log_err}")
         
         body = f"""
         <!DOCTYPE html>
@@ -130,17 +162,18 @@ def send_verification_email(email, verification_token):
         
         message = MIMEMultipart("alternative")
         message["Subject"] = subject
-        message["From"] = f"Hamas <{EMAIL_ADDRESS}>"
-        message["To"] = email
+        message["From"] = f"Hamas <{sender_email}>"
+        message["To"] = recipient_email
         
         part = MIMEText(body, "html")
         message.attach(part)
         
         # Send email
         with smtplib.SMTP(SMTP_SERVER, SMTP_PORT) as server:
+            server.set_debuglevel(1)
             server.starttls()
             server.login(EMAIL_ADDRESS, EMAIL_PASSWORD)
-            server.sendmail(EMAIL_ADDRESS, email, message.as_string())
+            server.sendmail(sender_email, recipient_email, message.as_string())
         
         return True
     except Exception as e:
@@ -153,7 +186,7 @@ def normalize_email_address(value: Any) -> str:
     cleaned = to_clean_string(value).lower()
     if cleaned.startswith('mailto:'):
         cleaned = cleaned[len('mailto:'):]
-    if cleaned.startswith('www.'):
+    if '@' not in cleaned and cleaned.startswith('www.'):
         cleaned = cleaned[len('www.'):]
     return cleaned
 
@@ -190,9 +223,10 @@ def send_help_request_email(user_name: str, user_email: str, subject: str, messa
         </html>
         """
 
+        sender_email = normalize_email_address(EMAIL_ADDRESS)
         msg = MIMEMultipart("alternative")
         msg["Subject"] = f"Help Request: {to_clean_string(subject)}"
-        msg["From"] = f"Hamas <{EMAIL_ADDRESS}>"
+        msg["From"] = f"Hamas <{sender_email}>"
         msg["To"] = support_email
 
         normalized_sender = normalize_email_address(user_email)
@@ -202,9 +236,10 @@ def send_help_request_email(user_name: str, user_email: str, subject: str, messa
         msg.attach(MIMEText(body, "html"))
 
         with smtplib.SMTP(SMTP_SERVER, SMTP_PORT) as server:
+            server.set_debuglevel(1)
             server.starttls()
             server.login(EMAIL_ADDRESS, EMAIL_PASSWORD)
-            server.sendmail(EMAIL_ADDRESS, [support_email], msg.as_string())
+            server.sendmail(sender_email, [support_email], msg.as_string())
 
         return True
     except Exception as error:
@@ -212,11 +247,18 @@ def send_help_request_email(user_name: str, user_email: str, subject: str, messa
         return False
 
 def login_required(f):
-    """Decorator to check if user is logged in"""
+    """Decorator to check if user is logged in and completed setup flow"""
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if 'user_id' not in session:
             return redirect(url_for('login'))
+        user_id = to_int_value(session.get('user_id'))
+        # Avoid redirect loops on setup pages, static resources, or logout
+        if request.endpoint not in ('additional_info', 'course_schedule', 'logout', 'static'):
+            if not has_additional_info(user_id):
+                return redirect(url_for('additional_info'))
+            if not has_course_schedule(user_id):
+                return redirect(url_for('course_schedule'))
         return f(*args, **kwargs)
     return decorated_function
 
@@ -232,7 +274,7 @@ def login():
     """Login page"""
     if request.method == 'POST':
         data = request.get_json() if request.is_json else request.form
-        email = to_clean_string(data.get('email', ''))
+        email = normalize_email_address(data.get('email', ''))
         password = to_clean_string(data.get('password', ''))
         
         if not email or not password:
@@ -264,7 +306,12 @@ def login():
                 
                 session['user_id'] = user_id
                 session['email'] = email
-                redirect_target = url_for('dashboard') if has_additional_info(user_id) else url_for('additional_info')
+                if not has_additional_info(user_id):
+                    redirect_target = url_for('additional_info')
+                elif not has_course_schedule(user_id):
+                    redirect_target = url_for('course_schedule')
+                else:
+                    redirect_target = url_for('dashboard')
                 return jsonify({'success': True, 'message': 'Login successful', 'redirect': redirect_target})
             else:
                 return jsonify({'success': False, 'message': 'Invalid email or password'}), 401
@@ -275,12 +322,64 @@ def login():
     
     return render_template('login.html')
 
+
+@app.route('/resend-verification', methods=['POST'])
+def resend_verification():
+    """Resend verification email for unverified accounts."""
+    data = request.get_json() if request.is_json else request.form
+    email = normalize_email_address(data.get('email', ''))
+
+    if not email:
+        return jsonify({'success': False, 'message': 'Email is required'}), 400
+
+    try:
+        connection = get_db_connection()
+        if connection is None:
+            return jsonify({'success': False, 'message': 'Database connection error'}), 500
+
+        cursor = connection.cursor()
+        cursor.execute("SELECT id, is_verified FROM users WHERE email = %s", (email,))
+        user = cursor.fetchone()
+
+        if not user:
+            cursor.close()
+            connection.close()
+            return jsonify({'success': False, 'message': 'No account found for this email'}), 404
+
+        user_id = to_int_value(user[0])
+        is_verified = bool(user[1])
+
+        if is_verified:
+            cursor.close()
+            connection.close()
+            return jsonify({'success': False, 'message': 'Email already verified. Please login.'}), 400
+
+        verification_token = secrets.token_urlsafe(32)
+        cursor.execute(
+            "UPDATE users SET verification_token = %s, token_expiry = %s WHERE id = %s",
+            (verification_token, datetime.now() + timedelta(hours=24), user_id)
+        )
+        connection.commit()
+        cursor.close()
+        connection.close()
+
+        if send_verification_email(email, verification_token):
+            return jsonify({'success': True, 'message': 'Verification email sent. Please check your inbox.'})
+
+        return jsonify({
+            'success': False,
+            'message': 'Email could not be sent. Check SMTP settings or email_logs.txt.'
+        }), 500
+    except Exception as error:
+        print(f"Resend verification error: {str(error)}")
+        return jsonify({'success': False, 'message': 'An error occurred. Please try again.'}), 500
+
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     """Registration page"""
     if request.method == 'POST':
         data = request.get_json() if request.is_json else request.form
-        email = to_clean_string(data.get('email', ''))
+        email = normalize_email_address(data.get('email', ''))
         password = to_clean_string(data.get('password', ''))
         confirm_password = to_clean_string(data.get('confirm_password', ''))
         
@@ -647,6 +746,8 @@ def additional_info():
         return redirect(url_for('login'))
 
     if request.method == 'GET' and has_additional_info(user_id):
+        if not has_course_schedule(user_id):
+            return redirect(url_for('course_schedule'))
         return redirect(url_for('dashboard'))
 
     if request.method == 'POST':
@@ -717,8 +818,66 @@ def additional_info():
         finally:
             connection.close()
 
-        return redirect(url_for('dashboard'))
+        return redirect(url_for('course_schedule'))
     return render_template('additional_info.html')
+
+
+@app.route('/course-schedule', methods=['GET', 'POST'])
+@login_required
+def course_schedule():
+    """Course schedule setup page shown after additional info"""
+    user_id = to_int_value(session.get('user_id'))
+
+    if user_id <= 0:
+        return redirect(url_for('login'))
+
+    if not has_additional_info(user_id):
+        return redirect(url_for('additional_info'))
+
+    if request.method == 'GET' and has_course_schedule(user_id):
+        return redirect(url_for('dashboard'))
+
+    if request.method == 'POST':
+        course_names = request.form.getlist('course_name')
+        start_times = request.form.getlist('start_time')
+        end_times = request.form.getlist('end_time')
+        days_list = request.form.getlist('days')
+
+        connection = get_db_connection()
+        if connection is None:
+            return render_template('course_schedule.html')
+
+        try:
+            cursor = connection.cursor()
+            # Clear any existing schedule first to prevent duplicates or clean edit/re-submit
+            cursor.execute("DELETE FROM user_course_schedule WHERE user_id = %s", (user_id,))
+
+            for i in range(len(course_names)):
+                name = to_clean_string(course_names[i])
+                start = to_clean_string(start_times[i])
+                end = to_clean_string(end_times[i])
+                days = to_clean_string(days_list[i])
+
+                if name and start and end and days:
+                    cursor.execute(
+                        """
+                        INSERT INTO user_course_schedule (
+                            user_id, course_name, start_time, end_time, days
+                        ) VALUES (%s, %s, %s, %s, %s)
+                        """,
+                        (user_id, name, start, end, days)
+                    )
+            connection.commit()
+            cursor.close()
+        except Exception as error:
+            print(f"Course schedule save error: {str(error)}")
+            return render_template('course_schedule.html')
+        finally:
+            connection.close()
+
+        return redirect(url_for('dashboard'))
+
+    return render_template('course_schedule.html')
 
 
 @app.route('/recommendations', methods=['GET', 'POST'])
@@ -1211,7 +1370,15 @@ def is_user_enrolled(student_name: str) -> bool:
                 db = pickle.load(f)
                 return student_name in db
         except Exception as e:
-            print(f"Error reading database.pkl: {e}")
+            print(f"Error reading database.pkl: {e}. Trying backup...")
+            backup = db_path + ".bak"
+            if os.path.exists(backup):
+                try:
+                    with open(backup, 'rb') as f:
+                        bdb = pickle.load(f)
+                        return student_name in bdb
+                except Exception:
+                    pass
     return False
 
 

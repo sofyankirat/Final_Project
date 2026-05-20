@@ -112,6 +112,12 @@ document.getElementById('registerForm').addEventListener('submit', async (e) => 
                 registerButtonLabel.textContent = 'Success';
             }
 
+            const pendingEmail = email.value.trim();
+            if (pendingEmail) {
+                localStorage.setItem('pendingVerificationEmail', pendingEmail);
+                localStorage.setItem('pendingVerificationAt', String(Date.now()));
+            }
+
             // Clear form
             document.getElementById('registerForm').reset();
 
