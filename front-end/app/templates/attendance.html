@@ -94,6 +94,10 @@
         .result-badge.ok{background:rgba(39,174,96,.12);color:#27ae60}
         .result-badge.warn{background:rgba(241,196,15,.15);color:#d4a017}
         .result-badge.fail{background:rgba(231,76,60,.12);color:#e74c3c}
+        /* Spinner */
+        .pipeline-spinner{display:inline-block;width:14px;height:14px;border:2px solid rgba(255,107,53,.3);border-top-color:#ff6b35;border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:6px}
+        @keyframes spin{to{transform:rotate(360deg)}}
+        body.dark-mode .pipeline-spinner{border-color:rgba(79,212,255,.3);border-top-color:#4fd4ff}
     </style>
 </head>
 
@@ -477,17 +481,35 @@
     async function submitAll(){
         if(captures.length!==5)return;
         btnSubmit.disabled=true;btnSubmit.textContent='Processing...';btnRetake.disabled=true;
-        statusEl.textContent='Uploading images & running AI face detection...';statusEl.style.color='';
+        statusEl.style.color='';
+        statusEl.innerHTML=`<div style="display:flex;flex-direction:column;gap:6px;">
+            <div><strong>Running Full AI Pipeline...</strong></div>
+            <div style="font-size:12px;opacity:.8;">Step 1: YOLOv8s-Face detection</div>
+            <div style="font-size:12px;opacity:.8;">Step 2: insightface buffalo_sc alignment (112×112)</div>
+            <div style="font-size:12px;opacity:.8;">Step 3: Data augmentation → 100 images</div>
+            <div style="font-size:12px;opacity:.8;">Step 4: ArcFace w600k_mbf → 512-dim embeddings</div>
+            <div style="font-size:12px;opacity:.8;">Step 5: Average embeddings → Save database.pkl</div>
+            <div style="margin-top:6px;"><span class="pipeline-spinner"></span> Processing your captures...</div>
+        </div>`;
         try{
             const res=await fetch('/api/attendance/enroll',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({captures})});
             const data=await res.json();
             if(data.success){
                 statusEl.style.color='#27ae60';
-                statusEl.textContent='✅ '+data.message;
+                const d=data.details||{};
+                statusEl.innerHTML=`<div style="display:flex;flex-direction:column;gap:5px;">
+                    <div><strong>✅ ${data.message}</strong></div>
+                    <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:6px;">
+                        <span class="result-badge ok">Aligned: ${d.aligned_faces||'?'}</span>
+                        <span class="result-badge ok">Augmented: ${d.augmented_total||'?'}</span>
+                        <span class="result-badge ok">Embeddings: ${d.embeddings_extracted||'?'}</span>
+                        <span class="result-badge ok">DB Size: ${d.database_size||'?'}</span>
+                    </div>
+                </div>`;
                 btnSubmit.textContent='Enroll Again';btnSubmit.disabled=false;
                 btnSubmit.onclick=()=>{captures.length=0;capIdx=0;btnSubmit.style.display='none';btnStart.style.display='';btnStart.disabled=false;btnStart.textContent='Open Camera';statusEl.textContent='Ready — click "Open Camera" to begin.';statusEl.style.color='';updateUI()};
-                if(data.details&&data.details.per_image){
-                    data.details.per_image.forEach((r,i)=>{
+                if(d.per_image){
+                    d.per_image.forEach((r,i)=>{
                         const slots=thumbGrid.querySelectorAll('.thumb-slot');
                         if(slots[i]){
                             const b=document.createElement('div');
