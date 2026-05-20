@@ -202,14 +202,22 @@ def process_images(name, paths):
         })
         aligned_faces.append(face)
 
-    # ── Fail if ANY photo is missing a face ──
-    bad_images = [r for r in per_image if r["status"] in ("no_face", "error")]
+    # ── Fail if ANY photo has issues (no face, quality problem, read error) ──
+    bad_images = [r for r in per_image if r["status"] != "ok"]
     if bad_images:
-        bad_names = ", ".join(r["file"] for r in bad_images)
+        pos_labels = ["Front", "Left", "Right", "Up", "Down"]
+        summary_parts = []
+        for i, r in enumerate(per_image):
+            label = pos_labels[i] if i < len(pos_labels) else f"Photo {i+1}"
+            if r["status"] == "ok":
+                summary_parts.append(f"{label}: Passed")
+            else:
+                summary_parts.append(f"{label}: Failed — {r['reason']}")
+        summary = " | ".join(summary_parts)
         return {
             "success": False,
-            "message": f"{len(bad_images)} of {len(paths)} photos had no face detected ({bad_names}). Please retake all photos with your face clearly visible.",
-            "details": {"per_image": per_image, "augmented_total": 0},
+            "message": f"Enrollment failed — {len(bad_images)} of {len(paths)} photos did not pass quality checks. Please ensure your face is clearly visible and centered in every position.",
+            "details": {"per_image": per_image, "augmented_total": 0, "summary": summary},
         }
 
     if len(aligned_faces) < 3:
