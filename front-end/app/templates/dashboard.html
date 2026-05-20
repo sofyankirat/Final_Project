@@ -14,6 +14,8 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
     <!-- Load tsParticles for a friendly animated background -->
     <script src="https://cdn.jsdelivr.net/npm/tsparticles@2.12.0/tsparticles.bundle.min.js"></script>
+    <!-- Load Chart.js for interactive analytics -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.js"></script>
 </head>
 
 <body class="dash-body">
@@ -328,11 +330,11 @@
                 <!-- Charts Grid -->
                 <section class="dash-grid" aria-label="Charts and analytics">
 
-                    <!-- Attendance Trend (wide) -->
+                    <!-- Weekly Attendance (wide) -->
                     <div class="dash-card dash-card-wide" id="card-attendance-chart">
                         <div class="card-header">
                             <div class="card-title-wrap">
-                                <h2 class="card-title">Attendance Trend</h2>
+                                <h2 class="card-title">Weekly Attendance</h2>
                                 <span class="card-subtitle">Weekly overview</span>
                             </div>
                             <button class="card-expand-btn" type="button" aria-label="Expand">
@@ -343,31 +345,8 @@
                                 </svg>
                             </button>
                         </div>
-                        <div class="card-chart-area">
-                            <div class="placeholder-bars">
-                                <div class="bar-wrap">
-                                    <div class="bar-col" style="--h:60%"></div><span>Mon</span>
-                                </div>
-                                <div class="bar-wrap">
-                                    <div class="bar-col" style="--h:80%"></div><span>Tue</span>
-                                </div>
-                                <div class="bar-wrap">
-                                    <div class="bar-col accent" style="--h:95%"></div><span>Wed</span>
-                                </div>
-                                <div class="bar-wrap">
-                                    <div class="bar-col" style="--h:70%"></div><span>Thu</span>
-                                </div>
-                                <div class="bar-wrap">
-                                    <div class="bar-col" style="--h:85%"></div><span>Fri</span>
-                                </div>
-                                <div class="bar-wrap">
-                                    <div class="bar-col" style="--h:40%"></div><span>Sat</span>
-                                </div>
-                                <div class="bar-wrap">
-                                    <div class="bar-col" style="--h:30%"></div><span>Sun</span>
-                                </div>
-                            </div>
-                            <p class="chart-coming-soon">Real data will appear here once backend is connected</p>
+                        <div class="card-chart-area" style="padding: 10px 0;">
+                            <canvas id="weeklyChart" style="width:100%;max-height:220px"></canvas>
                         </div>
                     </div>
 
@@ -508,6 +487,49 @@
 
     <!-- Scripts -->
     <script>
+        let weeklyChartInst = null;
+        function initCharts(){
+            if(weeklyChartInst) weeklyChartInst.destroy();
+            const isDark=document.body.classList.contains('dark-mode');
+            const txtColor=isDark?'#c0d0f0':'#4a3a2a';
+            const gridColor=isDark?'rgba(255,255,255,.07)':'rgba(0,0,0,.06)';
+            const accent1=isDark?'rgba(79,212,255,.8)':'rgba(255,107,53,.8)';
+
+            const days=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+            weeklyChartInst = new Chart(document.getElementById('weeklyChart'),{
+                type:'bar',
+                data:{
+                    labels:days,
+                    datasets:[{
+                        label:'Attendance Rate (%)',
+                        data:[80,75,80,60,80,0,0],
+                        backgroundColor:accent1,
+                        borderRadius:6,
+                        borderSkipped:false,
+                    }]
+                },
+                options:{
+                    responsive:true,
+                    plugins:{
+                        legend:{display:false},
+                        title:{display:false}
+                    },
+                    scales:{
+                        x:{ticks:{color:txtColor},grid:{display:false}},
+                        y:{
+                            ticks:{
+                                color:txtColor,
+                                callback:function(value){return value+'%'}
+                            },
+                            grid:{color:gridColor},
+                            beginAtZero:true,
+                            max:100
+                        }
+                    }
+                }
+            });
+        }
+
         // Live clock display
         function updateClock() {
             const now = new Date();
@@ -519,14 +541,7 @@
         updateClock();
         setInterval(updateClock, 30000);
 
-        // Subtle bar animation on load
-        document.querySelectorAll('.bar-col').forEach((bar, i) => {
-            bar.style.transition = `height 0.6s cubic-bezier(0.34,1.56,0.64,1) ${i * 80}ms`;
-            bar.style.height = '0';
-            requestAnimationFrame(() => {
-                setTimeout(() => { bar.style.height = 'var(--h)'; }, 50);
-            });
-        });
+        initCharts();
 
         // Animate course attendance horizontal bars on load
         document.querySelectorAll('.course-bar-fill').forEach((fill, i) => {
@@ -608,6 +623,7 @@
                     particlesContainer.refresh();
                 }
             }
+            initCharts();
         });
 
         // Popup toggle logic for Messages & Notifications

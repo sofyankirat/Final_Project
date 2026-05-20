@@ -375,7 +375,7 @@
 
                 <div class="attendance-hero">
                     <h1 class="attendance-title">Smart <span class="attendance-accent">Attendance</span> Enrollment</h1>
-                    <p class="attendance-subtitle">Capture five face positions directly in the browser. The AI will detect your face and register you in the attendance system.</p>
+                    <p class="attendance-subtitle">Follow the five guided positions below to register your profile. Our real-time AI will verify your face for seamless automated attendance.</p>
                 </div>
 
                 <div class="attendance-center" id="enrollmentSection">
@@ -434,12 +434,12 @@
                     <div class="post-grid">
                         <!-- Left: Charts -->
                         <div class="post-panel">
-                            <div class="post-panel-title"><svg class="post-title-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>Attendance Overview</div>
+                            <div class="post-panel-title"><svg class="post-title-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>Weekly Attendance</div>
                             <div class="chart-placeholder" id="chartWeekly">
                                 <canvas id="weeklyChart" style="width:100%;max-height:200px"></canvas>
                             </div>
                             <div style="font-size: 13.5px; font-weight: 700; color: var(--att-text-dark, #2c2420); margin: 16px 0 8px; display: flex; align-items: center; gap: 6px;" class="post-panel-title">
-                                <svg class="post-title-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>Attendance by Course
+                                <svg class="post-title-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>Attendance by Course
                             </div>
                             <div class="chart-placeholder" id="chartMonthly" style="display:block; padding: 18px 20px;">
                                 <div class="course-bars-area">
@@ -969,7 +969,7 @@
             options:{
                 responsive:true,
                 plugins:{legend:{display:false},
-                    title:{display:true,text:'Weekly Attendance',color:txtColor,font:{size:14,weight:700}}},
+                    title:{display:false}},
                 scales:{
                     x:{ticks:{color:txtColor},grid:{display:false}},
                     y:{
