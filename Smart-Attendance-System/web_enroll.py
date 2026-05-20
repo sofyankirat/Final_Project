@@ -146,27 +146,21 @@ def augment_face(face_112, target_count=20):
 
 
 # ── Database ─────────────────────────────────────────────────
-
-class _NumpyCompatUnpickler(pickle.Unpickler):
-    """Handle numpy 1.x ↔ 2.x pickle compatibility.
-    numpy 2.x uses numpy._core, numpy 1.x uses numpy.core."""
-    def find_class(self, module, name):
-        if module.startswith("numpy._core"):
-            module = module.replace("numpy._core", "numpy.core")
-        elif module.startswith("numpy.core") and not module.startswith("numpy.core"):
-            module = module.replace("numpy.core", "numpy._core")
-        return super().find_class(module, name)
-
-
 def load_db():
     p = _resolve(config.DATABASE_PATH)
     os.makedirs(os.path.dirname(p), exist_ok=True)
     if os.path.exists(p):
         try:
             with open(p, "rb") as f:
-                return _NumpyCompatUnpickler(f).load()
-        except Exception:
-            # If still fails, start fresh
+                return pickle.load(f)
+        except (ModuleNotFoundError, Exception) as e:
+            # Database was created with incompatible numpy version — reset it
+            backup = p + ".bak"
+            try:
+                os.rename(p, backup)
+            except OSError:
+                os.remove(p)
+            print(f"⚠️  Database corrupted ({e}), reset to empty. Backup: {backup}")
             return {}
     return {}
 

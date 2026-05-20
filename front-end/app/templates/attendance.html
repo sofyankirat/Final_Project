@@ -401,14 +401,16 @@
 
     /* ── Enrollment Logic with real-time face detection ── */
     const positions=[
-        {id:'front',label:'Look straight ahead',icon:'◉',arrow:''},
-        {id:'left',label:'Turn slightly left',icon:'◂',arrow:'←'},
-        {id:'right',label:'Turn slightly right',icon:'▸',arrow:'→'},
-        {id:'up',label:'Look slightly up',icon:'▴',arrow:'↑'},
-        {id:'down',label:'Look slightly down',icon:'▾',arrow:'↓'}
+        {id:'front',label:'Look straight ahead',icon:'⊙',arrow:''},
+        {id:'left',label:'Turn slightly left',icon:'‹',arrow:'←'},
+        {id:'right',label:'Turn slightly right',icon:'›',arrow:'→'},
+        {id:'up',label:'Look slightly up',icon:'∧',arrow:'↑'},
+        {id:'down',label:'Look slightly down',icon:'∨',arrow:'↓'}
     ];
     const captures=[];
     let capIdx=0, stream=null, detecting=false, faceOK=false;
+    let goodSince=0;
+    const HOLD_MS=400;
     const video=document.getElementById('camVideo'),canvas=document.getElementById('camCanvas'),
           overlay=document.getElementById('camOverlay'),faceGuide=document.getElementById('faceGuide'),
           faceOval=document.getElementById('faceOval'),arrowHint=document.getElementById('arrowHint'),
@@ -427,11 +429,29 @@
     })();
 
     function setGuide(good, msg){
-        faceOK=good;
-        faceOval.className='face-guide-oval '+(good?'good':'bad');
-        faceStatusText.className='face-status-text '+(good?'good':'bad');
-        faceStatusText.textContent=msg;
-        btnCapture.disabled=!good;
+        if(!good){
+            faceOK=false; goodSince=0;
+            faceOval.className='face-guide-oval bad';
+            faceStatusText.className='face-status-text bad';
+            faceStatusText.textContent=msg;
+            btnCapture.disabled=true;
+        } else {
+            const now=Date.now();
+            if(goodSince===0) goodSince=now;
+            if(now-goodSince>=HOLD_MS){
+                faceOK=true;
+                faceOval.className='face-guide-oval good';
+                faceStatusText.className='face-status-text good';
+                faceStatusText.textContent=msg;
+                btnCapture.disabled=false;
+            } else {
+                faceOK=false;
+                faceOval.className='face-guide-oval bad';
+                faceStatusText.className='face-status-text bad';
+                faceStatusText.textContent='Hold still...';
+                btnCapture.disabled=true;
+            }
+        }
         const pos=positions[capIdx];
         if(pos&&pos.arrow){arrowHint.textContent=pos.arrow;arrowHint.style.display='';
             arrowHint.className='face-arrow '+pos.id;
@@ -447,20 +467,18 @@
             setTimeout(detectLoop,500);
             return;
         }
+
         /* Wait for video to be ready */
         if(!video.videoWidth||video.readyState<2){
             setTimeout(detectLoop,200);
             return;
         }
+
         if(detecting) return;
         detecting=true;
 
-        /* ★ INSTANT RED: block capture at the START of every cycle.
-           Only re-enable if ALL checks pass this frame. */
-        faceOK=false;
-        btnCapture.disabled=true;
-
         try{
+            /* BlazeFace runs on the RAW (un-mirrored) video element */
             const preds=await blazeModel.estimateFaces(video, false);
 
             if(!preds||preds.length===0){
@@ -472,21 +490,32 @@
                 const fw=fx2-fx1, fh=fy2-fy1;
                 const vw=video.videoWidth, vh=video.videoHeight;
 
+                /* ── Distance check ── */
                 const sizeRatio=fh/vh;
                 if(sizeRatio<0.18){
                     setGuide(false,'Move closer to camera');
                 } else if(sizeRatio>0.75){
                     setGuide(false,'Move back from camera');
                 } else {
+                    /* ── Centering check ── */
                     const cx=(fx1+fx2)/2, cy=(fy1+fy2)/2;
                     if(cx<vw*0.15||cx>vw*0.85||cy<vh*0.1||cy>vh*0.9){
                         setGuide(false,'Center your face in the oval');
                     } else {
+                        /* ── Head pose from landmarks ── */
+                        /* BlazeFace landmarks:
+                           [0]=right eye  [1]=left eye  [2]=nose
+                           [3]=mouth  [4]=right ear  [5]=left ear
+                           NOTE: "right/left" = viewer's perspective (raw image) */
                         const lm=face.landmarks;
                         const rEye=lm[0], lEye=lm[1], nose=lm[2];
                         const eyeCx=(rEye[0]+lEye[0])/2;
                         const eyeCy=(rEye[1]+lEye[1])/2;
+                        /* yaw: positive = nose RIGHT of eye center in raw image
+                                = user looking to THEIR LEFT */
                         const yaw=(nose[0]-eyeCx)/fw;
+                        /* pitch: ratio of vertical nose-to-eye distance vs face height
+                                  normal ≈ 0.30-0.38, lower = looking up, higher = looking down */
                         const pitch=(nose[1]-eyeCy)/fh;
 
                         let posOK=false, posMsg='';
@@ -499,20 +528,22 @@
                                 else posMsg='Adjust your head angle';
                                 break;
                             case 'left':
-                                posOK=yaw>0.06 && Math.abs(pitch-0.33)<0.15;
-                                posMsg='Turn your head more to your LEFT ←';
+                                posOK=yaw>0.06 && pitch>0.18 && pitch<0.48;
+                                posMsg='Turn your head to your LEFT ←';
                                 break;
                             case 'right':
-                                posOK=yaw<-0.06 && Math.abs(pitch-0.33)<0.15;
-                                posMsg='Turn your head more to your RIGHT →';
+                                posOK=yaw<-0.06 && pitch>0.18 && pitch<0.48;
+                                posMsg='Turn your head to your RIGHT →';
                                 break;
                             case 'up':
-                                posOK=pitch<0.24 && Math.abs(yaw)<0.10;
-                                posMsg='Tilt your head UP more ↑';
+                                posOK=pitch<0.24 && Math.abs(yaw)<0.12;
+                                if(Math.abs(yaw)>=0.12) posMsg='Face the camera, then look UP ↑';
+                                else posMsg='Tilt your head UP more ↑';
                                 break;
                             case 'down':
-                                posOK=pitch>0.32 && Math.abs(yaw)<0.10;
-                                posMsg='Tilt your head DOWN more ↓';
+                                posOK=pitch>0.32 && Math.abs(yaw)<0.12;
+                                if(Math.abs(yaw)>=0.12) posMsg='Face the camera, then look DOWN ↓';
+                                else posMsg='Tilt your head DOWN more ↓';
                                 break;
                         }
 
@@ -527,8 +558,7 @@
         }
 
         detecting=false;
-        /* Fast loop = instant reaction when user moves */
-        if(stream && capIdx<positions.length) setTimeout(detectLoop,100);
+        if(stream && capIdx<positions.length) setTimeout(detectLoop,80);
     }
 
     function renderSteps(){
@@ -597,7 +627,7 @@
         canvas.width=w;canvas.height=h;ctx.save();ctx.scale(-1,1);ctx.drawImage(video,-w,0,w,h);ctx.restore();
         const dataUrl=canvas.toDataURL('image/jpeg',0.92);
         captures[capIdx]={label:positions[capIdx].label,dataUrl};
-        capIdx++; detecting=false; updateUI();
+        capIdx++; detecting=false; goodSince=0; updateUI();
         if(capIdx>=positions.length){stopCamera();}
         else{statusEl.textContent=`Captured! Next: ${positions[capIdx].label}`; setTimeout(detectLoop,300);}
     }
@@ -607,7 +637,7 @@
         btnSubmit.style.display='none';btnSubmit.disabled=true;
         if(!stream){btnStart.style.display='';btnStart.disabled=false;btnStart.textContent='Open Camera';}
         statusEl.textContent=`Retake step ${capIdx+1}: ${positions[capIdx].label}`;statusEl.style.color='';
-        detecting=false; updateUI();
+        detecting=false; goodSince=0; updateUI();
         if(stream) setTimeout(detectLoop,300);
     }
     async function submitAll(){
