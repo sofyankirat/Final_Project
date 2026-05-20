@@ -1201,6 +1201,20 @@ def upload_ai_chat_attachment():
         return jsonify({'success': False, 'message': 'Failed to upload attachment'}), 500
 
 
+def is_user_enrolled(student_name: str) -> bool:
+    """Check if the student has successfully enrolled (exists in database.pkl)."""
+    import pickle
+    db_path = os.path.join(_ATTENDANCE_ROOT, 'database', 'database.pkl')
+    if os.path.exists(db_path):
+        try:
+            with open(db_path, 'rb') as f:
+                db = pickle.load(f)
+                return student_name in db
+        except Exception as e:
+            print(f"Error reading database.pkl: {e}")
+    return False
+
+
 @app.route('/attendance')
 @login_required
 def attendance():
@@ -1208,6 +1222,7 @@ def attendance():
     user_id = to_int_value(session.get('user_id'))
     email = session.get('email', '')
     username = email.split('@')[0].capitalize() if email else 'User'
+    student_name = username
     try:
         connection = get_db_connection()
         if connection:
@@ -1216,12 +1231,15 @@ def attendance():
             result = cursor.fetchone()
             if result and result[0]:
                 username = result[0]
+                student_name = str(result[0])
             cursor.close()
             connection.close()
     except Exception as e:
         print(f"Error fetching user name: {e}")
+    
+    enrolled = is_user_enrolled(student_name)
     return render_template('attendance.html', username=username, email=email,
-                           profile_photo=_get_profile_photo(user_id))
+                           profile_photo=_get_profile_photo(user_id), enrolled=enrolled)
 
 
 @app.route('/api/attendance/enroll', methods=['POST'])

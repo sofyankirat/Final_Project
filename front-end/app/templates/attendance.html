@@ -418,6 +418,9 @@
 
                 <!-- ══ Post-enrollment dashboard ══ -->
                 <div class="post-enroll" id="postEnrollView">
+                    <div style="display:flex;justify-content:flex-end;margin-bottom:14px;">
+                        <button class="att-btn ghost" onclick="reEnrollFromPost()">Enroll Again</button>
+                    </div>
                     <div class="post-grid">
                         <!-- Left: Charts -->
                         <div class="post-panel">
@@ -693,10 +696,16 @@
             statusEl.style.color='';arrowHint.style.display='none';
             faceStatusText.textContent='All done!';faceStatusText.className='face-status-text good';
             faceOval.className='face-guide-oval good';
+        } else {
+            faceStatusText.textContent='Detecting face...';
+            faceStatusText.className='face-status-text bad';
+            faceOval.className='face-guide-oval bad';
+            btnCapture.disabled=true;
         }
     }
 
     async function startCamera(){
+        detecting=false; // clear lock
         if(stream)return;
         btnStart.disabled=true;btnStart.textContent='Opening...';
         try{
@@ -718,6 +727,7 @@
         if(!stream)return;stream.getTracks().forEach(t=>t.stop());stream=null;
         video.classList.remove('active');overlay.classList.remove('hidden');
         faceGuide.classList.remove('visible');posBanner.classList.remove('visible');
+        detecting=false; // clear lock when stopping camera
     }
     function captureFrame(){
         if(!stream||capIdx>=positions.length)return;
@@ -733,16 +743,18 @@
     async function jumpToStep(i){
         if(i>capIdx) return;
         
-        let needStart = !stream;
-        if(needStart) {
-            await startCamera();
-        }
-        
         capIdx=i;
         captures.splice(i);
         // Clear errors from the jumped step onwards
         for(let idx=i; idx<positions.length; idx++) {
             stepErrors[idx] = null;
+        }
+        
+        detecting=false; // Reset detecting lock
+        
+        let needStart = !stream;
+        if(needStart) {
+            await startCamera();
         }
         
         btnSubmit.style.display='none';btnSubmit.disabled=true;
@@ -845,7 +857,19 @@
         initCharts();
     }
 
-    renderSteps();renderThumbs();
+    function reEnrollFromPost(){
+        document.getElementById('enrollmentSection').style.display='';
+        document.querySelector('.attendance-hero').style.display='';
+        document.getElementById('postEnrollView').classList.remove('visible');
+        resetEnroll();
+    }
+
+    const isEnrolledServerSide = {{ 'true' if enrolled else 'false' }};
+    if (isEnrolledServerSide) {
+        showPostEnroll();
+    } else {
+        renderSteps();renderThumbs();
+    }
 
     /* ══════════════════════════════════════════════════════
        Post-Enrollment: Charts + Recognition Test
