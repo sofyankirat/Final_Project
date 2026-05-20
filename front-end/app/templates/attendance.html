@@ -149,6 +149,11 @@
         .step-icon{width:15px;height:15px;vertical-align:middle;margin-right:6px;opacity:.7;display:inline-block;stroke-width:2.5}
         .step-item.active .step-icon{opacity:1;color:#ff6b35}
         body.dark-mode .step-item.active .step-icon{color:#4fd4ff}
+        .upload-icon{width:32px;height:32px;color:#ff6b35;margin-bottom:8px;transition:transform .2s;display:inline-block;stroke-width:2}
+        .test-upload-zone:hover .upload-icon{transform:scale(1.08)}
+        body.dark-mode .upload-icon{color:#4fd4ff}
+        .camera-icon{width:32px;height:32px;color:#ff6b35;margin-bottom:8px;display:inline-block;stroke-width:2}
+        body.dark-mode .camera-icon{color:#4fd4ff}
     </style>
 </head>
 
@@ -433,9 +438,48 @@
                             <div class="chart-placeholder" id="chartWeekly">
                                 <canvas id="weeklyChart" style="width:100%;max-height:200px"></canvas>
                             </div>
-                            <div style="height:18px"></div>
-                            <div class="chart-placeholder" id="chartMonthly">
-                                <canvas id="monthlyChart" style="width:100%;max-height:200px"></canvas>
+                            <div style="font-size: 13.5px; font-weight: 700; color: var(--att-text-dark, #2c2420); margin: 16px 0 8px; display: flex; align-items: center; gap: 6px;" class="post-panel-title">
+                                <svg class="post-title-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>Attendance by Course
+                            </div>
+                            <div class="chart-placeholder" id="chartMonthly" style="display:block; padding: 18px 20px;">
+                                <div class="course-bars-area">
+                                    <div class="course-bar-row">
+                                        <span class="course-bar-label">Mathematics</span>
+                                        <div class="course-bar-track">
+                                            <div class="course-bar-fill" style="--pct:76%; --clr:#ff6b35;"></div>
+                                        </div>
+                                        <span class="course-bar-pct">8</span>
+                                    </div>
+                                    <div class="course-bar-row">
+                                        <span class="course-bar-label">Physics</span>
+                                        <div class="course-bar-track">
+                                            <div class="course-bar-fill" style="--pct:90%; --clr:#e8c547;"></div>
+                                        </div>
+                                        <span class="course-bar-pct">9</span>
+                                    </div>
+                                    <div class="course-bar-row">
+                                        <span class="course-bar-label">Computer Sci.</span>
+                                        <div class="course-bar-track">
+                                            <div class="course-bar-fill" style="--pct:60%; --clr:#3b82f6;"></div>
+                                        </div>
+                                        <span class="course-bar-pct">6</span>
+                                    </div>
+                                    <div class="course-bar-row">
+                                        <span class="course-bar-label">Data Structures</span>
+                                        <div class="course-bar-track">
+                                            <div class="course-bar-fill" style="--pct:80%; --clr:#22c55e;"></div>
+                                        </div>
+                                        <span class="course-bar-pct">8</span>
+                                    </div>
+                                    <div class="course-bar-row">
+                                        <span class="course-bar-label">English</span>
+                                        <div class="course-bar-track">
+                                            <div class="course-bar-fill" style="--pct:50%; --clr:#a855f7;"></div>
+                                        </div>
+                                        <span class="course-bar-pct">5</span>
+                                    </div>
+                                </div>
+                                <p class="chart-coming-soon" style="text-align: center; margin-top: 12px;">Real course data will appear here once backend is connected</p>
                             </div>
                         </div>
                         <!-- Right: Recognition Test -->
@@ -447,8 +491,8 @@
                                 <video class="test-cam-video" id="testVideo" autoplay muted playsinline></video>
                                 <canvas id="testCanvas" style="display:none" width="640" height="480"></canvas>
                                 <div id="testCamOverlay" style="color:#6b82b0;text-align:center;font-size:13px">
-                                    <div style="font-size:28px;margin-bottom:6px">📷</div>
-                                    Click "Open Camera" to test live
+                                    <svg class="camera-icon" xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
+                                    <div>Click "Open Camera" to test live</div>
                                 </div>
                             </div>
                             <div style="display:flex;gap:10px;margin-top:10px;flex-wrap:wrap">
@@ -457,8 +501,8 @@
                                 <button class="att-btn ghost" id="btnTestStop" onclick="testStopCamera()" style="display:none">Stop Camera</button>
                             </div>
                             <div style="margin-top:14px;font-size:12.5px;font-weight:700;color:#6a5a4a;text-align:center" class="test-desc">— or upload a photo —</div>
-                            <div class="test-upload-zone" id="testUploadZone" onclick="document.getElementById('testFileInput').click()">
-                                <div style="font-size:28px">🖼️</div>
+                            <div class="test-upload-zone" id="testUploadZone" onclick="if(!testAnalyzing)document.getElementById('testFileInput').click()">
+                                <svg class="upload-icon" xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
                                 <div>Click to upload an image</div>
                                 <img id="testPreview" alt="">
                                 <input type="file" id="testFileInput" accept="image/*" style="display:none" onchange="testHandleUpload(event)">
@@ -874,6 +918,13 @@
         document.getElementById('enrollmentSection').style.display='none';
         document.getElementById('postEnrollView').classList.add('visible');
         initCharts();
+        // Animate course attendance horizontal bars on load
+        document.querySelectorAll('.course-bar-fill').forEach((fill, i) => {
+            fill.style.width = '0';
+            requestAnimationFrame(() => {
+                setTimeout(() => { fill.style.width = 'var(--pct)'; }, 100 + i * 120);
+            });
+        });
     }
 
     function reEnrollFromPost(){
@@ -893,7 +944,6 @@
 
     function initCharts(){
         if(weeklyChartInst) weeklyChartInst.destroy();
-        if(monthlyChartInst) monthlyChartInst.destroy();
 
         const isDark=document.body.classList.contains('dark-mode');
         const txtColor=isDark?'#c0d0f0':'#4a3a2a';
@@ -934,41 +984,37 @@
                 }
             }
         });
-
-        const months=['Jan','Feb','Mar','Apr','May','Jun'];
-        monthlyChartInst = new Chart(document.getElementById('monthlyChart'),{
-            type:'line',
-            data:{
-                labels:months,
-                datasets:[{
-                    label:'Attendance Rate (%)',
-                    data:[92,88,95,90,97,94],
-                    borderColor:accent2,
-                    backgroundColor:accent2bg,
-                    tension:.4,fill:true,pointRadius:5,pointBackgroundColor:accent2,
-                },{
-                    label:'Class Average (%)',
-                    data:[85,83,87,84,89,86],
-                    borderColor:accent1,
-                    backgroundColor:accent1bg,
-                    tension:.4,fill:true,pointRadius:4,pointBackgroundColor:accent1,
-                    borderDash:[5,5],
-                }]
-            },
-            options:{
-                responsive:true,
-                plugins:{legend:{labels:{color:txtColor}},
-                    title:{display:true,text:'Monthly Attendance Trend',color:txtColor,font:{size:14,weight:700}}},
-                scales:{
-                    x:{ticks:{color:txtColor},grid:{display:false}},
-                    y:{ticks:{color:txtColor},grid:{color:gridColor},min:70,max:100}
-                }
-            }
-        });
     }
 
     /* ── Recognition Test ── */
-    let testStream=null, testUploadData=null;
+    let testStream=null, testUploadData=null, testAnalyzing=false;
+
+    function setTestLoading(loading){
+        testAnalyzing = loading;
+        const fileInput = document.getElementById('testFileInput');
+        if(fileInput) fileInput.disabled = loading;
+        
+        const uploadZone = document.getElementById('testUploadZone');
+        if(uploadZone) {
+            if(loading) {
+                uploadZone.style.pointerEvents = 'none';
+                uploadZone.style.opacity = '0.5';
+            } else {
+                uploadZone.style.pointerEvents = '';
+                uploadZone.style.opacity = '';
+            }
+        }
+        
+        const btnCam = document.getElementById('btnTestCam');
+        const btnCap = document.getElementById('btnTestCapture');
+        const btnStop = document.getElementById('btnTestStop');
+        const btnUpload = document.getElementById('btnTestUpload');
+        
+        if(btnCam) btnCam.disabled = loading;
+        if(btnCap) btnCap.disabled = loading || !testStream;
+        if(btnStop) btnStop.disabled = loading;
+        if(btnUpload) btnUpload.disabled = loading;
+    }
 
     async function testOpenCamera(){
         if(testStream) return;
@@ -1006,6 +1052,7 @@
         await sendRecognize(dataUrl);
     }
     function testHandleUpload(e){
+        if(testAnalyzing) return;
         const file=e.target.files[0];
         if(!file) return;
         const reader=new FileReader();
@@ -1025,6 +1072,7 @@
         const rEl=document.getElementById('testResult');
         rEl.className='test-result';rEl.style.display='block';
         rEl.innerHTML='<span class="pipeline-spinner"></span> Analyzing...';
+        setTestLoading(true);
         try{
             const res=await fetch('/api/attendance/test-recognize',{
                 method:'POST',
@@ -1041,7 +1089,6 @@
             } else if(data.success){
                 rEl.className='test-result fail';
                 rEl.innerHTML=`<div style="font-size:15px;font-weight:800;margin-bottom:4px">Not Recognized</div>
-                    <div>${data.total_faces} face(s) detected but none matched the database.</div>
                     <div style="font-size:11.5px;opacity:.8;margin-top:4px">Try a clearer photo or re-enroll.</div>`;
             } else {
                 rEl.className='test-result fail';
@@ -1050,6 +1097,8 @@
         }catch(e){
             rEl.className='test-result fail';
             rEl.innerHTML='<strong>Connection Error</strong> — could not reach the server.';
+        }finally{
+            setTestLoading(false);
         }
     }
     </script>
