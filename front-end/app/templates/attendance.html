@@ -144,6 +144,11 @@
         body.dark-mode .test-result.fail{background:rgba(231,76,60,.15);color:#e74c3c}
         .chart-placeholder{background:rgba(255,255,255,.25);border-radius:14px;padding:20px;min-height:160px;display:flex;align-items:center;justify-content:center;border:2px dashed rgba(255,107,53,.22)}
         body.dark-mode .chart-placeholder{background:rgba(10,14,36,.4);border-color:rgba(79,212,255,.22)}
+        .post-title-icon{width:18px;height:18px;vertical-align:middle;margin-right:8px;color:#ff6b35;stroke-width:2.5;display:inline-block}
+        body.dark-mode .post-title-icon{color:#4fd4ff}
+        .step-icon{width:15px;height:15px;vertical-align:middle;margin-right:6px;opacity:.7;display:inline-block;stroke-width:2.5}
+        .step-item.active .step-icon{opacity:1;color:#ff6b35}
+        body.dark-mode .step-item.active .step-icon{color:#4fd4ff}
     </style>
 </head>
 
@@ -424,7 +429,7 @@
                     <div class="post-grid">
                         <!-- Left: Charts -->
                         <div class="post-panel">
-                            <div class="post-panel-title"><span style="font-size:17px">◈</span> Attendance Overview</div>
+                            <div class="post-panel-title"><svg class="post-title-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>Attendance Overview</div>
                             <div class="chart-placeholder" id="chartWeekly">
                                 <canvas id="weeklyChart" style="width:100%;max-height:200px"></canvas>
                             </div>
@@ -435,7 +440,7 @@
                         </div>
                         <!-- Right: Recognition Test -->
                         <div class="post-panel">
-                            <div class="post-panel-title"><span style="font-size:17px">◎</span> Enrollment Test</div>
+                            <div class="post-panel-title"><svg class="post-title-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>Enrollment Test</div>
                             <p style="font-size:12.5px;color:#6a5a4a;margin:0 0 12px;line-height:1.5" class="test-desc">Verify your enrollment by uploading a photo or using the camera. The system will check if it recognizes you.</p>
                             <!-- Camera test -->
                             <div class="test-cam-area" id="testCamArea">
@@ -497,11 +502,11 @@
 
     /* ── Enrollment Logic with real-time face detection ── */
     const positions=[
-        {id:'front',label:'Look straight ahead',icon:'◉',arrow:''},
-        {id:'left',label:'Turn slightly left',icon:'◀',arrow:'←'},
-        {id:'right',label:'Turn slightly right',icon:'▶',arrow:'→'},
-        {id:'up',label:'Look slightly up',icon:'▲',arrow:'↑'},
-        {id:'down',label:'Look slightly down',icon:'▼',arrow:'↓'}
+        {id:'front',label:'Look straight ahead',icon:'<svg class="step-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="3"></circle></svg>',arrow:''},
+        {id:'left',label:'Turn slightly left',icon:'<svg class="step-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>',arrow:'←'},
+        {id:'right',label:'Turn slightly right',icon:'<svg class="step-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>',arrow:'→'},
+        {id:'up',label:'Look slightly up',icon:'<svg class="step-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline></svg>',arrow:'↑'},
+        {id:'down',label:'Look slightly down',icon:'<svg class="step-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><polyline points="19 12 12 19 5 12"></polyline></svg>',arrow:'↓'}
     ];
     const captures=[];
     let capIdx=0, stream=null, detecting=false, faceOK=false, stepErrors=[null,null,null,null,null];
@@ -904,8 +909,8 @@
             data:{
                 labels:days,
                 datasets:[{
-                    label:'Attendance Hours',
-                    data:[8,7.5,8,6,8,0,0],
+                    label:'Attendance Rate (%)',
+                    data:[80,75,80,60,80,0,0],
                     backgroundColor:accent1,
                     borderRadius:6,
                     borderSkipped:false,
@@ -917,7 +922,15 @@
                     title:{display:true,text:'Weekly Attendance',color:txtColor,font:{size:14,weight:700}}},
                 scales:{
                     x:{ticks:{color:txtColor},grid:{display:false}},
-                    y:{ticks:{color:txtColor},grid:{color:gridColor},beginAtZero:true,max:10}
+                    y:{
+                        ticks:{
+                            color:txtColor,
+                            callback:function(value){return value+'%'}
+                        },
+                        grid:{color:gridColor},
+                        beginAtZero:true,
+                        max:100
+                    }
                 }
             }
         });
@@ -1020,11 +1033,11 @@
             });
             const data=await res.json();
             if(data.success && data.recognized_count>0){
-                const names=data.faces.filter(f=>f.name!=='Unknown').map(f=>`<strong>${f.name}</strong> (${f.confidence}% match)`).join(', ');
                 rEl.className='test-result success';
-                rEl.innerHTML=`<div style="font-size:15px;font-weight:800;margin-bottom:4px">✅ Recognized!</div>
-                    <div>${names}</div>
-                    <div style="font-size:11.5px;opacity:.8;margin-top:4px">${data.total_faces} face(s) detected, ${data.recognized_count} recognized</div>`;
+                rEl.innerHTML=`<div style="font-size:15px;font-weight:800;display:flex;align-items:center;gap:6px;justify-content:center;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color:#27ae60"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                    <span>Recognized Successfully!</span>
+                </div>`;
             } else if(data.success){
                 rEl.className='test-result fail';
                 rEl.innerHTML=`<div style="font-size:15px;font-weight:800;margin-bottom:4px">Not Recognized</div>
