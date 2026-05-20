@@ -13,6 +13,8 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
     <script src="https://cdn.jsdelivr.net/npm/tsparticles@2.12.0/tsparticles.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.10.0/dist/tf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/blazeface@0.0.7/dist/blazeface.js"></script>
     <style>
         .attendance-hero{margin-top:0;padding:18px 0 14px}
         .attendance-title{font-size:clamp(26px,3vw,34px);font-weight:800;color:#2c2420;margin:0 0 6px;letter-spacing:-.4px}
@@ -406,7 +408,7 @@
         {id:'down',label:'Look slightly down',icon:'👇',arrow:'⬇'}
     ];
     const captures=[];
-    let capIdx=0, stream=null, faceDetector=null, detecting=false, faceOK=false;
+    let capIdx=0, stream=null, detecting=false, faceOK=false;
     const video=document.getElementById('camVideo'),canvas=document.getElementById('camCanvas'),
           overlay=document.getElementById('camOverlay'),faceGuide=document.getElementById('faceGuide'),
           faceOval=document.getElementById('faceOval'),arrowHint=document.getElementById('arrowHint'),
@@ -417,8 +419,12 @@
           statusEl=document.getElementById('statusEl'),counterEl=document.getElementById('counterEl'),
           stepList=document.getElementById('stepList'),thumbGrid=document.getElementById('thumbGrid');
 
-    // Try to init FaceDetector API (Chromium browsers)
-    try{ if('FaceDetector' in window) faceDetector=new FaceDetector({fastMode:true,maxDetectedFaces:1}); }catch(e){ faceDetector=null; }
+    /* ── BlazeFace model (loaded from CDN) ── */
+    let blazeModel=null, modelReady=false;
+    (async function(){
+        try{ blazeModel=await blazeface.load(); modelReady=true; console.log('BlazeFace loaded'); }
+        catch(e){ console.warn('BlazeFace failed to load:',e); }
+    })();
 
     function setGuide(good, msg){
         faceOK=good;
@@ -432,78 +438,109 @@
         }else{arrowHint.style.display='none';}
     }
 
-    /* Enable capture without validation (fallback when no FaceDetector) */
-    function enableCaptureNoDetection(){
-        setGuide(true, positions[capIdx].label+' — capture when ready');
-    }
-
     async function detectLoop(){
         if(!stream||capIdx>=positions.length) return;
-        /* If FaceDetector unavailable, just enable capture */
-        if(!faceDetector){ enableCaptureNoDetection(); return; }
+
+        /* Wait for model */
+        if(!modelReady){
+            setGuide(false,'Loading face detection model...');
+            setTimeout(detectLoop,500);
+            return;
+        }
+
+        /* Wait for video to be ready */
+        if(!video.videoWidth||video.readyState<2){
+            setTimeout(detectLoop,200);
+            return;
+        }
+
         if(detecting) return;
         detecting=true;
+
         try{
-            const dw=video.videoWidth||640, dh=video.videoHeight||480;
-            canvas.width=dw; canvas.height=dh;
-            const dctx=canvas.getContext('2d');
-            dctx.save(); dctx.scale(-1,1); dctx.drawImage(video,-dw,0,dw,dh); dctx.restore();
+            /* BlazeFace runs on the RAW (un-mirrored) video element */
+            const preds=await blazeModel.estimateFaces(video, false);
 
-            const faces=await faceDetector.detect(canvas);
-
-            if(faces.length===0){
-                setGuide(false,'No face detected');
+            if(!preds||preds.length===0){
+                setGuide(false,'🔴 No face detected — look at camera');
             } else {
-                const f=faces[0], bb=f.boundingBox;
-                const ratio=bb.height/dh;
+                const face=preds[0];
+                const tl=face.topLeft, br=face.bottomRight;
+                const fx1=tl[0], fy1=tl[1], fx2=br[0], fy2=br[1];
+                const fw=fx2-fx1, fh=fy2-fy1;
+                const vw=video.videoWidth, vh=video.videoHeight;
 
-                if(ratio<0.22){
-                    setGuide(false,'Move closer to camera');
-                } else if(ratio>0.70){
-                    setGuide(false,'Move back from camera');
+                /* ── Distance check ── */
+                const sizeRatio=fh/vh;
+                if(sizeRatio<0.18){
+                    setGuide(false,'🔴 Move closer to camera');
+                } else if(sizeRatio>0.75){
+                    setGuide(false,'🔴 Move back from camera');
                 } else {
-                    const cx=bb.x+bb.width/2, cy=bb.y+bb.height/2;
-                    if(cx<dw*0.2||cx>dw*0.8||cy<dh*0.15||cy>dh*0.85){
-                        setGuide(false,'Center your face');
+                    /* ── Centering check ── */
+                    const cx=(fx1+fx2)/2, cy=(fy1+fy2)/2;
+                    if(cx<vw*0.15||cx>vw*0.85||cy<vh*0.1||cy>vh*0.9){
+                        setGuide(false,'🔴 Center your face in the oval');
                     } else {
-                        /* Distance + centering OK — now check position */
-                        let posOK=true, posMsg='';
-                        const curPos=positions[capIdx];
+                        /* ── Head pose from landmarks ── */
+                        /* BlazeFace landmarks:
+                           [0]=right eye  [1]=left eye  [2]=nose
+                           [3]=mouth  [4]=right ear  [5]=left ear
+                           NOTE: "right/left" = viewer's perspective (raw image) */
+                        const lm=face.landmarks;
+                        const rEye=lm[0], lEye=lm[1], nose=lm[2];
+                        const eyeCx=(rEye[0]+lEye[0])/2;
+                        const eyeCy=(rEye[1]+lEye[1])/2;
+                        /* yaw: positive = nose RIGHT of eye center in raw image
+                                = user looking to THEIR LEFT */
+                        const yaw=(nose[0]-eyeCx)/fw;
+                        /* pitch: ratio of vertical nose-to-eye distance vs face height
+                                  normal ≈ 0.30-0.38, lower = looking up, higher = looking down */
+                        const pitch=(nose[1]-eyeCy)/fh;
 
-                        if(f.landmarks && f.landmarks.length>=2){
-                            const eyes=f.landmarks.filter(l=>l.type==='eye');
-                            const nose=f.landmarks.find(l=>l.type==='nose');
-                            if(eyes.length>=2 && nose){
-                                const el=eyes[0].locations[0], er=eyes[1].locations[0], np=nose.locations[0];
-                                const eyeCx=(el.x+er.x)/2;
-                                const yaw=(np.x-eyeCx)/bb.width;
-                                const eyeCy=(el.y+er.y)/2;
-                                const pitch=(np.y-eyeCy)/bb.height;
-                                switch(curPos.id){
-                                    case 'front': posOK=Math.abs(yaw)<0.12; posMsg=yaw>=0.12?'Turn left':'Turn right'; break;
-                                    case 'left':  posOK=yaw<-0.04; posMsg='Turn more to your left'; break;
-                                    case 'right': posOK=yaw>0.04;  posMsg='Turn more to your right'; break;
-                                    case 'up':    posOK=pitch<0.28; posMsg='Look up more'; break;
-                                    case 'down':  posOK=pitch>0.36; posMsg='Look down more'; break;
-                                }
-                            }
-                            /* No landmarks → skip position check, just use distance */
+                        let posOK=false, posMsg='';
+                        const cur=positions[capIdx];
+
+                        switch(cur.id){
+                            case 'front':
+                                posOK=Math.abs(yaw)<0.08 && pitch>0.20 && pitch<0.45;
+                                if(Math.abs(yaw)>=0.08) posMsg='🔴 Look straight at the camera';
+                                else posMsg='🔴 Adjust your head angle';
+                                break;
+                            case 'left':
+                                /* user turns THEIR head left → nose moves RIGHT in raw image → yaw > 0 */
+                                posOK=yaw>0.06;
+                                posMsg='🔴 Turn your head more to your LEFT ⬅';
+                                break;
+                            case 'right':
+                                /* user turns THEIR head right → nose moves LEFT in raw image → yaw < 0 */
+                                posOK=yaw<-0.06;
+                                posMsg='🔴 Turn your head more to your RIGHT ➡';
+                                break;
+                            case 'up':
+                                /* looking up → nose closer to eyes → lower pitch */
+                                posOK=pitch<0.26;
+                                posMsg='🔴 Tilt your head UP more ⬆';
+                                break;
+                            case 'down':
+                                /* looking down → nose further from eyes → higher pitch */
+                                posOK=pitch>0.42;
+                                posMsg='🔴 Tilt your head DOWN more ⬇';
+                                break;
                         }
 
-                        if(posOK) setGuide(true,'Ready — capture now!');
-                        else setGuide(false, posMsg||'Adjust position');
+                        if(posOK) setGuide(true,'🟢 Ready — capture now!');
+                        else setGuide(false, posMsg);
                     }
                 }
             }
         }catch(e){
-            /* FaceDetector threw an error — fallback to allow capture */
-            setGuide(true,'Position OK');
+            console.error('Detection error:',e);
+            setGuide(false,'Detection error — retrying...');
         }
+
         detecting=false;
-        /* Keep looping while camera is on and not all captured */
-        if(stream && capIdx<positions.length){
-            setTimeout(detectLoop, 200);
-        }
+        if(stream && capIdx<positions.length) setTimeout(detectLoop,180);
     }
 
     function renderSteps(){
