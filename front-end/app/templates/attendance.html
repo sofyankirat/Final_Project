@@ -48,8 +48,18 @@
         /* Face guide overlay */
         .face-guide{position:absolute;inset:0;display:none;align-items:center;justify-content:center;z-index:3;pointer-events:none}
         .face-guide.visible{display:flex}
-        .face-guide-oval{width:190px;height:250px;border:2.5px dashed rgba(255,255,255,.45);border-radius:50%;animation:pulse-oval 2s ease-in-out infinite}
-        @keyframes pulse-oval{0%,100%{opacity:.5;transform:scale(1)}50%{opacity:1;transform:scale(1.02)}}
+        .face-guide-oval{width:190px;height:250px;border:3px dashed rgba(231,76,60,.8);border-radius:50%;transition:border-color .3s,box-shadow .3s}
+        .face-guide-oval.good{border-color:rgba(39,174,96,.9);box-shadow:0 0 20px rgba(39,174,96,.3)}
+        .face-guide-oval.bad{border-color:rgba(231,76,60,.9);box-shadow:0 0 20px rgba(231,76,60,.3);animation:pulse-oval 1.5s ease-in-out infinite}
+        @keyframes pulse-oval{0%,100%{opacity:.7;transform:scale(1)}50%{opacity:1;transform:scale(1.02)}}
+        .face-arrow{position:absolute;font-size:32px;color:rgba(255,255,255,.85);text-shadow:0 2px 8px rgba(0,0,0,.5);pointer-events:none;transition:opacity .3s}
+        .face-arrow.left{left:12%;top:50%;transform:translateY(-50%)}
+        .face-arrow.right{right:12%;top:50%;transform:translateY(-50%)}
+        .face-arrow.up{top:8%;left:50%;transform:translateX(-50%)}
+        .face-arrow.down{bottom:14%;left:50%;transform:translateX(-50%)}
+        .face-status-text{position:absolute;bottom:22%;left:50%;transform:translateX(-50%);color:#fff;font-size:12px;font-weight:700;background:rgba(0,0,0,.55);padding:4px 14px;border-radius:20px;white-space:nowrap;transition:background .3s}
+        .face-status-text.good{background:rgba(39,174,96,.7)}
+        .face-status-text.bad{background:rgba(231,76,60,.7)}
         /* Position banner */
         .pos-banner{position:absolute;bottom:0;left:0;right:0;padding:12px 18px;background:linear-gradient(0deg,rgba(0,0,0,.7),transparent);color:#fff;z-index:4;display:none;text-align:center}
         .pos-banner.visible{display:block}
@@ -337,7 +347,11 @@
                                 <div class="cam-area" id="camArea">
                                     <video class="cam-video" id="camVideo" autoplay muted playsinline></video>
                                     <canvas class="cam-canvas" id="camCanvas" width="640" height="480"></canvas>
-                                    <div class="face-guide" id="faceGuide"><div class="face-guide-oval"></div></div>
+                                    <div class="face-guide" id="faceGuide">
+                                        <div class="face-guide-oval bad" id="faceOval"></div>
+                                        <div class="face-arrow" id="arrowHint" style="display:none"></div>
+                                        <div class="face-status-text bad" id="faceStatusText">Detecting face...</div>
+                                    </div>
                                     <div class="pos-banner" id="posBanner">
                                         <div class="pos-label" id="posLabel">Look straight ahead</div>
                                         <div class="pos-hint">Press the capture button when ready</div>
@@ -383,30 +397,93 @@
     setupPopup('headerBtnMsg','msgPopup');setupPopup('headerBtnNotif','notifPopup');
     document.addEventListener('click',()=>document.querySelectorAll('.header-popup.open').forEach(p=>p.classList.remove('open')));
 
-    /* ── Enrollment Logic ── */
+    /* ── Enrollment Logic with real-time face detection ── */
     const positions=[
-        {id:'front',label:'Look straight ahead',icon:'👤'},
-        {id:'left',label:'Turn slightly left',icon:'👈'},
-        {id:'right',label:'Turn slightly right',icon:'👉'},
-        {id:'up',label:'Look slightly up',icon:'👆'},
-        {id:'down',label:'Look slightly down',icon:'👇'}
+        {id:'front',label:'Look straight ahead',icon:'👤',arrow:''},
+        {id:'left',label:'Turn slightly left',icon:'👈',arrow:'⬅'},
+        {id:'right',label:'Turn slightly right',icon:'👉',arrow:'➡'},
+        {id:'up',label:'Look slightly up',icon:'👆',arrow:'⬆'},
+        {id:'down',label:'Look slightly down',icon:'👇',arrow:'⬇'}
     ];
     const captures=[];
-    let capIdx=0, stream=null;
+    let capIdx=0, stream=null, faceDetector=null, detecting=false, faceOK=false;
     const video=document.getElementById('camVideo'),canvas=document.getElementById('camCanvas'),
           overlay=document.getElementById('camOverlay'),faceGuide=document.getElementById('faceGuide'),
+          faceOval=document.getElementById('faceOval'),arrowHint=document.getElementById('arrowHint'),
+          faceStatusText=document.getElementById('faceStatusText'),
           posBanner=document.getElementById('posBanner'),posLabel=document.getElementById('posLabel'),
           btnStart=document.getElementById('btnStart'),btnCapture=document.getElementById('btnCapture'),
           btnRetake=document.getElementById('btnRetake'),btnSubmit=document.getElementById('btnSubmit'),
           statusEl=document.getElementById('statusEl'),counterEl=document.getElementById('counterEl'),
           stepList=document.getElementById('stepList'),thumbGrid=document.getElementById('thumbGrid');
 
+    // Try to init FaceDetector API (Chromium browsers)
+    try{ if('FaceDetector' in window) faceDetector=new FaceDetector({fastMode:true,maxDetectedFaces:1}); }catch(e){}
+
+    function setGuide(good, msg){
+        faceOK=good;
+        faceOval.className='face-guide-oval '+(good?'good':'bad');
+        faceStatusText.className='face-status-text '+(good?'good':'bad');
+        faceStatusText.textContent=msg;
+        btnCapture.disabled=!good;
+        const pos=positions[capIdx];
+        if(pos&&pos.arrow){arrowHint.textContent=pos.arrow;arrowHint.style.display='';
+            arrowHint.className='face-arrow '+pos.id;
+        }else{arrowHint.style.display='none';}
+    }
+
+    async function detectLoop(){
+        if(!stream||!faceDetector||capIdx>=positions.length)return;
+        if(detecting)return; detecting=true;
+        try{
+            // Draw mirrored frame to canvas for detection
+            const dw=video.videoWidth||640,dh=video.videoHeight||480;
+            canvas.width=dw;canvas.height=dh;
+            const dctx=canvas.getContext('2d');
+            dctx.save();dctx.scale(-1,1);dctx.drawImage(video,-dw,0,dw,dh);dctx.restore();
+            const faces=await faceDetector.detect(canvas);
+            if(faces.length===0){setGuide(false,'No face detected');detecting=false;if(stream)requestAnimationFrame(()=>setTimeout(detectLoop,150));return;}
+            const f=faces[0], bb=f.boundingBox;
+            // Distance check: face height = 25-65% of frame height
+            const ratio=bb.height/dh;
+            if(ratio<0.22){setGuide(false,'Move closer to camera');detecting=false;if(stream)requestAnimationFrame(()=>setTimeout(detectLoop,150));return;}
+            if(ratio>0.70){setGuide(false,'Move back from camera');detecting=false;if(stream)requestAnimationFrame(()=>setTimeout(detectLoop,150));return;}
+            // Centering check
+            const cx=bb.x+bb.width/2, cy=bb.y+bb.height/2;
+            if(cx<dw*0.2||cx>dw*0.8||cy<dh*0.15||cy>dh*0.85){setGuide(false,'Center your face');detecting=false;if(stream)requestAnimationFrame(()=>setTimeout(detectLoop,150));return;}
+            // Position check using landmarks if available
+            let posOK=true, posMsg='';
+            const curPos=positions[capIdx];
+            if(f.landmarks&&f.landmarks.length>=2){
+                const eyes=f.landmarks.filter(l=>l.type==='eye');
+                const nose=f.landmarks.find(l=>l.type==='nose');
+                if(eyes.length>=2&&nose){
+                    const el=eyes[0].locations[0],er=eyes[1].locations[0],np=nose.locations[0];
+                    const eyeCx=(el.x+er.x)/2, eyeCy=(el.y+er.y)/2;
+                    const yaw=(np.x-eyeCx)/bb.width;   // + = nose right of eyes
+                    const pitch=(np.y-eyeCy)/bb.height; // higher = nose further below eyes
+                    switch(curPos.id){
+                        case 'front': posOK=Math.abs(yaw)<0.12; posMsg=yaw>=0.12?'Turn left':'Turn right'; break;
+                        case 'left':  posOK=yaw<-0.04; posMsg='Turn more to your left'; break;
+                        case 'right': posOK=yaw>0.04;  posMsg='Turn more to your right'; break;
+                        case 'up':    posOK=pitch<0.28; posMsg='Look up more'; break;
+                        case 'down':  posOK=pitch>0.36; posMsg='Look down more'; break;
+                    }
+                }
+            }
+            if(!posOK){setGuide(false,posMsg||'Adjust position');detecting=false;if(stream)requestAnimationFrame(()=>setTimeout(detectLoop,150));return;}
+            setGuide(true,'Ready — capture now!');
+        }catch(e){/* FaceDetector error, allow capture as fallback */setGuide(true,'Position OK');}
+        detecting=false;
+        if(stream&&capIdx<positions.length)requestAnimationFrame(()=>setTimeout(detectLoop,150));
+    }
+
     function renderSteps(){
         stepList.innerHTML='';
         positions.forEach((p,i)=>{
             const cls=i<capIdx?'step-item done':i===capIdx?'step-item active':'step-item';
-            const dotContent=i<capIdx?'✓':(i+1);
-            stepList.innerHTML+=`<div class="${cls}"><div class="step-dot">${dotContent}</div><span>${p.icon} ${p.label}</span></div>`;
+            const dot=i<capIdx?'✓':(i+1);
+            stepList.innerHTML+=`<div class="${cls}"><div class="step-dot">${dot}</div><span>${p.icon} ${p.label}</span></div>`;
         });
     }
     function renderThumbs(){
@@ -414,10 +491,8 @@
         positions.forEach((_,i)=>{
             const slot=document.createElement('div');
             slot.className='thumb-slot'+(captures[i]?' filled':'');
-            const img=document.createElement('img');
-            if(captures[i])img.src=captures[i].dataUrl;
-            slot.appendChild(img);
-            if(!captures[i])slot.innerHTML=`<span>${i+1}</span>`;
+            if(captures[i]){const img=document.createElement('img');img.src=captures[i].dataUrl;slot.appendChild(img);}
+            else slot.innerHTML=`<span>${i+1}</span>`;
             thumbGrid.appendChild(slot);
         });
     }
@@ -433,7 +508,9 @@
             btnCapture.disabled=true;
             btnSubmit.style.display='';btnSubmit.disabled=false;
             statusEl.textContent='All 5 positions captured! Click "Enroll Now" to process.';
-            statusEl.style.color='';
+            statusEl.style.color='';arrowHint.style.display='none';
+            faceStatusText.textContent='All done!';faceStatusText.className='face-status-text good';
+            faceOval.className='face-guide-oval good';
         }
     }
 
@@ -444,8 +521,11 @@
             stream=await navigator.mediaDevices.getUserMedia({video:{width:{ideal:640},height:{ideal:480},facingMode:'user'},audio:false});
             video.srcObject=stream;video.classList.add('active');
             overlay.classList.add('hidden');faceGuide.classList.add('visible');
-            btnCapture.disabled=false;btnStart.style.display='none';
+            btnStart.style.display='none';
             statusEl.textContent=`Position your face in the oval. ${positions[capIdx].label}.`;
+            // If no FaceDetector, just enable capture
+            if(!faceDetector){btnCapture.disabled=false;setGuide(true,'Capture when ready');}
+            else{btnCapture.disabled=true;setTimeout(detectLoop,500);}
             updateUI();
         }catch(e){
             statusEl.textContent='Camera access denied. Please allow camera permissions.';
@@ -459,24 +539,23 @@
     }
     function captureFrame(){
         if(!stream||capIdx>=positions.length)return;
+        if(faceDetector&&!faceOK)return; // blocked by validation
         const ctx=canvas.getContext('2d'),w=video.videoWidth||640,h=video.videoHeight||480;
         canvas.width=w;canvas.height=h;ctx.save();ctx.scale(-1,1);ctx.drawImage(video,-w,0,w,h);ctx.restore();
         const dataUrl=canvas.toDataURL('image/jpeg',0.92);
         captures[capIdx]={label:positions[capIdx].label,dataUrl};
         capIdx++;updateUI();
         if(capIdx>=positions.length){stopCamera();}
-        else{statusEl.textContent=`Captured! Next: ${positions[capIdx].label}`;}
+        else{statusEl.textContent=`Captured! Next: ${positions[capIdx].label}`;setGuide(false,'Adjusting...');setTimeout(detectLoop,300);}
     }
     function retakeLast(){
         if(capIdx===0)return;
         capIdx--;captures.splice(capIdx,1);
-        btnCapture.disabled=!stream;btnSubmit.style.display='none';btnSubmit.disabled=true;
-        if(!stream){
-            btnStart.style.display='';btnStart.disabled=false;btnStart.textContent='Open Camera';
-        }
+        btnSubmit.style.display='none';btnSubmit.disabled=true;
+        if(!stream){btnStart.style.display='';btnStart.disabled=false;btnStart.textContent='Open Camera';}
         statusEl.textContent=`Retake step ${capIdx+1}: ${positions[capIdx].label}`;statusEl.style.color='';
         updateUI();
-        if(stream)startCamera();
+        if(stream){setGuide(false,'Adjusting...');setTimeout(detectLoop,300);}
     }
     async function submitAll(){
         if(captures.length!==5)return;
@@ -485,7 +564,7 @@
         statusEl.innerHTML=`<div style="display:flex;flex-direction:column;gap:6px;">
             <div><strong>Running Full AI Pipeline...</strong></div>
             <div style="font-size:12px;opacity:.8;">Step 1: YOLOv8s-Face detection</div>
-            <div style="font-size:12px;opacity:.8;">Step 2: insightface buffalo_sc alignment (112×112)</div>
+            <div style="font-size:12px;opacity:.8;">Step 2: Bbox crop + padding → resize to 112×112</div>
             <div style="font-size:12px;opacity:.8;">Step 3: Data augmentation → 100 images</div>
             <div style="font-size:12px;opacity:.8;">Step 4: ArcFace w600k_mbf → 512-dim embeddings</div>
             <div style="font-size:12px;opacity:.8;">Step 5: Average embeddings → Save database.pkl</div>
@@ -508,18 +587,10 @@
                 </div>`;
                 btnSubmit.textContent='Enroll Again';btnSubmit.disabled=false;
                 btnSubmit.onclick=()=>{captures.length=0;capIdx=0;btnSubmit.style.display='none';btnStart.style.display='';btnStart.disabled=false;btnStart.textContent='Open Camera';statusEl.textContent='Ready — click "Open Camera" to begin.';statusEl.style.color='';updateUI()};
-                if(d.per_image){
-                    d.per_image.forEach((r,i)=>{
-                        const slots=thumbGrid.querySelectorAll('.thumb-slot');
-                        if(slots[i]){
-                            const b=document.createElement('div');
-                            b.className='result-badge '+(r.status==='ok'?'ok':r.status==='no_face'?'fail':'warn');
-                            b.textContent=r.status==='ok'?'✓ OK':r.reason;
-                            b.style.cssText='position:absolute;bottom:2px;left:2px;right:2px';
-                            slots[i].style.position='relative';slots[i].appendChild(b);
-                        }
-                    });
-                }
+                if(d.per_image){d.per_image.forEach((r,i)=>{
+                    const slots=thumbGrid.querySelectorAll('.thumb-slot');
+                    if(slots[i]){const b=document.createElement('div');b.className='result-badge '+(r.status==='ok'?'ok':r.status==='no_face'?'fail':'warn');b.textContent=r.status==='ok'?'✓ OK':r.reason;b.style.cssText='position:absolute;bottom:2px;left:2px;right:2px';slots[i].style.position='relative';slots[i].appendChild(b);}
+                });}
                 stepList.querySelectorAll('.step-item').forEach(s=>s.className='step-item done');
             }else{
                 statusEl.style.color='#e74c3c';statusEl.textContent='❌ '+data.message;
