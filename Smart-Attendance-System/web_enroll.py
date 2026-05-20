@@ -102,7 +102,7 @@ def check_quality(frame, face):
     face_crop = frame[max(0, y1):min(fh, y2), max(0, x1):min(fw, x2)]
     if face_crop.size > 0:
         gray = cv2.cvtColor(face_crop, cv2.COLOR_BGR2GRAY)
-        laplacian = cv2.Laplacian(gray, cv2.CV_64F)
+        laplacian = cv2.Laplacian(gray, getattr(cv2, 'CV_64F', 6))
         if np.var(laplacian) < 30:
             return False, "Image blurry — hold still"
 
