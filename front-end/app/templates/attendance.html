@@ -96,7 +96,7 @@
         .att-btn.ghost{background:rgba(255,255,255,.8);border:1px solid rgba(255,107,53,.2);color:#5a4a3a}
         .att-btn:disabled{cursor:not-allowed;opacity:.5;box-shadow:none}
         .att-btn:hover:not(:disabled){transform:translateY(-1px)}
-        body.dark-mode .att-btn.primary{background:linear-gradient(135deg,#ff6b35,#e85c20);color:#fff;box-shadow:0 6px 18px rgba(255,107,53,.35)}
+        body.dark-mode .att-btn.primary{background:linear-gradient(135deg,#4fd4ff,#38b2d8);color:#0a0e24;box-shadow:0 6px 18px rgba(79,212,255,.35)}
         body.dark-mode .att-btn.ghost{background:rgba(13,18,46,.9);color:#d2dcff;border-color:rgba(79,212,255,.35)}
         /* Status */
         .att-status{font-size:13px;color:#6a5a4a;min-height:18px;margin-top:8px;white-space:pre-wrap;line-height:1.5}
@@ -401,11 +401,11 @@
 
     /* ── Enrollment Logic with real-time face detection ── */
     const positions=[
-        {id:'front',label:'Look straight ahead',icon:'👤',arrow:''},
-        {id:'left',label:'Turn slightly left',icon:'👈',arrow:'⬅'},
-        {id:'right',label:'Turn slightly right',icon:'👉',arrow:'➡'},
-        {id:'up',label:'Look slightly up',icon:'👆',arrow:'⬆'},
-        {id:'down',label:'Look slightly down',icon:'👇',arrow:'⬇'}
+        {id:'front',label:'Look straight ahead',icon:'⊙',arrow:''},
+        {id:'left',label:'Turn slightly left',icon:'‹',arrow:'←'},
+        {id:'right',label:'Turn slightly right',icon:'›',arrow:'→'},
+        {id:'up',label:'Look slightly up',icon:'∧',arrow:'↑'},
+        {id:'down',label:'Look slightly down',icon:'∨',arrow:'↓'}
     ];
     const captures=[];
     let capIdx=0, stream=null, detecting=false, faceOK=false;
@@ -462,7 +462,7 @@
             const preds=await blazeModel.estimateFaces(video, false);
 
             if(!preds||preds.length===0){
-                setGuide(false,'🔴 No face detected — look at camera');
+                setGuide(false,'No face detected — look at camera');
             } else {
                 const face=preds[0];
                 const tl=face.topLeft, br=face.bottomRight;
@@ -473,14 +473,14 @@
                 /* ── Distance check ── */
                 const sizeRatio=fh/vh;
                 if(sizeRatio<0.18){
-                    setGuide(false,'🔴 Move closer to camera');
+                    setGuide(false,'Move closer to camera');
                 } else if(sizeRatio>0.75){
-                    setGuide(false,'🔴 Move back from camera');
+                    setGuide(false,'Move back from camera');
                 } else {
                     /* ── Centering check ── */
                     const cx=(fx1+fx2)/2, cy=(fy1+fy2)/2;
                     if(cx<vw*0.15||cx>vw*0.85||cy<vh*0.1||cy>vh*0.9){
-                        setGuide(false,'🔴 Center your face in the oval');
+                        setGuide(false,'Center your face in the oval');
                     } else {
                         /* ── Head pose from landmarks ── */
                         /* BlazeFace landmarks:
@@ -504,32 +504,28 @@
                         switch(cur.id){
                             case 'front':
                                 posOK=Math.abs(yaw)<0.08 && pitch>0.20 && pitch<0.45;
-                                if(Math.abs(yaw)>=0.08) posMsg='🔴 Look straight at the camera';
-                                else posMsg='🔴 Adjust your head angle';
+                                if(Math.abs(yaw)>=0.08) posMsg='Look straight at the camera';
+                                else posMsg='Adjust your head angle';
                                 break;
                             case 'left':
-                                /* user turns THEIR head left → nose moves RIGHT in raw image → yaw > 0 */
                                 posOK=yaw>0.06;
-                                posMsg='🔴 Turn your head more to your LEFT ⬅';
+                                posMsg='Turn your head more to your LEFT ←';
                                 break;
                             case 'right':
-                                /* user turns THEIR head right → nose moves LEFT in raw image → yaw < 0 */
                                 posOK=yaw<-0.06;
-                                posMsg='🔴 Turn your head more to your RIGHT ➡';
+                                posMsg='Turn your head more to your RIGHT →';
                                 break;
                             case 'up':
-                                /* looking up → nose closer to eyes → lower pitch */
                                 posOK=pitch<0.26;
-                                posMsg='🔴 Tilt your head UP more ⬆';
+                                posMsg='Tilt your head UP more ↑';
                                 break;
                             case 'down':
-                                /* looking down → nose further from eyes → higher pitch */
-                                posOK=pitch>0.42;
-                                posMsg='🔴 Tilt your head DOWN more ⬇';
+                                posOK=pitch>0.32;
+                                posMsg='Tilt your head DOWN more ↓';
                                 break;
                         }
 
-                        if(posOK) setGuide(true,'🟢 Ready — capture now!');
+                        if(posOK) setGuide(true,'Ready — capture now!');
                         else setGuide(false, posMsg);
                     }
                 }
