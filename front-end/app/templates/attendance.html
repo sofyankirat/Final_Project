@@ -71,11 +71,11 @@
         /* --- Right panel --- */
         .right-panel{display:flex;flex-direction:column;gap:14px}
         .step-list{display:flex;flex-direction:column;gap:8px}
-        .step-item{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:12px;border:1px solid rgba(255,107,53,.15);background:rgba(255,255,255,.65);font-size:13px;font-weight:600;color:#4a3826;transition:all .25s}
+        .step-item{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:12px;border:1px solid rgba(255,107,53,.15);background:rgba(255,255,255,.65);font-size:13px;font-weight:600;color:#4a3826;transition:all .25s;cursor:pointer;user-select:none}
         .step-dot{width:28px;height:28px;border-radius:50%;border:2px solid rgba(255,107,53,.3);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:#ff6b35;flex-shrink:0;transition:all .25s}
         .step-item.active{border-color:rgba(255,107,53,.5);background:rgba(255,208,176,.45)}
         .step-item.active .step-dot{background:#ff6b35;color:#fff;border-color:#ff6b35;box-shadow:0 0 12px rgba(255,107,53,.4)}
-        .step-item.done{border-color:rgba(39,174,96,.35);background:rgba(39,174,96,.08)}
+        .step-item.done{border-color:rgba(39,174,96,.35);background:rgba(39,174,96,.08);cursor:pointer}
         .step-item.done .step-dot{background:#27ae60;color:#fff;border-color:#27ae60}
         body.dark-mode .step-item{border-color:rgba(79,212,255,.2);background:rgba(15,20,52,.7);color:#dbe7ff}
         body.dark-mode .step-dot{border-color:rgba(79,212,255,.35);color:#4fd4ff}
@@ -117,10 +117,10 @@
         .post-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:16px}
         @media(max-width:920px){.post-grid{grid-template-columns:1fr}}
         .post-panel{border-radius:18px;border:1px solid rgba(255,107,53,.18);
-            background:radial-gradient(circle at 16% 20%,rgba(255,210,176,.4),transparent 42%),linear-gradient(145deg,rgba(255,255,255,.95),rgba(255,241,230,.86));
+            background:linear-gradient(145deg,rgba(255,245,238,.96) 0%,rgba(255,224,200,.6) 40%,rgba(255,210,176,.35) 100%);
             box-shadow:0 12px 30px rgba(0,0,0,.08);padding:22px 24px}
         body.dark-mode .post-panel{border-color:rgba(79,212,255,.22);
-            background:radial-gradient(circle at 16% 20%,rgba(79,212,255,.1),transparent 42%),linear-gradient(160deg,rgba(10,14,36,.96),rgba(10,12,36,.88));
+            background:linear-gradient(145deg,rgba(10,14,36,.96) 0%,rgba(15,25,60,.9) 40%,rgba(20,30,70,.85) 100%);
             box-shadow:0 12px 30px rgba(0,0,0,.25)}
         .post-panel-title{font-size:15px;font-weight:800;color:#2c2420;margin:0 0 14px;display:flex;align-items:center;gap:8px}
         body.dark-mode .post-panel-title{color:#e8f0ff}
@@ -399,7 +399,6 @@
                                 <div class="att-actions" id="actionsRow">
                                     <button class="att-btn primary" id="btnStart" onclick="startCamera()">Open Camera</button>
                                     <button class="att-btn primary" id="btnCapture" onclick="captureFrame()" disabled>Capture</button>
-                                    <button class="att-btn ghost" id="btnRetake" onclick="retakeLast()" disabled>Retake Last</button>
                                     <button class="att-btn primary" id="btnSubmit" onclick="submitAll()" disabled style="display:none">Enroll Now</button>
                                 </div>
                                 <div class="att-status" id="statusEl">Ready — click "Open Camera" to begin.</div>
@@ -418,7 +417,7 @@
                     <div class="post-grid">
                         <!-- Left: Charts -->
                         <div class="post-panel">
-                            <div class="post-panel-title">📊 Attendance Overview</div>
+                            <div class="post-panel-title"><span style="font-size:17px">◈</span> Attendance Overview</div>
                             <div class="chart-placeholder" id="chartWeekly">
                                 <canvas id="weeklyChart" style="width:100%;max-height:200px"></canvas>
                             </div>
@@ -429,7 +428,7 @@
                         </div>
                         <!-- Right: Recognition Test -->
                         <div class="post-panel">
-                            <div class="post-panel-title">🔍 Enrollment Test</div>
+                            <div class="post-panel-title"><span style="font-size:17px">◎</span> Enrollment Test</div>
                             <p style="font-size:12.5px;color:#6a5a4a;margin:0 0 12px;line-height:1.5" class="test-desc">Verify your enrollment by uploading a photo or using the camera. The system will check if it recognizes you.</p>
                             <!-- Camera test -->
                             <div class="test-cam-area" id="testCamArea">
@@ -492,7 +491,7 @@
           faceStatusText=document.getElementById('faceStatusText'),
           posBanner=document.getElementById('posBanner'),posLabel=document.getElementById('posLabel'),
           btnStart=document.getElementById('btnStart'),btnCapture=document.getElementById('btnCapture'),
-          btnRetake=document.getElementById('btnRetake'),btnSubmit=document.getElementById('btnSubmit'),
+          btnSubmit=document.getElementById('btnSubmit'),
           statusEl=document.getElementById('statusEl'),counterEl=document.getElementById('counterEl'),
           stepList=document.getElementById('stepList'),thumbGrid=document.getElementById('thumbGrid');
 
@@ -641,7 +640,11 @@
         positions.forEach((p,i)=>{
             const cls=i<capIdx?'step-item done':i===capIdx?'step-item active':'step-item';
             const dot=i<capIdx?'✓':(i+1);
-            stepList.innerHTML+=`<div class="${cls}"><div class="step-dot">${dot}</div><span>${p.icon} ${p.label}</span></div>`;
+            const div=document.createElement('div');
+            div.className=cls;
+            div.innerHTML=`<div class="step-dot">${dot}</div><span>${p.icon} ${p.label}</span>`;
+            div.addEventListener('click',()=>jumpToStep(i));
+            stepList.appendChild(div);
         });
     }
     function renderThumbs(){
@@ -661,7 +664,6 @@
             posBanner.classList.toggle('visible',capIdx<positions.length);
             if(capIdx<positions.length)posLabel.textContent=positions[capIdx].label;
         }
-        btnRetake.disabled=capIdx===0;
         if(capIdx>=positions.length){
             btnCapture.disabled=true;
             btnSubmit.style.display='';btnSubmit.disabled=false;
@@ -704,20 +706,22 @@
         captures[capIdx]={label:positions[capIdx].label,dataUrl};
         capIdx++; detecting=false; goodSince=0; updateUI();
         if(capIdx>=positions.length){stopCamera();}
-        else{statusEl.textContent=`Captured! Next: ${positions[capIdx].label}`; setTimeout(detectLoop,300);}
+        else{statusEl.textContent=`Captured! Next: ${positions[capIdx].label}`; setTimeout(detectLoop,200);}
     }
-    function retakeLast(){
-        if(capIdx===0)return;
-        capIdx--;captures.splice(capIdx,1);
+    function jumpToStep(i){
+        if(!stream) return;
+        if(i>capIdx) return;
+        capIdx=i;
+        captures.splice(i);
         btnSubmit.style.display='none';btnSubmit.disabled=true;
-        if(!stream){btnStart.style.display='';btnStart.disabled=false;btnStart.textContent='Open Camera';}
-        statusEl.textContent=`Retake step ${capIdx+1}: ${positions[capIdx].label}`;statusEl.style.color='';
+        statusEl.textContent=`Re-capture step ${i+1}: ${positions[i].label}`;
+        statusEl.style.color='';
         detecting=false; goodSince=0; updateUI();
-        if(stream) setTimeout(detectLoop,300);
+        setTimeout(detectLoop,200);
     }
     async function submitAll(){
         if(captures.length!==5)return;
-        btnSubmit.disabled=true;btnSubmit.textContent='Processing...';btnRetake.disabled=true;
+        btnSubmit.disabled=true;btnSubmit.textContent='Processing...';
         statusEl.style.color='';
         statusEl.innerHTML=`<div style="display:flex;align-items:center;gap:8px;"><span class="pipeline-spinner"></span> <span>Processing your captures...</span></div>`;
         try{
@@ -741,13 +745,14 @@
             if(data.success){
                 statusEl.style.color='#27ae60';
                 statusEl.innerHTML=`<div style="display:flex;flex-direction:column;gap:8px;">
-                    <div style="font-size:18px;font-weight:800">Welcome aboard! 🎉</div>
+                    <div style="font-size:18px;font-weight:800">Welcome aboard!</div>
                     <div style="font-size:13.5px;line-height:1.6;opacity:.9">Your face has been successfully enrolled into the Smart Attendance System. You're all set to be recognized automatically in future sessions.</div>
                     <div style="display:flex;gap:10px;margin-top:6px;">
                         <button class="att-btn ghost" onclick="resetEnroll()">Enroll Again</button>
                         <button class="att-btn primary" onclick="showPostEnroll()">Continue →</button>
                     </div>
                 </div>`;
+                btnSubmit.style.display='none';
                 stepList.querySelectorAll('.step-item').forEach(s=>s.className='step-item done');
             }else{
                 statusEl.style.color='#e74c3c';
@@ -764,9 +769,8 @@
                 <div><strong>Connection Error</strong></div>
                 <div style="font-size:12.5px;">Could not reach the server. Please check your connection and try again.</div>
             </div>`;
-            btnSubmit.textContent='Retry';btnSubmit.disabled=false;
+        btnSubmit.textContent='Retry';btnSubmit.disabled=false;
         }
-        btnRetake.disabled=false;
     }
 
     function resetEnroll(){
