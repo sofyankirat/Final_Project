@@ -120,21 +120,21 @@
         .post-enroll.visible{display:block}
         .post-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:16px}
         @media(max-width:920px){.post-grid{grid-template-columns:1fr}}
-        .post-panel{border-radius:18px;border:1px solid rgba(255,107,53,.18);
-            background:radial-gradient(circle at 14% 16%,rgba(255,210,176,.45),transparent 42%),radial-gradient(circle at 86% 18%,rgba(255,159,117,.18),transparent 36%),linear-gradient(145deg,rgba(255,255,255,.95),rgba(255,241,230,.86));
-            box-shadow:0 12px 30px rgba(0,0,0,.08);padding:22px 24px}
+        .post-panel{border-radius:18px;border:1px solid rgba(255,107,53,.2);
+            background:radial-gradient(circle at 14% 16%,rgba(255,210,176,.65),transparent 42%),radial-gradient(circle at 86% 18%,rgba(255,159,117,.25),transparent 36%),linear-gradient(145deg,rgba(255,255,255,.95),rgba(255,241,230,.86));
+            box-shadow:0 20px 44px rgba(0,0,0,.08);padding:22px 24px}
         body.dark-mode .post-panel{border-color:rgba(79,212,255,.22);
             background:radial-gradient(circle at 16% 20%,rgba(79,212,255,.16),transparent 42%),radial-gradient(circle at 84% 18%,rgba(120,140,255,.18),transparent 36%),linear-gradient(160deg,rgba(10,14,36,.96),rgba(10,12,36,.88));
-            box-shadow:0 12px 30px rgba(0,0,0,.25)}
+            box-shadow:0 20px 44px rgba(0,0,0,.25)}
         .post-panel-title{font-size:15px;font-weight:800;color:#2c2420;margin:0 0 14px;display:flex;align-items:center;gap:8px}
         body.dark-mode .post-panel-title{color:#e8f0ff}
-        .test-cam-area{position:relative;border-radius:14px;overflow:hidden;min-height:220px;background:#0d0f1a;display:flex;align-items:center;justify-content:center;border:2px dashed rgba(255,107,53,.2)}
-        body.dark-mode .test-cam-area{border-color:rgba(79,212,255,.25)}
+        .test-cam-area{position:relative;border-radius:14px;overflow:hidden;min-height:220px;background:rgba(13,15,26,.65);display:flex;align-items:center;justify-content:center;border:2px dashed rgba(255,107,53,.22)}
+        body.dark-mode .test-cam-area{background:rgba(13,15,26,.65);border-color:rgba(79,212,255,.22)}
         .test-cam-video{width:100%;height:100%;object-fit:cover;display:none;transform:scaleX(-1)}
         .test-cam-video.active{display:block}
-        .test-upload-zone{border:2px dashed rgba(255,107,53,.25);border-radius:14px;padding:30px;text-align:center;cursor:pointer;transition:border-color .2s,background .2s;min-height:120px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:#6a5a4a;font-size:13px}
+        .test-upload-zone{border:2px dashed rgba(255,107,53,.22);border-radius:14px;padding:30px;text-align:center;cursor:pointer;transition:border-color .2s,background .2s;min-height:120px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:#6a5a4a;font-size:13px;background:rgba(255,255,255,.15)}
         .test-upload-zone:hover{border-color:rgba(255,107,53,.5);background:rgba(255,107,53,.04)}
-        body.dark-mode .test-upload-zone{border-color:rgba(79,212,255,.3);color:#9fb3d9}
+        body.dark-mode .test-upload-zone{border-color:rgba(79,212,255,.22);color:#9fb3d9;background:rgba(0,0,0,.15)}
         body.dark-mode .test-upload-zone:hover{border-color:rgba(79,212,255,.6);background:rgba(79,212,255,.06)}
         .test-upload-zone img{max-width:100%;max-height:180px;border-radius:10px;display:none}
         .test-result{margin-top:14px;padding:14px 18px;border-radius:12px;font-size:13px;display:none}
@@ -142,8 +142,8 @@
         .test-result.fail{display:block;background:rgba(231,76,60,.1);border:1px solid rgba(231,76,60,.3);color:#e74c3c}
         body.dark-mode .test-result.success{background:rgba(39,174,96,.15);color:#2ecc71}
         body.dark-mode .test-result.fail{background:rgba(231,76,60,.15);color:#e74c3c}
-        .chart-placeholder{background:rgba(255,255,255,.5);border-radius:14px;padding:20px;min-height:160px;display:flex;align-items:center;justify-content:center}
-        body.dark-mode .chart-placeholder{background:rgba(12,16,42,.7)}
+        .chart-placeholder{background:rgba(255,255,255,.25);border-radius:14px;padding:20px;min-height:160px;display:flex;align-items:center;justify-content:center;border:2px dashed rgba(255,107,53,.22)}
+        body.dark-mode .chart-placeholder{background:rgba(10,14,36,.4);border-color:rgba(79,212,255,.22)}
     </style>
 </head>
 
@@ -468,6 +468,8 @@
     </div>
 
     <script>
+    let weeklyChartInst = null;
+    let monthlyChartInst = null;
     /* ── Sidebar / Dark-mode / Particles (unchanged logic) ── */
     const sidebar=document.getElementById('dashSidebar'),toggleBtn=document.getElementById('sidebarToggle'),darkModeBtn=document.getElementById('btnDarkMode'),darkModeText=darkModeBtn?darkModeBtn.querySelector('.sidebar-text'):null;
     if(toggleBtn)toggleBtn.addEventListener('click',()=>sidebar.classList.toggle('collapsed'));
@@ -475,7 +477,20 @@
     if(isDark){document.body.classList.add('dark-mode');if(darkModeText)darkModeText.textContent='Dark mode (on)';if(darkModeBtn)darkModeBtn.classList.add('active');}
     let particlesContainer;
     tsParticles.load("particles-bg",{fpsLimit:60,particles:{color:{value:isDark?["#e8c547","#ff6b35","#80706a"]:["#ff6b35","#ffc5d0","#ffffff"]},move:{enable:true,direction:"top",random:true,speed:.6,straight:false},number:{density:{enable:true,area:800},value:100},opacity:{value:{min:.2,max:.6},animation:{enable:true,speed:.8,minimumValue:.1}},shape:{type:"circle"},size:{value:{min:2,max:8},animation:{enable:true,speed:1.5,minimumValue:2}}},detectRetina:true}).then(c=>{particlesContainer=c});
-    if(darkModeBtn)darkModeBtn.addEventListener('click',()=>{document.body.classList.toggle('dark-mode');const on=document.body.classList.contains('dark-mode');localStorage.setItem('theme',on?'dark':'light');if(darkModeText)darkModeText.textContent=on?'Dark mode (on)':'Dark mode (off)';darkModeBtn.classList.toggle('active',on);if(particlesContainer){particlesContainer.options.particles.color.value=on?["#e8c547","#ff6b35","#80706a"]:["#ff6b35","#ffc5d0","#ffffff"];particlesContainer.refresh()}});
+    if(darkModeBtn)darkModeBtn.addEventListener('click',()=>{
+        document.body.classList.toggle('dark-mode');
+        const on=document.body.classList.contains('dark-mode');
+        localStorage.setItem('theme',on?'dark':'light');
+        if(darkModeText)darkModeText.textContent=on?'Dark mode (on)':'Dark mode (off)';
+        darkModeBtn.classList.toggle('active',on);
+        if(particlesContainer){
+            particlesContainer.options.particles.color.value=on?["#e8c547","#ff6b35","#80706a"]:["#ff6b35","#ffc5d0","#ffffff"];
+            particlesContainer.refresh();
+        }
+        if(typeof initCharts === 'function' && document.getElementById('postEnrollView') && document.getElementById('postEnrollView').classList.contains('visible')){
+            initCharts();
+        }
+    });
     function setupPopup(b,p){const btn=document.getElementById(b),pop=document.getElementById(p);if(!btn||!pop)return;btn.addEventListener('click',e=>{e.stopPropagation();document.querySelectorAll('.header-popup.open').forEach(x=>{if(x!==pop)x.classList.remove('open')});pop.classList.toggle('open')})}
     setupPopup('headerBtnMsg','msgPopup');setupPopup('headerBtnNotif','notifPopup');
     document.addEventListener('click',()=>document.querySelectorAll('.header-popup.open').forEach(p=>p.classList.remove('open')));
@@ -852,14 +867,12 @@
 
     function showPostEnroll(){
         document.getElementById('enrollmentSection').style.display='none';
-        document.querySelector('.attendance-hero').style.display='none';
         document.getElementById('postEnrollView').classList.add('visible');
         initCharts();
     }
 
     function reEnrollFromPost(){
         document.getElementById('enrollmentSection').style.display='';
-        document.querySelector('.attendance-hero').style.display='';
         document.getElementById('postEnrollView').classList.remove('visible');
         resetEnroll();
     }
@@ -869,13 +882,14 @@
         showPostEnroll();
     } else {
         renderSteps();renderThumbs();
-    }
-
-    /* ══════════════════════════════════════════════════════
+    }    /* ══════════════════════════════════════════════════════
        Post-Enrollment: Charts + Recognition Test
        ══════════════════════════════════════════════════════ */
 
     function initCharts(){
+        if(weeklyChartInst) weeklyChartInst.destroy();
+        if(monthlyChartInst) monthlyChartInst.destroy();
+
         const isDark=document.body.classList.contains('dark-mode');
         const txtColor=isDark?'#c0d0f0':'#4a3a2a';
         const gridColor=isDark?'rgba(79,212,255,.1)':'rgba(0,0,0,.06)';
@@ -885,7 +899,7 @@
         const accent2bg=isDark?'rgba(162,89,255,.15)':'rgba(99,102,241,.15)';
 
         const days=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
-        new Chart(document.getElementById('weeklyChart'),{
+        weeklyChartInst = new Chart(document.getElementById('weeklyChart'),{
             type:'bar',
             data:{
                 labels:days,
@@ -909,7 +923,7 @@
         });
 
         const months=['Jan','Feb','Mar','Apr','May','Jun'];
-        new Chart(document.getElementById('monthlyChart'),{
+        monthlyChartInst = new Chart(document.getElementById('monthlyChart'),{
             type:'line',
             data:{
                 labels:months,
