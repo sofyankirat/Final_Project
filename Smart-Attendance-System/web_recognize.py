@@ -21,10 +21,12 @@ import config
 def _resolve(p):
     return p if os.path.isabs(p) else os.path.join(_DIR, p)
 
+import typing
+
 # ── Load models (same as face_pipeline.py) ───────────────────
-yolo_model = None
-arc_session = None
-arc_input = None
+yolo_model: typing.Any = None
+arc_session: typing.Any = None
+arc_input: typing.Any = None
 
 def _load_models():
     global yolo_model, arc_session, arc_input

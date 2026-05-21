@@ -29,6 +29,66 @@
             color: #ff6b35;
         }
 
+        /* Custom Stepper Styling for Recommendations page */
+        .number-input-wrapper {
+            position: relative;
+            width: 100%;
+        }
+
+        .number-input-wrapper input[type="number"] {
+            -moz-appearance: textfield;
+            appearance: textfield;
+        }
+
+        .number-input-wrapper input[type="number"]::-webkit-outer-spin-button,
+        .number-input-wrapper input[type="number"]::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        .number-input-wrapper .stepper-controls {
+            position: absolute;
+            right: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            z-index: 5;
+        }
+
+        .number-input-wrapper .stepper-btn {
+            width: 24px;
+            height: 16px;
+            border: 1px solid rgba(255, 107, 53, 0.4);
+            background: #ffd0b0;
+            color: #5a4a3a;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 8px;
+            line-height: 1;
+            border-radius: 4px;
+            transition: transform 0.2s ease, background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+        }
+
+        .number-input-wrapper .stepper-btn:hover {
+            background: #ffb885;
+            border-color: #ff6b35;
+            color: #1a1a1a;
+            transform: translateY(-0.5px);
+        }
+
+        .number-input-wrapper .stepper-btn:active {
+            transform: translateY(0);
+        }
+
+        .number-input-wrapper .rec-input {
+            padding-left: 22px !important;
+            padding-right: 48px !important;
+        }
+
         .rec-input {
             width: 100%;
             padding: 10px 14px;
@@ -417,6 +477,23 @@
 
         body.dark-mode .rec-label {
             color: #9ba4c7;
+        }
+
+        body.dark-mode .rec-label svg {
+            color: #2bc2f9;
+        }
+
+        /* Dark mode overrides for stepper controls */
+        body.dark-mode .number-input-wrapper .stepper-btn {
+            border-color: rgba(99, 102, 241, 0.4);
+            background: rgba(30, 35, 80, 0.9);
+            color: #cdd5f0;
+        }
+
+        body.dark-mode .number-input-wrapper .stepper-btn:hover {
+            background: rgba(99, 102, 241, 0.45);
+            border-color: #6366f1;
+            color: #ffffff;
         }
 
         body.dark-mode .rec-input {
@@ -1123,10 +1200,16 @@
                                                 </svg>
                                                 Average Weekly Subject Study Hours
                                             </label>
-                                            <input type="number" step="0.5" id="weekly_avg_study_hours_subject"
-                                                name="weekly_avg_study_hours_subject" class="rec-input" required min="0"
-                                                max="10" placeholder="0 to 10 Hours"
-                                                value="{{ form_data.get('weekly_avg_study_hours_subject', '') }}">
+                                            <div class="input-wrapper number-input-wrapper">
+                                                <input type="number" step="0.5" id="weekly_avg_study_hours_subject"
+                                                    name="weekly_avg_study_hours_subject" class="rec-input" required min="0"
+                                                    max="10" placeholder="0 to 10 Hours"
+                                                    value="{{ form_data.get('weekly_avg_study_hours_subject', '') }}">
+                                                <div class="stepper-controls">
+                                                    <button type="button" class="stepper-btn step-up" aria-label="Increase weekly study hours">▲</button>
+                                                    <button type="button" class="stepper-btn step-down" aria-label="Decrease weekly study hours">▼</button>
+                                                </div>
+                                            </div>
                                             <div id="hours-error" class="error-msg">Please enter hours between 0 and 10.
                                             </div>
                                         </div>
@@ -1144,14 +1227,18 @@
                                                 </svg>
                                                 Course Attendance Count
                                             </label>
-                                            <div>
+                                            <div class="input-wrapper number-input-wrapper">
                                                 <input type="number" id="attendance_count" name="attendance_count"
                                                     class="rec-input" required min="0" max="10" step="1"
                                                     placeholder="Sessions (0-10)"
                                                     value="{{ form_data.get('attendance_count', '') }}">
-                                                <div id="attendance-error" class="error-msg">Please enter a whole number
-                                                    between 0 and 10.</div>
+                                                <div class="stepper-controls">
+                                                    <button type="button" class="stepper-btn step-up" aria-label="Increase attendance count">▲</button>
+                                                    <button type="button" class="stepper-btn step-down" aria-label="Decrease attendance count">▼</button>
+                                                </div>
                                             </div>
+                                            <div id="attendance-error" class="error-msg">Please enter a whole number
+                                                between 0 and 10.</div>
                                         </div>
                                     </div>
                                     <div style="margin-top: 72px;">
@@ -1529,6 +1616,27 @@
                     alert('Unable to delete this recommendation right now.');
                 });
             });
+        });
+
+        // Click event listener to handle stepper buttons
+        document.addEventListener('click', function (event) {
+            const stepButton = event.target.closest('.stepper-btn');
+            if (!stepButton) return;
+
+            const wrapper = stepButton.closest('.number-input-wrapper');
+            if (!wrapper) return;
+
+            const input = wrapper.querySelector('input[type="number"]');
+            if (!input) return;
+
+            if (stepButton.classList.contains('step-up')) {
+                input.stepUp();
+            } else {
+                input.stepDown();
+            }
+
+            input.dispatchEvent(new Event('input', { bubbles: true }));
+            input.dispatchEvent(new Event('change', { bubbles: true }));
         });
 
         function alignRecommendationHistorySidebar() {

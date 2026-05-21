@@ -1090,8 +1090,7 @@
                         status.</p>
                 </div>
 
-                <div class="attendance-center" id="enrollmentSection" {% if enrolled %} style="display:none" {% endif
-                    %}>
+                <div class="attendance-center" id="enrollmentSection" style="{% if enrolled %}display:none{% endif %}">
                     <section class="attendance-card" aria-label="Attendance capture">
                         <div class="attendance-card-header">
                             <div>
@@ -1277,7 +1276,6 @@
 
     <script>
         let weeklyChartInst = null;
-        let monthlyChartInst = null;
         /* ── Sidebar / Dark-mode / Particles (unchanged logic) ── */
         const sidebar = document.getElementById('dashSidebar'), toggleBtn = document.getElementById('sidebarToggle'), darkModeBtn = document.getElementById('btnDarkMode'), darkModeText = darkModeBtn ? darkModeBtn.querySelector('.sidebar-text') : null;
         if (toggleBtn) toggleBtn.addEventListener('click', () => sidebar.classList.toggle('collapsed'));
@@ -1589,6 +1587,7 @@
                 /* detectLoop handles FaceDetector fallback internally */
                 setTimeout(detectLoop, 500);
             } catch (e) {
+                console.error('Camera initialization error:', e);
                 statusEl.textContent = 'Camera access denied. Please allow camera permissions.';
                 statusEl.style.color = '#e74c3c'; btnStart.disabled = false; btnStart.textContent = 'Open Camera';
             }
@@ -1678,7 +1677,7 @@
                     try {
                         const errData = JSON.parse(text);
                         if (errData && errData.message) errMsg = errData.message;
-                    } catch (err) { }
+                    } catch (err) { console.warn('JSON parsing error in HTTP response:', err); }
                     throw new Error(errMsg);
                 }
 
@@ -1709,7 +1708,7 @@
                     <div style="font-size:13.5px;line-height:1.6;opacity:.9">Your face has been successfully enrolled into the Smart Attendance System. You're all set to be recognized automatically in future sessions.</div>
                     <div style="display:flex;gap:10px;margin-top:6px;">
                         <button class="att-btn ghost" onclick="resetEnroll()">Enroll Again</button>
-                        <button class="att-btn primary" onclick="showPostEnroll()">Continue →</button>
+                        <button class="att-btn primary" onclick="window.location.href='/attendance'">Continue →</button>
                     </div>
                 </div>`;
                     btnSubmit.style.display = 'none';
@@ -1785,9 +1784,6 @@
             const txtColor = isDark ? '#c0d0f0' : '#4a3a2a';
             const gridColor = isDark ? 'rgba(255,255,255,.07)' : 'rgba(0,0,0,.06)';
             const accent1 = isDark ? '#4fd4ff' : '#ff6b35';
-            const accent1bg = isDark ? 'rgba(79,212,255,.15)' : 'rgba(255,107,53,.15)';
-            const accent2 = isDark ? 'rgba(162,89,255,.8)' : 'rgba(99,102,241,.8)';
-            const accent2bg = isDark ? 'rgba(162,89,255,.15)' : 'rgba(99,102,241,.15)';
 
             const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
             weeklyChartInst = new Chart(document.getElementById('weeklyChart'), {
@@ -1865,6 +1861,7 @@
                 document.getElementById('btnTestStop').style.display = '';
                 document.getElementById('btnTestCam').style.display = 'none';
             } catch (e) {
+                console.error('Test camera initialization error:', e);
                 document.getElementById('testResult').className = 'test-result fail';
                 document.getElementById('testResult').innerHTML = '<strong>Camera access denied.</strong> Please allow camera permissions.';
             }
@@ -1933,6 +1930,7 @@
                     rEl.innerHTML = `<div style="font-weight:700;margin-bottom:4px">Detection Failed</div><div>${data.message}</div>`;
                 }
             } catch (e) {
+                console.error('Face recognition test error:', e);
                 rEl.className = 'test-result fail';
                 rEl.innerHTML = '<strong>Connection Error</strong> — could not reach the server.';
             } finally {
@@ -1969,6 +1967,17 @@
             if (closeBtn) closeBtn.addEventListener('click', closeFn);
             if (overlay) overlay.addEventListener('click', closeFn);
         }
+
+        window.startCamera = startCamera;
+        window.captureFrame = captureFrame;
+        window.submitAll = submitAll;
+        window.reEnrollFromPost = reEnrollFromPost;
+        window.testOpenCamera = testOpenCamera;
+        window.testStopCamera = testStopCamera;
+        window.testCaptureAndRecognize = testCaptureAndRecognize;
+        window.testHandleUpload = testHandleUpload;
+        window.testRecognizeUpload = testRecognizeUpload;
+        window.resetEnroll = resetEnroll;
     </script>
 
 </body>

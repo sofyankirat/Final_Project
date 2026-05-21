@@ -80,7 +80,7 @@ def check_face_quality(frame, box):
     # Check 5 — Blurry image
     face_crop  = frame[y1:y2, x1:x2]
     gray       = cv2.cvtColor(face_crop, cv2.COLOR_BGR2GRAY)
-    blur_score = cv2.Laplacian(gray, cv2.CV_64F).var()
+    blur_score = cv2.Laplacian(gray, getattr(cv2, 'CV_64F', 6)).var()
     if blur_score < 50:
         return False, "Hold still — image blurry"
 

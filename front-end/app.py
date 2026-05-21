@@ -1669,6 +1669,17 @@ def attendance_enroll():
     static_root = get_static_root()
     upload_dir = os.path.join(static_root, 'uploads', 'attendance', f'user_{user_id}')
     os.makedirs(upload_dir, exist_ok=True)
+
+    # Clear any previous captures for this user to avoid accumulating old files
+    if os.path.exists(upload_dir):
+        for item in os.listdir(upload_dir):
+            item_path = os.path.join(upload_dir, item)
+            try:
+                if os.path.isfile(item_path):
+                    os.unlink(item_path)
+            except Exception as e:
+                print(f"Error deleting file {item_path}: {e}")
+
     timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
     saved_paths: list[str] = []
 

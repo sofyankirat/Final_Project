@@ -18,3 +18,6 @@
 [2026-05-20T23:22:52.188343] Verification link for www.sofyankirat@gmail.com: http://localhost:5000/verify-email/8MF3BgMm49PwYrctKwuJEExgGF9WMyiJi6mgFSwqZJ0
 [2026-05-21T08:05:09.749825] Verification link for www.sofyankirat@gmail.com: http://localhost:5000/verify-email/ZAkdw__KEHbfExQu9yx0CC25J3VmcxuhrSmMDx_Owco
 [2026-05-21T10:08:46.012664] Verification link for www.sofyankirat@gmail.com: http://localhost:5000/verify-email/zuS4pAR7ed2rQybPiH5mUUbzcdkXN-JbxYZJUGn6qzQ
+[2026-05-21T11:35:08.877921] Verification link for www.sofyankirat@gmail.com: http://localhost:5000/verify-email/GPdIZ6-PhOFvUUB0p1Tm1aNdMWZjUlXYyWKW3AEw5IA
+[2026-05-21T11:46:48.395864] Verification link for www.sofyankirat@gmail.com: http://localhost:5000/verify-email/75IEiO9k4TDY3hVmHQmRIKnKd0HIQ_cTA1qmT4eZBhY
+[2026-05-21T22:52:18.203724] Verification link for emykirat@gmail.com: http://localhost:5000/verify-email/TFB1u3hffESFkOolz2HhnaKu3Wqsw5Ka04N3kCt8RAA

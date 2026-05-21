@@ -816,33 +816,39 @@ body {
 }
 
 .additional-left .symbols-container {
-    --strip-offset: 0px;
-    animation: scrollSeamless 20s linear infinite;
+    --strip-offset: 0vh;
+    /* Match login strips: same duration and seamless loop math */
+    animation: scrollSeamless 28s linear infinite;
 }
 
 .additional-left .symbols-container:nth-child(1) {
-    --strip-offset: -24px;
-    animation-delay: -8s;
+    --strip-offset: 0vh;
+    animation: scrollSeamless 28s linear infinite;
+    margin-top: 0;
 }
 
 .additional-left .symbols-container:nth-child(2) {
-    --strip-offset: 14px;
-    animation-delay: -4s;
+    --strip-offset: 0vh;
+    animation: scrollSeamless 28s linear infinite;
+    margin-top: 5vh;
 }
 
 .additional-left .symbols-container:nth-child(3) {
-    --strip-offset: -24px;
-    animation-delay: -8s;
+    --strip-offset: 0vh;
+    animation: scrollSeamless 28s linear infinite;
+    margin-top: 0;
 }
 
 .additional-left .symbols-container:nth-child(4) {
-    --strip-offset: 14px;
-    animation-delay: -12s;
+    --strip-offset: 0vh;
+    animation: scrollSeamless 28s linear infinite;
+    margin-top: 5vh;
 }
 
 .additional-left .symbols-container:nth-child(5) {
-    --strip-offset: -24px;
-    animation-delay: -16s;
+    --strip-offset: 0vh;
+    animation: scrollSeamless 28s linear infinite;
+    margin-top: 0;
 }
 
 .additional-right {
