@@ -18,6 +18,10 @@
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/blazeface@0.0.7/dist/blazeface.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.js"></script>
     <style>
+        .hide-enrolled {
+            display: none !important;
+        }
+
         .attendance-hero {
             margin-top: 0;
             padding: 18px 0 14px
@@ -1090,7 +1094,7 @@
                         status.</p>
                 </div>
 
-                <div class="attendance-center" id="enrollmentSection" style="{% if enrolled %}display:none{% endif %}">
+                <div class="attendance-center{% if enrolled %} hide-enrolled{% endif %}" id="enrollmentSection">
                     <section class="attendance-card" aria-label="Attendance capture">
                         <div class="attendance-card-header">
                             <div>
@@ -1190,7 +1194,7 @@
                                     <div class="course-bar-row">
                                         <span class="course-bar-label">{{ course.name }}</span>
                                         <div class="course-bar-track">
-                                            <div class="course-bar-fill" style="--pct:{{ course.pct }}%; --clr:{{ course.clr }};"></div>
+                                            <div class="course-bar-fill" data-pct="{{ course.pct }}" data-clr="{{ course.clr }}"></div>
                                         </div>
                                         <span class="course-bar-pct">{{ course.pct }}%</span>
                                     </div>
@@ -1746,8 +1750,12 @@
             updateUI();
         }
 
-        function animateCourseBars() {
-            document.querySelectorAll('.course-bar-fill').forEach((fill, i) => {
+        function animateCourseBars(container = document) {
+            container.querySelectorAll('.course-bar-fill').forEach((fill, i) => {
+                const pct = fill.getAttribute('data-pct');
+                const clr = fill.getAttribute('data-clr');
+                if (pct) fill.style.setProperty('--pct', pct + '%');
+                if (clr) fill.style.setProperty('--clr', clr);
                 fill.style.width = '0';
                 requestAnimationFrame(() => {
                     setTimeout(() => { fill.style.width = 'var(--pct)'; }, 100 + i * 120);
@@ -1950,12 +1958,7 @@
                 }
                 modal.classList.add('open');
                 // Animate bars inside the modal container
-                modal.querySelectorAll('.course-bar-fill').forEach((fill, i) => {
-                    fill.style.width = '0';
-                    requestAnimationFrame(() => {
-                        setTimeout(() => { fill.style.width = 'var(--pct)'; }, 100 + i * 120);
-                    });
-                });
+                animateCourseBars(modal);
             });
         }
 
