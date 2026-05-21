@@ -1,0 +1,1337 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Schedule - Student System</title>
+    <meta name="description" content="Weekly course schedule timetable.">
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/logo1.png') }}?v=20260521">
+    <script src="{{ url_for('static', filename='js/favicon.js') }}" defer></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/tsparticles@2.12.0/tsparticles.bundle.min.js"></script>
+    <style>
+        .schedule-card {
+            background: #ffffff;
+            border: 1px solid rgba(42, 20, 6, 0.08);
+            border-radius: 18px;
+            padding: 28px;
+            box-shadow: 0 4px 24px rgba(42, 20, 6, 0.04);
+            overflow: visible;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        body.dark-mode .schedule-card {
+            background: rgba(12, 14, 40, 0.85);
+            border-color: rgba(99, 102, 241, 0.18);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45);
+            backdrop-filter: blur(12px);
+        }
+
+        .schedule-card-title {
+            color: #2a1406;
+        }
+
+        body.dark-mode .schedule-card-title {
+            color: #ffffff;
+        }
+
+        .schedule-card-subtitle {
+            color: #7a6a5a;
+        }
+
+        body.dark-mode .schedule-card-subtitle {
+            color: #9ba4c7;
+        }
+
+        .timetable-header-icon {
+            stroke: #ff6b35;
+            fill: none;
+            flex-shrink: 0;
+            transition: stroke 0.3s ease;
+        }
+
+        body.dark-mode .timetable-header-icon {
+            stroke: #14b8a6;
+        }
+
+        .edit-schedule-icon {
+            stroke: currentColor;
+            fill: none;
+            flex-shrink: 0;
+            margin-right: 6px;
+            vertical-align: middle;
+        }
+
+        .schedule-header-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .schedule-header-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn-correct-data {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 18px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #ff6b35, #e85c20);
+            color: #ffffff;
+            font-weight: 700;
+            font-size: 14px;
+            text-decoration: none;
+            box-shadow: 0 4px 14px rgba(255, 107, 53, 0.3);
+            transition: transform 0.15s, box-shadow 0.15s;
+        }
+
+        .btn-correct-data:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 18px rgba(255, 107, 53, 0.45);
+        }
+
+        .btn-zoom-schedule {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 16px;
+            border-radius: 10px;
+            border: none;
+            background: linear-gradient(135deg, #0ea5e9, #0284c7);
+            color: #ffffff;
+            font-weight: 700;
+            font-size: 14px;
+            cursor: pointer;
+            box-shadow: 0 4px 14px rgba(2, 132, 199, 0.3);
+            transition: transform 0.15s, box-shadow 0.15s;
+        }
+
+        .btn-zoom-schedule:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 18px rgba(2, 132, 199, 0.45);
+        }
+
+        .btn-zoom-schedule svg {
+            stroke: currentColor;
+            fill: none;
+        }
+
+        body.dark-mode .btn-zoom-schedule {
+            background: linear-gradient(135deg, #0f766e, #14b8a6);
+            box-shadow: 0 4px 14px rgba(20, 184, 166, 0.4);
+        }
+
+        body.dark-mode .btn-zoom-schedule:hover {
+            box-shadow: 0 6px 18px rgba(20, 184, 166, 0.5);
+        }
+
+        body.schedule-zoomed {
+            overflow: hidden;
+        }
+
+        body.schedule-zoomed .dash-sidebar,
+        body.schedule-zoomed .top-header-bar {
+            display: none;
+        }
+
+        body.schedule-zoomed .dash-main-area,
+        body.schedule-zoomed .dash-main-content {
+            margin-left: 0;
+            padding-top: 0;
+        }
+
+        .schedule-card.is-zoomed {
+            position: fixed;
+            inset: 0;
+            z-index: 50;
+            overflow: auto;
+            border-radius: 0;
+        }
+
+        .schedule-zoom-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.6);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s ease;
+            z-index: 40;
+        }
+
+        .schedule-zoom-overlay.is-visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+
+        @media (max-width: 900px) {
+            .schedule-card.is-zoomed {
+                inset: 0;
+            }
+        }
+
+        body.dark-mode .btn-correct-data {
+            background: linear-gradient(135deg, #14b8a6, #6366f1);
+            box-shadow: 0 4px 14px rgba(99, 102, 241, 0.4);
+        }
+
+        body.dark-mode .btn-correct-data:hover {
+            box-shadow: 0 6px 18px rgba(99, 102, 241, 0.5);
+        }
+
+        /* Timetable grid styling */
+        .timetable-container {
+            width: 100%;
+            overflow-x: auto;
+            scrollbar-gutter: stable;
+            border: 1px solid rgba(42, 20, 6, 0.1);
+            border-radius: 14px;
+            background: rgba(255, 255, 255, 0.5);
+            backdrop-filter: blur(8px);
+        }
+
+        .timetable-container::-webkit-scrollbar {
+            height: 10px;
+        }
+
+        .timetable-container::-webkit-scrollbar-track {
+            background: rgba(42, 20, 6, 0.08);
+            border-radius: 999px;
+        }
+
+        .timetable-container::-webkit-scrollbar-thumb {
+            background: rgba(42, 20, 6, 0.35);
+            border-radius: 999px;
+        }
+
+        .timetable-container::-webkit-scrollbar-thumb:hover {
+            background: rgba(42, 20, 6, 0.5);
+        }
+
+        body.dark-mode .timetable-container {
+            border-color: rgba(99, 102, 241, 0.15);
+            background: rgba(12, 14, 40, 0.45);
+        }
+
+        .timetable-grid {
+            min-width: 3000px;
+            display: grid;
+            grid-template-columns: 180px repeat(20, minmax(140px, 1fr));
+            position: relative;
+        }
+
+        .timetable-cell {
+            padding: 10px;
+            border-bottom: 1px solid rgba(42, 20, 6, 0.08);
+            border-right: 1px solid rgba(42, 20, 6, 0.08);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 90px;
+            position: relative;
+        }
+
+        body.dark-mode .timetable-cell {
+            border-color: rgba(255, 255, 255, 0.08);
+        }
+
+        .timetable-header {
+            background: #fdfaf6;
+            font-weight: 700;
+            font-size: 12px;
+            color: #5a4a3a;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            text-align: center;
+            min-height: 52px;
+            padding: 10px 6px;
+            white-space: nowrap;
+        }
+
+        body.dark-mode .timetable-header {
+            background: rgba(20, 24, 60, 0.9);
+            color: #9ba4c7;
+        }
+
+        .timetable-day-label {
+            background: #fdfaf6;
+            font-weight: 700;
+            font-size: 13px;
+            color: #5a4a3a;
+            border-right: 2px solid rgba(42, 20, 6, 0.12);
+            justify-content: flex-start;
+            padding-left: 16px;
+        }
+
+        body.dark-mode .timetable-day-label {
+            background: rgba(20, 24, 60, 0.9);
+            color: #9ba4c7;
+            border-right-color: rgba(99, 102, 241, 0.25);
+        }
+
+        /* ===== Course block styling (spans multiple hours) ===== */
+        .timetable-course-card {
+            position: absolute;
+            top: 4px;
+            left: 4px;
+            bottom: 4px;
+            border-radius: 10px;
+            padding: 10px 12px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            z-index: 5;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+            transition: transform 0.2s, box-shadow 0.2s;
+            cursor: pointer;
+            overflow: hidden;
+        }
+
+        .timetable-course-card:hover {
+            transform: scale(1.025);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+            z-index: 20;
+        }
+
+        .course-card-name {
+            font-size: 12px;
+            font-weight: 700;
+            line-height: 1.25;
+            margin-bottom: 3px;
+            word-break: break-word;
+        }
+
+        .course-card-time {
+            font-size: 10px;
+            font-weight: 600;
+            opacity: 0.85;
+        }
+
+        /* ===== 8 Course Color Palettes — Light Mode ===== */
+        .course-color-0 {
+            background: linear-gradient(135deg, #fff0e8, #ffdbc4);
+            border-left: 4px solid #ff6b35;
+            color: #7a2e00;
+        }
+
+        .course-color-1 {
+            background: linear-gradient(135deg, #e8f4fd, #cce7fa);
+            border-left: 4px solid #2196f3;
+            color: #0d3c61;
+        }
+
+        .course-color-2 {
+            background: linear-gradient(135deg, #e8faf5, #c2f0e2);
+            border-left: 4px solid #10b981;
+            color: #064e3b;
+        }
+
+        .course-color-3 {
+            background: linear-gradient(135deg, #f3e8ff, #e4ccff);
+            border-left: 4px solid #8b5cf6;
+            color: #3b1a82;
+        }
+
+        .course-color-4 {
+            background: linear-gradient(135deg, #fef3c7, #fde68a);
+            border-left: 4px solid #f59e0b;
+            color: #78350f;
+        }
+
+        .course-color-5 {
+            background: linear-gradient(135deg, #fce7f3, #fbcfe8);
+            border-left: 4px solid #ec4899;
+            color: #831843;
+        }
+
+        .course-color-6 {
+            background: linear-gradient(135deg, #e0f2fe, #bae6fd);
+            border-left: 4px solid #0ea5e9;
+            color: #0c4a6e;
+        }
+
+        .course-color-7 {
+            background: linear-gradient(135deg, #fef2f2, #fecaca);
+            border-left: 4px solid #ef4444;
+            color: #7f1d1d;
+        }
+
+        .course-color-0 .course-card-time {
+            color: #c45220;
+        }
+
+        .course-color-1 .course-card-time {
+            color: #1976d2;
+        }
+
+        .course-color-2 .course-card-time {
+            color: #059669;
+        }
+
+        .course-color-3 .course-card-time {
+            color: #7c3aed;
+        }
+
+        .course-color-4 .course-card-time {
+            color: #d97706;
+        }
+
+        .course-color-5 .course-card-time {
+            color: #db2777;
+        }
+
+        .course-color-6 .course-card-time {
+            color: #0284c7;
+        }
+
+        .course-color-7 .course-card-time {
+            color: #dc2626;
+        }
+
+        /* ===== 8 Course Color Palettes — Dark Mode ===== */
+        body.dark-mode .course-color-0 {
+            background: linear-gradient(135deg, rgba(255, 107, 53, 0.2), rgba(255, 107, 53, 0.08));
+            border-left-color: #ff6b35;
+            color: #ffcdb5;
+        }
+
+        body.dark-mode .course-color-1 {
+            background: linear-gradient(135deg, rgba(33, 150, 243, 0.2), rgba(33, 150, 243, 0.08));
+            border-left-color: #42a5f5;
+            color: #bbdefb;
+        }
+
+        body.dark-mode .course-color-2 {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(16, 185, 129, 0.08));
+            border-left-color: #34d399;
+            color: #a7f3d0;
+        }
+
+        body.dark-mode .course-color-3 {
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(139, 92, 246, 0.08));
+            border-left-color: #a78bfa;
+            color: #ddd6fe;
+        }
+
+        body.dark-mode .course-color-4 {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(245, 158, 11, 0.08));
+            border-left-color: #fbbf24;
+            color: #fde68a;
+        }
+
+        body.dark-mode .course-color-5 {
+            background: linear-gradient(135deg, rgba(236, 72, 153, 0.2), rgba(236, 72, 153, 0.08));
+            border-left-color: #f472b6;
+            color: #fbcfe8;
+        }
+
+        body.dark-mode .course-color-6 {
+            background: linear-gradient(135deg, rgba(14, 165, 233, 0.2), rgba(14, 165, 233, 0.08));
+            border-left-color: #38bdf8;
+            color: #bae6fd;
+        }
+
+        body.dark-mode .course-color-7 {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.2), rgba(239, 68, 68, 0.08));
+            border-left-color: #f87171;
+            color: #fecaca;
+        }
+
+        body.dark-mode .course-color-0 .course-card-time {
+            color: #ff8c5c;
+        }
+
+        body.dark-mode .course-color-1 .course-card-time {
+            color: #64b5f6;
+        }
+
+        body.dark-mode .course-color-2 .course-card-time {
+            color: #6ee7b7;
+        }
+
+        body.dark-mode .course-color-3 .course-card-time {
+            color: #c4b5fd;
+        }
+
+        body.dark-mode .course-color-4 .course-card-time {
+            color: #fcd34d;
+        }
+
+        body.dark-mode .course-color-5 .course-card-time {
+            color: #f9a8d4;
+        }
+
+        body.dark-mode .course-color-6 .course-card-time {
+            color: #7dd3fc;
+        }
+
+        body.dark-mode .course-color-7 .course-card-time {
+            color: #fca5a5;
+        }
+
+        body.dark-mode .timetable-course-card {
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        body.dark-mode .timetable-course-card:hover {
+            box-shadow: 0 6px 24px rgba(0, 0, 0, 0.4);
+        }
+
+        /* ===== Course Legend ===== */
+        .course-legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            padding: 14px 0 0;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #5a4a3a;
+        }
+
+        body.dark-mode .legend-item {
+            color: #9ba4c7;
+        }
+
+        .legend-swatch {
+            width: 14px;
+            height: 14px;
+            border-radius: 4px;
+            flex-shrink: 0;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        body.dark-mode .legend-swatch {
+            border-color: rgba(255, 255, 255, 0.15);
+        }
+
+        /* Swatch colors matching the course palettes */
+        .legend-swatch-0 {
+            background: #ff6b35;
+        }
+
+        .legend-swatch-1 {
+            background: #2196f3;
+        }
+
+        .legend-swatch-2 {
+            background: #10b981;
+        }
+
+        .legend-swatch-3 {
+            background: #8b5cf6;
+        }
+
+        .legend-swatch-4 {
+            background: #f59e0b;
+        }
+
+        .legend-swatch-5 {
+            background: #ec4899;
+        }
+
+        .legend-swatch-6 {
+            background: #0ea5e9;
+        }
+
+        .legend-swatch-7 {
+            background: #ef4444;
+        }
+
+        body.dark-mode .legend-swatch-0 {
+            background: #ff6b35;
+        }
+
+        body.dark-mode .legend-swatch-1 {
+            background: #42a5f5;
+        }
+
+        body.dark-mode .legend-swatch-2 {
+            background: #34d399;
+        }
+
+        body.dark-mode .legend-swatch-3 {
+            background: #a78bfa;
+        }
+
+        body.dark-mode .legend-swatch-4 {
+            background: #fbbf24;
+        }
+
+        body.dark-mode .legend-swatch-5 {
+            background: #f472b6;
+        }
+
+        body.dark-mode .legend-swatch-6 {
+            background: #38bdf8;
+        }
+
+        body.dark-mode .legend-swatch-7 {
+            background: #f87171;
+        }
+
+        .no-schedule-box {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 60px 20px;
+            text-align: center;
+            gap: 16px;
+        }
+
+        .no-schedule-icon {
+            font-size: 48px;
+        }
+
+        .no-schedule-text {
+            font-size: 16px;
+            font-weight: 600;
+            color: #7a6a5a;
+        }
+
+        body.dark-mode .no-schedule-text {
+            color: #9ba4c7;
+        }
+    </style>
+</head>
+
+<body class="dash-body">
+    <!-- Animated background anchor -->
+    <div id="particles-bg"
+        style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -2; pointer-events: none;"></div>
+
+    <!-- ===== MAIN LAYOUT WRAPPER ===== -->
+    <div class="dash-layout-wrapper">
+        <!-- ===== LEFT SIDEBAR ===== -->
+        <aside class="dash-sidebar" id="dashSidebar">
+            <!-- Sidebar Header (Logo + Toggle) -->
+            <div class="sidebar-header">
+                <a href="{{ url_for('dashboard') }}" class="dash-logo-link">
+                    <img src="{{ url_for('static', filename='images/Logo_BR.png') }}?v=20260521" alt="Logo"
+                        class="dash-logo-img">
+                </a>
+                <button class="sidebar-toggle-btn" id="sidebarToggle" aria-label="Toggle Sidebar">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="3" y1="12" x2="21" y2="12"></line>
+                        <line x1="3" y1="6" x2="21" y2="6"></line>
+                        <line x1="3" y1="18" x2="21" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+
+            <div class="sidebar-scroll-area">
+                <!-- MENU SECTION -->
+                <div class="sidebar-section">
+                    <span class="section-title">Menu</span>
+                    <nav class="sidebar-nav">
+                        <a href="{{ url_for('dashboard') }}" class="sidebar-item">
+                            <svg class="sidebar-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18"
+                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="3" y="3" width="7" height="7"></rect>
+                                <rect x="14" y="3" width="7" height="7"></rect>
+                                <rect x="14" y="14" width="7" height="7"></rect>
+                                <rect x="3" y="14" width="7" height="7"></rect>
+                            </svg>
+                            <span class="sidebar-text">Dashboard</span>
+                        </a>
+                        <a href="{{ url_for('attendance') }}" class="sidebar-item">
+                            <svg class="sidebar-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18"
+                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                                <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                            </svg>
+                            <span class="sidebar-text">Attendance</span>
+                        </a>
+                        <a href="{{ url_for('recommendations') }}" class="sidebar-item">
+                            <svg class="sidebar-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18"
+                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <polygon
+                                    points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2">
+                                </polygon>
+                            </svg>
+                            <span class="sidebar-text">Recommendation</span>
+                        </a>
+                        <a href="{{ url_for('ai_agent') }}" class="sidebar-item">
+                            <svg class="sidebar-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18"
+                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="3" y="11" width="18" height="10" rx="2"></rect>
+                                <circle cx="12" cy="5" r="2"></circle>
+                                <path d="M12 7v4"></path>
+                                <line x1="8" y1="16" x2="8" y2="16"></line>
+                                <line x1="16" y1="16" x2="16" y2="16"></line>
+                            </svg>
+                            <span class="sidebar-text">AI Agent</span>
+                        </a>
+                    </nav>
+                </div>
+
+                <!-- TOOLS SECTION -->
+                <div class="sidebar-section">
+                    <span class="section-title">Tools</span>
+                    <nav class="sidebar-nav">
+                        <a href="{{ url_for('schedule') }}" class="sidebar-item active">
+                            <svg class="sidebar-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18"
+                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                                <line x1="16" y1="2" x2="16" y2="6"></line>
+                                <line x1="8" y1="2" x2="8" y2="6"></line>
+                                <line x1="3" y1="10" x2="21" y2="10"></line>
+                            </svg>
+                            <span class="sidebar-text">Schedule</span>
+                        </a>
+                    </nav>
+                </div>
+
+                <!-- GENERAL SECTION -->
+                <div class="sidebar-section">
+                    <span class="section-title">General</span>
+                    <nav class="sidebar-nav">
+                        <a href="{{ url_for('our_team') }}" class="sidebar-item">
+                            <svg class="sidebar-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18"
+                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                                <circle cx="9" cy="7" r="4" />
+                                <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                                <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                            </svg>
+                            <span class="sidebar-text">Our Team</span>
+                        </a>
+                        <a href="{{ url_for('help') }}" class="sidebar-item">
+                            <svg class="sidebar-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18"
+                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                                <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                            </svg>
+                            <span class="sidebar-text">Help</span>
+                        </a>
+                    </nav>
+                </div>
+
+                <!-- VIEW SECTION -->
+                <div class="sidebar-section">
+                    <span class="section-title">View</span>
+                    <div class="sidebar-nav">
+                        <button class="sidebar-item dark-mode-toggle" id="btnDarkMode">
+                            <div class="toggle-icon-wrap">
+                                <svg class="sidebar-icon sun-icon" xmlns="http://www.w3.org/2000/svg" width="18"
+                                    height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                    stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="12" cy="12" r="5"></circle>
+                                    <line x1="12" y1="1" x2="12" y2="3"></line>
+                                    <line x1="12" y1="21" x2="12" y2="23"></line>
+                                    <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                                    <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                                    <line x1="1" y1="12" x2="3" y2="12"></line>
+                                    <line x1="21" y1="12" x2="23" y2="12"></line>
+                                    <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                                    <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                                </svg>
+                                <svg class="sidebar-icon moon-icon" xmlns="http://www.w3.org/2000/svg" width="18"
+                                    height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                    stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                                </svg>
+                            </div>
+                            <span class="sidebar-text">Dark mode (off)</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Profile & Logout (Bottom) -->
+            <div class="sidebar-footer">
+                <a href="{{ url_for('profile') }}" class="sidebar-profile-widget" style="text-decoration:none;">
+                    <div class="dash-avatar">
+                        {% if profile_photo %}
+                        <img src="{{ profile_photo }}" alt="Profile"
+                            style="width:100%;height:100%;object-fit:cover;object-position:center;border-radius:50%;">
+                        {% else %}
+                        <span class="avatar-initials">{{ username[0] | upper }}</span>
+                        {% endif %}
+                    </div>
+                    <div class="profile-info sidebar-text">
+                        <span class="profile-name">{{ username }}</span>
+                    </div>
+                </a>
+                <a href="{{ url_for('logout') }}" class="sidebar-logout-btn" title="Logout">
+                    <svg class="sidebar-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18"
+                        viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                        <polyline points="16 17 21 12 16 7"></polyline>
+                        <line x1="21" y1="12" x2="9" y2="12"></line>
+                    </svg>
+                    <span class="sidebar-text">Logout</span>
+                </a>
+            </div>
+        </aside>
+
+        <!-- ===== MAIN CONTENT AREA ===== -->
+        <main class="dash-main-area">
+            <div class="dash-main-content">
+                <!-- ===== TOP PILL HEADER ===== -->
+                <div class="top-header-bar">
+                    <!-- Left: Current Page Name -->
+                    <div class="header-page-title">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                            <line x1="16" y1="2" x2="16" y2="6"></line>
+                            <line x1="8" y1="2" x2="8" y2="6"></line>
+                            <line x1="3" y1="10" x2="21" y2="10"></line>
+                        </svg>
+                        <span>Schedule</span>
+                    </div>
+
+                    <!-- Right: Actions + Profile -->
+                    <div class="header-actions">
+                        <!-- Messages -->
+                        <div class="header-popup-wrap" id="msgWrap">
+                            <button class="header-action-btn" id="headerBtnMsg" aria-label="Messages" title="Messages">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                    stroke-linejoin="round">
+                                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                                </svg>
+                            </button>
+                            <div class="header-popup" id="msgPopup">
+                                <div class="popup-empty">
+                                    <span class="popup-icon">💬</span>
+                                    <span class="popup-msg">No messages right now</span>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Notifications -->
+                        <div class="header-popup-wrap" id="notifWrap">
+                            <button class="header-action-btn has-notif" id="headerBtnNotif" aria-label="Notifications"
+                                title="Notifications">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                    stroke-linejoin="round">
+                                    <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" />
+                                    <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
+                                </svg>
+                                <span class="header-notif-dot"></span>
+                            </button>
+                            <div class="header-popup" id="notifPopup">
+                                <div class="popup-empty">
+                                    <span class="popup-icon">🔔</span>
+                                    <span class="popup-msg">No notifications right now</span>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Profile info -->
+                        <a href="{{ url_for('profile') }}" class="header-profile" style="text-decoration:none;">
+                            <div class="header-avatar">
+                                {% if profile_photo %}
+                                <img src="{{ profile_photo }}" alt="Profile"
+                                    style="width:100%;height:100%;object-fit:cover;object-position:center;border-radius:50%;">
+                                {% else %}
+                                <span class="avatar-initials">{{ username[0] | upper }}</span>
+                                {% endif %}
+                            </div>
+                            <div class="header-profile-info">
+                                <span class="header-profile-name">{{ username }}</span>
+                                <span class="header-profile-email">{{ email }}</span>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+
+                <div class="dash-welcome">
+                    <h1 class="dash-welcome-text">Weekly Course <span class="welcome-name">Schedule</span></h1>
+                    <p class="dash-welcome-sub">View and keep track of your active courses, class timings, and weekly
+                        timetable overview.</p>
+                </div>
+
+                <!-- Timetable card -->
+                <div class="schedule-zoom-overlay" id="scheduleZoomOverlay" aria-hidden="true"></div>
+                <div class="schedule-card">
+                    <div class="schedule-header-row">
+                        <div class="schedule-header-info">
+                            <h2 class="schedule-card-title"
+                                style="margin:0; font-size:18px; font-weight:700; display: flex; align-items: center; gap: 8px;">
+                                <svg class="timetable-header-icon" xmlns="http://www.w3.org/2000/svg" width="22"
+                                    height="22" viewBox="0 0 24 24">
+                                    <rect x="3" y="3" width="18" height="18" rx="2.5"></rect>
+                                    <path d="M3 9h18"></path>
+                                    <path d="M3 15h18"></path>
+                                    <path d="M9 9v12"></path>
+                                    <path d="M15 9v12"></path>
+                                </svg>
+                                Timetable Overview
+                            </h2>
+                            <p class="schedule-card-subtitle" style="margin:4px 0 0 0; font-size:13px;">Click the button
+                                on the right to edit or modify your weekly courses.</p>
+                        </div>
+                        <div class="schedule-header-actions">
+                            <button type="button" class="btn-zoom-schedule" id="zoomScheduleBtn" aria-pressed="false"
+                                title="Zoom schedule">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24">
+                                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                                    <polyline points="9 3 9 9 3 9"></polyline>
+                                    <polyline points="15 21 15 15 21 15"></polyline>
+                                </svg>
+                                <span class="zoom-label">Zoom Schedule</span>
+                            </button>
+                            <a href="{{ url_for('course_schedule', edit='true') }}" class="btn-correct-data">
+                                <svg class="edit-schedule-icon" xmlns="http://www.w3.org/2000/svg" width="16"
+                                    height="16" viewBox="0 0 24 24">
+                                    <path d="M12 20h9"></path>
+                                    <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"></path>
+                                </svg>
+                                Edit Schedule
+                            </a>
+                        </div>
+                    </div>
+
+                    {% if schedule_entries %}
+                    <div class="timetable-container">
+                        <div class="timetable-grid">
+                            <!-- Headers -->
+                            <div class="timetable-cell timetable-header">Days</div>
+                            <div class="timetable-cell timetable-header">08:00 - 08:30</div>
+                            <div class="timetable-cell timetable-header">08:30 - 09:00</div>
+                            <div class="timetable-cell timetable-header">09:00 - 09:30</div>
+                            <div class="timetable-cell timetable-header">09:30 - 10:00</div>
+                            <div class="timetable-cell timetable-header">10:00 - 10:30</div>
+                            <div class="timetable-cell timetable-header">10:30 - 11:00</div>
+                            <div class="timetable-cell timetable-header">11:00 - 11:30</div>
+                            <div class="timetable-cell timetable-header">11:30 - 12:00</div>
+                            <div class="timetable-cell timetable-header">12:00 - 12:30</div>
+                            <div class="timetable-cell timetable-header">12:30 - 13:00</div>
+                            <div class="timetable-cell timetable-header">13:00 - 13:30</div>
+                            <div class="timetable-cell timetable-header">13:30 - 14:00</div>
+                            <div class="timetable-cell timetable-header">14:00 - 14:30</div>
+                            <div class="timetable-cell timetable-header">14:30 - 15:00</div>
+                            <div class="timetable-cell timetable-header">15:00 - 15:30</div>
+                            <div class="timetable-cell timetable-header">15:30 - 16:00</div>
+                            <div class="timetable-cell timetable-header">16:00 - 16:30</div>
+                            <div class="timetable-cell timetable-header">16:30 - 17:00</div>
+                            <div class="timetable-cell timetable-header">17:00 - 17:30</div>
+                            <div class="timetable-cell timetable-header">17:30 - 18:00</div>
+
+                            <!-- Saturday -->
+                            <div class="timetable-cell timetable-day-label">Saturday</div>
+                            <div class="timetable-cell" data-day="Saturday" data-minute="480"></div>
+                            <div class="timetable-cell" data-day="Saturday" data-minute="510"></div>
+                            <div class="timetable-cell" data-day="Saturday" data-minute="540"></div>
+                            <div class="timetable-cell" data-day="Saturday" data-minute="570"></div>
+                            <div class="timetable-cell" data-day="Saturday" data-minute="600"></div>
+                            <div class="timetable-cell" data-day="Saturday" data-minute="630"></div>
+                            <div class="timetable-cell" data-day="Saturday" data-minute="660"></div>
+                            <div class="timetable-cell" data-day="Saturday" data-minute="690"></div>
+                            <div class="timetable-cell" data-day="Saturday" data-minute="720"></div>
+                            <div class="timetable-cell" data-day="Saturday" data-minute="750"></div>
+                            <div class="timetable-cell" data-day="Saturday" data-minute="780"></div>
+                            <div class="timetable-cell" data-day="Saturday" data-minute="810"></div>
+                            <div class="timetable-cell" data-day="Saturday" data-minute="840"></div>
+                            <div class="timetable-cell" data-day="Saturday" data-minute="870"></div>
+                            <div class="timetable-cell" data-day="Saturday" data-minute="900"></div>
+                            <div class="timetable-cell" data-day="Saturday" data-minute="930"></div>
+                            <div class="timetable-cell" data-day="Saturday" data-minute="960"></div>
+                            <div class="timetable-cell" data-day="Saturday" data-minute="990"></div>
+                            <div class="timetable-cell" data-day="Saturday" data-minute="1020"></div>
+                            <div class="timetable-cell" data-day="Saturday" data-minute="1050"></div>
+
+                            <!-- Sunday -->
+                            <div class="timetable-cell timetable-day-label">Sunday</div>
+                            <div class="timetable-cell" data-day="Sunday" data-minute="480"></div>
+                            <div class="timetable-cell" data-day="Sunday" data-minute="510"></div>
+                            <div class="timetable-cell" data-day="Sunday" data-minute="540"></div>
+                            <div class="timetable-cell" data-day="Sunday" data-minute="570"></div>
+                            <div class="timetable-cell" data-day="Sunday" data-minute="600"></div>
+                            <div class="timetable-cell" data-day="Sunday" data-minute="630"></div>
+                            <div class="timetable-cell" data-day="Sunday" data-minute="660"></div>
+                            <div class="timetable-cell" data-day="Sunday" data-minute="690"></div>
+                            <div class="timetable-cell" data-day="Sunday" data-minute="720"></div>
+                            <div class="timetable-cell" data-day="Sunday" data-minute="750"></div>
+                            <div class="timetable-cell" data-day="Sunday" data-minute="780"></div>
+                            <div class="timetable-cell" data-day="Sunday" data-minute="810"></div>
+                            <div class="timetable-cell" data-day="Sunday" data-minute="840"></div>
+                            <div class="timetable-cell" data-day="Sunday" data-minute="870"></div>
+                            <div class="timetable-cell" data-day="Sunday" data-minute="900"></div>
+                            <div class="timetable-cell" data-day="Sunday" data-minute="930"></div>
+                            <div class="timetable-cell" data-day="Sunday" data-minute="960"></div>
+                            <div class="timetable-cell" data-day="Sunday" data-minute="990"></div>
+                            <div class="timetable-cell" data-day="Sunday" data-minute="1020"></div>
+                            <div class="timetable-cell" data-day="Sunday" data-minute="1050"></div>
+
+                            <!-- Monday -->
+                            <div class="timetable-cell timetable-day-label">Monday</div>
+                            <div class="timetable-cell" data-day="Monday" data-minute="480"></div>
+                            <div class="timetable-cell" data-day="Monday" data-minute="510"></div>
+                            <div class="timetable-cell" data-day="Monday" data-minute="540"></div>
+                            <div class="timetable-cell" data-day="Monday" data-minute="570"></div>
+                            <div class="timetable-cell" data-day="Monday" data-minute="600"></div>
+                            <div class="timetable-cell" data-day="Monday" data-minute="630"></div>
+                            <div class="timetable-cell" data-day="Monday" data-minute="660"></div>
+                            <div class="timetable-cell" data-day="Monday" data-minute="690"></div>
+                            <div class="timetable-cell" data-day="Monday" data-minute="720"></div>
+                            <div class="timetable-cell" data-day="Monday" data-minute="750"></div>
+                            <div class="timetable-cell" data-day="Monday" data-minute="780"></div>
+                            <div class="timetable-cell" data-day="Monday" data-minute="810"></div>
+                            <div class="timetable-cell" data-day="Monday" data-minute="840"></div>
+                            <div class="timetable-cell" data-day="Monday" data-minute="870"></div>
+                            <div class="timetable-cell" data-day="Monday" data-minute="900"></div>
+                            <div class="timetable-cell" data-day="Monday" data-minute="930"></div>
+                            <div class="timetable-cell" data-day="Monday" data-minute="960"></div>
+                            <div class="timetable-cell" data-day="Monday" data-minute="990"></div>
+                            <div class="timetable-cell" data-day="Monday" data-minute="1020"></div>
+                            <div class="timetable-cell" data-day="Monday" data-minute="1050"></div>
+
+                            <!-- Tuesday -->
+                            <div class="timetable-cell timetable-day-label">Tuesday</div>
+                            <div class="timetable-cell" data-day="Tuesday" data-minute="480"></div>
+                            <div class="timetable-cell" data-day="Tuesday" data-minute="510"></div>
+                            <div class="timetable-cell" data-day="Tuesday" data-minute="540"></div>
+                            <div class="timetable-cell" data-day="Tuesday" data-minute="570"></div>
+                            <div class="timetable-cell" data-day="Tuesday" data-minute="600"></div>
+                            <div class="timetable-cell" data-day="Tuesday" data-minute="630"></div>
+                            <div class="timetable-cell" data-day="Tuesday" data-minute="660"></div>
+                            <div class="timetable-cell" data-day="Tuesday" data-minute="690"></div>
+                            <div class="timetable-cell" data-day="Tuesday" data-minute="720"></div>
+                            <div class="timetable-cell" data-day="Tuesday" data-minute="750"></div>
+                            <div class="timetable-cell" data-day="Tuesday" data-minute="780"></div>
+                            <div class="timetable-cell" data-day="Tuesday" data-minute="810"></div>
+                            <div class="timetable-cell" data-day="Tuesday" data-minute="840"></div>
+                            <div class="timetable-cell" data-day="Tuesday" data-minute="870"></div>
+                            <div class="timetable-cell" data-day="Tuesday" data-minute="900"></div>
+                            <div class="timetable-cell" data-day="Tuesday" data-minute="930"></div>
+                            <div class="timetable-cell" data-day="Tuesday" data-minute="960"></div>
+                            <div class="timetable-cell" data-day="Tuesday" data-minute="990"></div>
+                            <div class="timetable-cell" data-day="Tuesday" data-minute="1020"></div>
+                            <div class="timetable-cell" data-day="Tuesday" data-minute="1050"></div>
+
+                            <!-- Wednesday -->
+                            <div class="timetable-cell timetable-day-label">Wednesday</div>
+                            <div class="timetable-cell" data-day="Wednesday" data-minute="480"></div>
+                            <div class="timetable-cell" data-day="Wednesday" data-minute="510"></div>
+                            <div class="timetable-cell" data-day="Wednesday" data-minute="540"></div>
+                            <div class="timetable-cell" data-day="Wednesday" data-minute="570"></div>
+                            <div class="timetable-cell" data-day="Wednesday" data-minute="600"></div>
+                            <div class="timetable-cell" data-day="Wednesday" data-minute="630"></div>
+                            <div class="timetable-cell" data-day="Wednesday" data-minute="660"></div>
+                            <div class="timetable-cell" data-day="Wednesday" data-minute="690"></div>
+                            <div class="timetable-cell" data-day="Wednesday" data-minute="720"></div>
+                            <div class="timetable-cell" data-day="Wednesday" data-minute="750"></div>
+                            <div class="timetable-cell" data-day="Wednesday" data-minute="780"></div>
+                            <div class="timetable-cell" data-day="Wednesday" data-minute="810"></div>
+                            <div class="timetable-cell" data-day="Wednesday" data-minute="840"></div>
+                            <div class="timetable-cell" data-day="Wednesday" data-minute="870"></div>
+                            <div class="timetable-cell" data-day="Wednesday" data-minute="900"></div>
+                            <div class="timetable-cell" data-day="Wednesday" data-minute="930"></div>
+                            <div class="timetable-cell" data-day="Wednesday" data-minute="960"></div>
+                            <div class="timetable-cell" data-day="Wednesday" data-minute="990"></div>
+                            <div class="timetable-cell" data-day="Wednesday" data-minute="1020"></div>
+                            <div class="timetable-cell" data-day="Wednesday" data-minute="1050"></div>
+
+                            <!-- Thursday -->
+                            <div class="timetable-cell timetable-day-label">Thursday</div>
+                            <div class="timetable-cell" data-day="Thursday" data-minute="480"></div>
+                            <div class="timetable-cell" data-day="Thursday" data-minute="510"></div>
+                            <div class="timetable-cell" data-day="Thursday" data-minute="540"></div>
+                            <div class="timetable-cell" data-day="Thursday" data-minute="570"></div>
+                            <div class="timetable-cell" data-day="Thursday" data-minute="600"></div>
+                            <div class="timetable-cell" data-day="Thursday" data-minute="630"></div>
+                            <div class="timetable-cell" data-day="Thursday" data-minute="660"></div>
+                            <div class="timetable-cell" data-day="Thursday" data-minute="690"></div>
+                            <div class="timetable-cell" data-day="Thursday" data-minute="720"></div>
+                            <div class="timetable-cell" data-day="Thursday" data-minute="750"></div>
+                            <div class="timetable-cell" data-day="Thursday" data-minute="780"></div>
+                            <div class="timetable-cell" data-day="Thursday" data-minute="810"></div>
+                            <div class="timetable-cell" data-day="Thursday" data-minute="840"></div>
+                            <div class="timetable-cell" data-day="Thursday" data-minute="870"></div>
+                            <div class="timetable-cell" data-day="Thursday" data-minute="900"></div>
+                            <div class="timetable-cell" data-day="Thursday" data-minute="930"></div>
+                            <div class="timetable-cell" data-day="Thursday" data-minute="960"></div>
+                            <div class="timetable-cell" data-day="Thursday" data-minute="990"></div>
+                            <div class="timetable-cell" data-day="Thursday" data-minute="1020"></div>
+                            <div class="timetable-cell" data-day="Thursday" data-minute="1050"></div>
+
+                            <!-- Friday -->
+                            <div class="timetable-cell timetable-day-label">Friday</div>
+                            <div class="timetable-cell" data-day="Friday" data-minute="480"></div>
+                            <div class="timetable-cell" data-day="Friday" data-minute="510"></div>
+                            <div class="timetable-cell" data-day="Friday" data-minute="540"></div>
+                            <div class="timetable-cell" data-day="Friday" data-minute="570"></div>
+                            <div class="timetable-cell" data-day="Friday" data-minute="600"></div>
+                            <div class="timetable-cell" data-day="Friday" data-minute="630"></div>
+                            <div class="timetable-cell" data-day="Friday" data-minute="660"></div>
+                            <div class="timetable-cell" data-day="Friday" data-minute="690"></div>
+                            <div class="timetable-cell" data-day="Friday" data-minute="720"></div>
+                            <div class="timetable-cell" data-day="Friday" data-minute="750"></div>
+                            <div class="timetable-cell" data-day="Friday" data-minute="780"></div>
+                            <div class="timetable-cell" data-day="Friday" data-minute="810"></div>
+                            <div class="timetable-cell" data-day="Friday" data-minute="840"></div>
+                            <div class="timetable-cell" data-day="Friday" data-minute="870"></div>
+                            <div class="timetable-cell" data-day="Friday" data-minute="900"></div>
+                            <div class="timetable-cell" data-day="Friday" data-minute="930"></div>
+                            <div class="timetable-cell" data-day="Friday" data-minute="960"></div>
+                            <div class="timetable-cell" data-day="Friday" data-minute="990"></div>
+                            <div class="timetable-cell" data-day="Friday" data-minute="1020"></div>
+                            <div class="timetable-cell" data-day="Friday" data-minute="1050"></div>
+                        </div>
+                    </div>
+                    <!-- Course color legend -->
+                    <div id="courseLegend" class="course-legend"></div>
+                    {% else %}
+                    <div class="no-schedule-box">
+                        <span class="no-schedule-icon">📅</span>
+                        <div class="no-schedule-text">No courses scheduled yet.</div>
+                        <a href="{{ url_for('course_schedule', edit='true') }}" class="btn-correct-data">
+                            ➕ Set Up Schedule
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        /* ===== SIDEBAR ===== */
+        const sidebar = document.getElementById('dashSidebar');
+        const toggleBtn = document.getElementById('sidebarToggle');
+        if (toggleBtn) toggleBtn.addEventListener('click', () => sidebar.classList.toggle('collapsed'));
+
+        /* ===== DARK MODE ===== */
+        const darkModeBtn = document.getElementById('btnDarkMode');
+        const darkModeText = darkModeBtn.querySelector('.sidebar-text');
+        const isDark = localStorage.getItem('theme') === 'dark';
+        if (isDark) {
+            document.body.classList.add('dark-mode');
+            darkModeText.textContent = 'Dark mode (on)';
+            darkModeBtn.classList.add('active');
+        }
+
+        let particlesContainer;
+        tsParticles.load('particles-bg', {
+            fpsLimit: 60,
+            particles: {
+                color: { value: isDark ? ['#e8c547', '#ff6b35', '#80706a'] : ['#ff6b35', '#ffc5d0', '#ffffff'] },
+                move: { enable: true, direction: 'top', random: true, speed: 0.6, straight: false },
+                number: { density: { enable: true, area: 800 }, value: 100 },
+                opacity: { value: { min: 0.2, max: 0.6 }, animation: { enable: true, speed: 0.8, minimumValue: 0.1 } },
+                shape: { type: 'circle' },
+                size: { value: { min: 2, max: 8 }, animation: { enable: true, speed: 1.5, minimumValue: 2 } }
+            },
+            detectRetina: true
+        }).then(c => { particlesContainer = c; });
+
+        darkModeBtn.addEventListener('click', () => {
+            document.body.classList.toggle('dark-mode');
+            const on = document.body.classList.contains('dark-mode');
+            localStorage.setItem('theme', on ? 'dark' : 'light');
+            darkModeText.textContent = on ? 'Dark mode (on)' : 'Dark mode (off)';
+            darkModeBtn.classList.toggle('active', on);
+            if (particlesContainer) {
+                particlesContainer.options.particles.color.value = on
+                    ? ['#e8c547', '#ff6b35', '#80706a']
+                    : ['#ff6b35', '#ffc5d0', '#ffffff'];
+                particlesContainer.refresh();
+            }
+        });
+
+        /* ===== POPUPS ===== */
+        function setupPopup(btnId, popupId) {
+            const btn = document.getElementById(btnId);
+            const popup = document.getElementById(popupId);
+            if (!btn || !popup) return;
+            btn.addEventListener('click', e => {
+                e.stopPropagation();
+                document.querySelectorAll('.header-popup.open').forEach(p => { if (p !== popup) p.classList.remove('open'); });
+                popup.classList.toggle('open');
+            });
+        }
+        setupPopup('headerBtnMsg', 'msgPopup');
+        setupPopup('headerBtnNotif', 'notifPopup');
+
+        document.addEventListener('click', () => {
+            document.querySelectorAll('.header-popup.open').forEach(p => p.classList.remove('open'));
+        });
+
+        /* ===== RENDER COURSES ON TIMETABLE ===== */
+        const scheduleEntries = {{ schedule_entries | tojson if schedule_entries is defined else '[]' }};
+
+        function timeToMinutes(timeStr) {
+            if (!timeStr || typeof timeStr !== 'string') return null;
+            const parts = timeStr.split(':');
+            const hours = Number(parts[0]);
+            const minutes = Number(parts[1]);
+            if (!Number.isFinite(hours) || !Number.isFinite(minutes)) return null;
+            return hours * 60 + minutes;
+        }
+
+        function computeCardGeometry(day, startMinutes, endMinutes) {
+            if (startMinutes === null || endMinutes === null || endMinutes <= startMinutes) return null;
+            const slotMinutes = 30;
+            const startSlot = Math.floor(startMinutes / slotMinutes) * slotMinutes;
+            const endSlot = Math.floor((endMinutes - 1) / slotMinutes) * slotMinutes;
+            const startCell = document.querySelector(`.timetable-cell[data-day="${day}"][data-minute="${startSlot}"]`);
+            const endCell = document.querySelector(`.timetable-cell[data-day="${day}"][data-minute="${endSlot}"]`);
+            if (!startCell || !endCell) return null;
+
+            const startRect = startCell.getBoundingClientRect();
+            const endRect = endCell.getBoundingClientRect();
+            const startCellWidth = startRect.width;
+            const endCellWidth = endRect.width;
+            const startFraction = (startMinutes - startSlot) / slotMinutes;
+            const endFractionRaw = (endMinutes - endSlot) / slotMinutes;
+            const endFraction = endFractionRaw === 0 ? 1 : endFractionRaw;
+            const startX = startRect.left + (startCellWidth * startFraction);
+            const endX = endRect.left + (endCellWidth * endFraction);
+            const inset = 4;
+            const left = startX - startRect.left + inset;
+            const width = Math.max(24, endX - startX - inset * 2);
+
+            return { startCell, left, width };
+        }
+
+        // Build a color map: assign a unique color index (0–7) to each distinct course name
+        const courseColorMap = {};
+        let colorIdx = 0;
+        scheduleEntries.forEach(course => {
+            if (!(course.course_name in courseColorMap)) {
+                courseColorMap[course.course_name] = colorIdx % 8;
+                colorIdx++;
+            }
+        });
+
+        // Render each course entry as a card that spans the correct number of hour columns
+        scheduleEntries.forEach(course => {
+            const day = course.day;
+            const startMinutes = timeToMinutes(course.start_time);
+            const endMinutes = timeToMinutes(course.end_time);
+            const ci = courseColorMap[course.course_name];
+            const geometry = computeCardGeometry(day, startMinutes, endMinutes);
+            if (!geometry) return;
+
+            const card = document.createElement('div');
+            card.className = `timetable-course-card course-color-${ci}`;
+            card.title = `${course.course_name} (${course.start_time} – ${course.end_time})`;
+            card.style.left = `${geometry.left}px`;
+            card.style.width = `${geometry.width}px`;
+            card.dataset.day = day;
+            card.dataset.start = String(startMinutes);
+            card.dataset.end = String(endMinutes);
+
+            const name = document.createElement('div');
+            name.className = 'course-card-name';
+            name.textContent = course.course_name;
+
+            const time = document.createElement('div');
+            time.className = 'course-card-time';
+            time.textContent = `${course.start_time} – ${course.end_time}`;
+
+            card.appendChild(name);
+            card.appendChild(time);
+            geometry.startCell.appendChild(card);
+        });
+
+        const timetableContainer = document.querySelector('.timetable-container');
+        if (timetableContainer) {
+            timetableContainer.addEventListener('wheel', (event) => {
+                const delta = Math.abs(event.deltaY) > Math.abs(event.deltaX) ? event.deltaY : event.deltaX;
+                if (delta !== 0) {
+                    timetableContainer.scrollLeft += delta;
+                    event.preventDefault();
+                }
+            }, { passive: false });
+        }
+
+        // Recalculate widths on window resize so spanning stays accurate
+        let resizeTimer;
+        window.addEventListener('resize', () => {
+            clearTimeout(resizeTimer);
+            resizeTimer = setTimeout(() => {
+                document.querySelectorAll('.timetable-course-card').forEach(card => {
+                    const day = card.dataset.day;
+                    const startMinutes = Number(card.dataset.start);
+                    const endMinutes = Number(card.dataset.end);
+                    const geometry = computeCardGeometry(day, startMinutes, endMinutes);
+                    if (!geometry) return;
+                    card.style.left = `${geometry.left}px`;
+                    card.style.width = `${geometry.width}px`;
+                });
+            }, 150);
+        });
+
+        const zoomBtn = document.getElementById('zoomScheduleBtn');
+        const scheduleCard = document.querySelector('.schedule-card');
+        const zoomOverlay = document.getElementById('scheduleZoomOverlay');
+        if (zoomBtn && scheduleCard) {
+            const zoomLabel = zoomBtn.querySelector('.zoom-label');
+            const setZoomState = (state) => {
+                scheduleCard.classList.toggle('is-zoomed', state);
+                document.body.classList.toggle('schedule-zoomed', state);
+                zoomBtn.setAttribute('aria-pressed', String(state));
+                if (zoomOverlay) {
+                    zoomOverlay.classList.toggle('is-visible', state);
+                    zoomOverlay.setAttribute('aria-hidden', String(!state));
+                }
+                if (zoomLabel) {
+                    zoomLabel.textContent = state ? 'Exit Zoom' : 'Zoom Schedule';
+                }
+            };
+
+            zoomBtn.addEventListener('click', () => {
+                setZoomState(!scheduleCard.classList.contains('is-zoomed'));
+            });
+
+            if (zoomOverlay) {
+                zoomOverlay.addEventListener('click', () => setZoomState(false));
+            }
+        }
+
+        // Build color legend below the timetable
+        const legendContainer = document.getElementById('courseLegend');
+        if (legendContainer) {
+            Object.keys(courseColorMap).forEach(courseName => {
+                const ci = courseColorMap[courseName];
+                const item = document.createElement('div');
+                item.className = 'legend-item';
+                const swatch = document.createElement('span');
+                swatch.className = `legend-swatch legend-swatch-${ci}`;
+                const label = document.createElement('span');
+                label.textContent = courseName;
+                item.appendChild(swatch);
+                item.appendChild(label);
+                legendContainer.appendChild(item);
+            });
+        }
+    </script>
+</body>
+
+</html>

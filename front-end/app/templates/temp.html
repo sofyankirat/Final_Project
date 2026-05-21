@@ -6,7 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Our Team - {{ username }}</title>
     <meta name="description" content="Meet the team behind the Student Recommendation and Attendance System.">
-    <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/favicon.png') }}?v=3">
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/logo1.png') }}?v=20260521">
+    <script src="{{ url_for('static', filename='js/favicon.js') }}" defer></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -329,7 +330,8 @@
         <aside class="dash-sidebar" id="dashSidebar">
             <div class="sidebar-header">
                 <a href="{{ url_for('dashboard') }}" class="dash-logo-link">
-                    <img src="{{ url_for('static', filename='images/Logo_BR.png') }}" alt="Logo" class="dash-logo-img">
+                    <img src="{{ url_for('static', filename='images/Logo_BR.png') }}?v=20260521" alt="Logo"
+                        class="dash-logo-img">
                 </a>
                 <button class="sidebar-toggle-btn" id="sidebarToggle" aria-label="Toggle Sidebar">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
@@ -386,6 +388,24 @@
                                 <line x1="16" y1="16" x2="16" y2="16"></line>
                             </svg>
                             <span class="sidebar-text">AI Agent</span>
+                        </a>
+                    </nav>
+                </div>
+
+                <!-- TOOLS SECTION -->
+                <div class="sidebar-section">
+                    <span class="section-title">Tools</span>
+                    <nav class="sidebar-nav">
+                        <a href="{{ url_for('schedule') }}" class="sidebar-item">
+                            <svg class="sidebar-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18"
+                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                                <line x1="16" y1="2" x2="16" y2="6"></line>
+                                <line x1="8" y1="2" x2="8" y2="6"></line>
+                                <line x1="3" y1="10" x2="21" y2="10"></line>
+                            </svg>
+                            <span class="sidebar-text">Schedule</span>
                         </a>
                     </nav>
                 </div>

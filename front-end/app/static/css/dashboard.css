@@ -234,6 +234,7 @@
     height: 18px;
     flex-shrink: 0;
     pointer-events: none;
+    transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .toggle-icon-wrap .sidebar-icon {
@@ -269,6 +270,10 @@ body.dark-mode .dark-mode-toggle .moon-icon {
     opacity: 1 !important;
     transform: rotate(0deg) scale(1);
     z-index: 2;
+}
+
+body.dark-mode .toggle-icon-wrap {
+    transform: rotate(360deg);
 }
 
 /* Sidebar Footer */
@@ -470,36 +475,38 @@ body.dark-mode .dark-mode-toggle .moon-icon {
 
 /* Dark mode overrides for the top bar */
 body.dark-mode .top-header-bar {
-    background: #211107;
-    border-color: rgba(255, 255, 255, 0.06);
-    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
+    background: rgba(12, 14, 40, 0.85);
+    border-color: rgba(99, 102, 241, 0.15);
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(12px);
 }
 
 body.dark-mode .header-action-btn {
-    background: rgba(255, 255, 255, 0.06);
-    border-color: rgba(255, 255, 255, 0.06);
-    color: #d8cec4;
+    background: rgba(99, 102, 241, 0.08);
+    border-color: rgba(99, 102, 241, 0.15);
+    color: #9ba4c7;
 }
 
 body.dark-mode .header-action-btn:hover {
-    background: #ff6b35;
+    background: linear-gradient(135deg, #6366f1, #14b8a6);
     color: #ffffff;
+    box-shadow: 0 6px 18px rgba(99, 102, 241, 0.35);
 }
 
 body.dark-mode .header-profile {
-    border-left-color: rgba(255, 255, 255, 0.07);
+    border-left-color: rgba(99, 102, 241, 0.15);
 }
 
 body.dark-mode .header-profile-name {
-    color: #f5f0ea;
+    color: #ffffff;
 }
 
 body.dark-mode .header-profile-email {
-    color: #9a8a7a;
+    color: #9ba4c7;
 }
 
 body.dark-mode .header-notif-dot {
-    border-color: #211107;
+    border-color: #0c0e28;
 }
 
 /* ==================== POPUP DROPDOWNS ==================== */
@@ -643,6 +650,63 @@ body.dark-mode .course-bar-pct {
     grid-row: 2 / 4;
 }
 
+.gpa-progress-layout {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.gpa-grade-panel {
+    min-width: 120px;
+    padding: 2px 16px 6px;
+    border-radius: 12px;
+    background: transparent;
+    border: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+}
+
+.gpa-grade-divider {
+    width: 86%;
+    height: 1px;
+    background: rgba(42, 20, 6, 0.16);
+}
+
+.gpa-grade-label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #7a6a5a;
+}
+
+.gpa-grade-value {
+    font-size: 26px;
+    font-weight: 800;
+    color: #1a1a1a;
+    line-height: 1;
+}
+
+body.dark-mode .gpa-grade-label {
+    color: #9ba4c7;
+}
+
+body.dark-mode .gpa-grade-value {
+    color: #f8fafc;
+}
+
+body.dark-mode .gpa-grade-divider {
+    background: rgba(255, 255, 255, 0.18);
+}
+
+body.dark-mode #donut-gpa-progress {
+    stroke: #4fd4ff;
+}
+
 
 .dash-welcome {
     animation: fadeSlideIn 0.55s ease-out both;
@@ -684,6 +748,8 @@ body.dark-mode .course-bar-pct {
     gap: 14px;
     position: relative;
     transition: transform 0.22s ease, box-shadow 0.22s ease;
+    transform: translateZ(0);
+    will-change: transform;
     overflow: hidden;
 }
 
@@ -828,10 +894,37 @@ body.dark-mode .course-bar-pct {
     flex-direction: column;
     gap: 14px;
     transition: transform 0.22s ease, box-shadow 0.22s ease;
+    transform: translateZ(0);
+    will-change: transform;
 }
 
 .dash-card:hover {
     box-shadow: 0 8px 28px rgba(42, 20, 6, 0.09);
+}
+
+body:not(.dark-mode) .dash-card,
+body:not(.dark-mode) .dash-stat-card {
+    background:
+        radial-gradient(ellipse at 15% 20%, rgba(255, 211, 184, 0.55) 0%, transparent 55%),
+        radial-gradient(ellipse at 85% 75%, rgba(255, 164, 122, 0.18) 0%, transparent 55%),
+        linear-gradient(155deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 241, 230, 0.92) 55%, rgba(255, 250, 244, 0.98) 100%);
+}
+
+body:not(.dark-mode) .dash-card:hover,
+body:not(.dark-mode) .dash-stat-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 36px rgba(42, 20, 6, 0.14), 0 0 0 1px rgba(255, 107, 53, 0.15);
+}
+
+body:not(.dark-mode) #card-attendance-chart .card-chart-area,
+body:not(.dark-mode) #card-gpa-progress .card-chart-area,
+body:not(.dark-mode) #card-course-attendance .course-bars-area {
+    background: transparent;
+    border-radius: 16px;
+}
+
+body:not(.dark-mode) #card-attendance-chart .card-chart-area {
+    padding: 14px 12px;
 }
 
 /* Card header */
@@ -942,8 +1035,8 @@ body.dark-mode .course-bar-pct {
 .donut-ring,
 .clock-ring {
     position: relative;
-    width: 100px;
-    height: 100px;
+    width: 120px;
+    height: 120px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -964,12 +1057,37 @@ body.dark-mode .course-bar-pct {
     line-height: 1.3;
 }
 
+#donut-gpa-progress {
+    transition: stroke-dasharray 0.8s ease;
+}
+
 .donut-label small {
     font-size: 9px;
     font-weight: 500;
     color: #7a6a5a;
     display: block;
 }
+
+body:not(.dark-mode) #card-attendance-chart .card-chart-area,
+body:not(.dark-mode) #card-gpa-progress .card-chart-area,
+body:not(.dark-mode) #card-course-attendance .course-bars-area {
+    background: transparent;
+    border-radius: 16px;
+}
+
+body.dark-mode .donut-label {
+    color: #f8fafc;
+}
+
+body.dark-mode .donut-label small {
+    color: #cbd5f5;
+}
+
+body.dark-mode #donut-gpa-progress {
+    stroke: #38c8f4;
+}
+
+/* Synchronized card and chart hover translate animations */
 
 /* ==================== SKELETON / TABLE PLACEHOLDER ==================== */
 .placeholder-table {
@@ -1339,6 +1457,7 @@ body.dark-mode .dash-stat-card {
 
 body.dark-mode .dash-card:hover,
 body.dark-mode .dash-stat-card:hover {
+    transform: translateY(-3px);
     box-shadow: 0 12px 36px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 107, 53, 0.15);
 }
 
@@ -1406,3 +1525,142 @@ body.dark-mode .sidebar-profile-widget .profile-name,
 body.dark-mode .sidebar-profile-widget .avatar-initials {
     color: #ffffff !important;
 }
+
+/* ==================== CUSTOM MODAL ZOOM WINDOW ==================== */
+.custom-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 10000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+}
+
+.custom-modal.open {
+    display: flex;
+}
+
+.custom-modal-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(15, 12, 10, 0.45);
+    backdrop-filter: blur(8px);
+    transition: opacity 0.3s ease;
+}
+
+.custom-modal-container {
+    position: relative;
+    width: 100%;
+    max-width: 800px;
+    padding: 36px 40px;
+    border-radius: 24px;
+    background: #ffffff;
+    border: 1px solid rgba(42, 20, 6, 0.08);
+    box-shadow: 0 24px 64px rgba(42, 20, 6, 0.25);
+    z-index: 10001;
+    transform: scale(0.92);
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.custom-modal.open .custom-modal-container {
+    transform: scale(1);
+}
+
+/* Light mode backgrounds for container */
+body:not(.dark-mode) .custom-modal-container {
+    background:
+        radial-gradient(ellipse at 15% 20%, rgba(255, 211, 184, 0.55) 0%, transparent 55%),
+        radial-gradient(ellipse at 85% 75%, rgba(255, 164, 122, 0.18) 0%, transparent 55%),
+        linear-gradient(155deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 241, 230, 0.92) 55%, rgba(255, 250, 244, 0.98) 100%);
+}
+
+/* Dark mode backgrounds for container */
+body.dark-mode .custom-modal-container {
+    background:
+        radial-gradient(ellipse at 15% 25%, rgba(99, 102, 241, 0.18) 0%, transparent 55%),
+        radial-gradient(ellipse at 85% 75%, rgba(20, 184, 166, 0.14) 0%, transparent 50%),
+        radial-gradient(ellipse at 50% 100%, rgba(139, 92, 246, 0.1) 0%, transparent 50%),
+        linear-gradient(160deg, #0f0c24 0%, #10142b 50%, #0d1a20 100%);
+    border-color: rgba(99, 102, 241, 0.14);
+    box-shadow: 0 24px 64px rgba(0, 0, 0, 0.7);
+}
+
+.custom-modal-close {
+    position: absolute;
+    top: 20px;
+    right: 22px;
+    background: none;
+    border: none;
+    font-size: 28px;
+    line-height: 1;
+    color: #8a7a70;
+    cursor: pointer;
+    transition: color 0.2s, transform 0.2s;
+    z-index: 10002;
+}
+
+body.dark-mode .custom-modal-close {
+    color: #b0c0d0;
+}
+
+.custom-modal-close:hover {
+    color: #ff6b35;
+    transform: scale(1.1);
+}
+
+.custom-modal-title {
+    font-size: 24px;
+    font-weight: 800;
+    color: #2a1406;
+    margin: 0;
+}
+
+body.dark-mode .custom-modal-title {
+    color: #f5ede6;
+}
+
+.custom-modal-subtitle {
+    font-size: 14.5px;
+    color: #8a7a70;
+    margin: 4px 0 24px 0;
+}
+
+body.dark-mode .custom-modal-subtitle {
+    color: #b0c0d0;
+}
+
+/* Bigger scale style for horizontal course bars inside the modal content */
+.custom-modal-content .course-bar-row {
+    margin-bottom: 20px;
+    grid-template-columns: 240px 1fr 50px; /* More width for label, less for progress bar */
+}
+
+.custom-modal-content .course-bar-label {
+    font-size: 16px;
+    font-weight: 700;
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
+}
+
+.custom-modal-content .course-bar-track {
+    height: 14px; /* Taller tracks */
+    border-radius: 7px;
+}
+
+.custom-modal-content .course-bar-fill {
+    border-radius: 7px;
+}
+
+.custom-modal-content .course-bar-pct {
+    font-size: 16px;
+    font-weight: 800;
+    width: 50px;
+}

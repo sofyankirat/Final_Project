@@ -5,8 +5,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Course Schedule Setup - Student System</title>
-    <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/favicon.png') }}?v=3">
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/logo1.png') }}?v=20260521">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script src="{{ url_for('static', filename='js/favicon.js') }}" defer></script>
     <style>
         /* Swapped desktop styles */
         .schedule-container {
@@ -16,7 +17,7 @@
         }
 
         .schedule-left-form {
-            flex: 1.2;
+            flex: 1;
             background: #ff6b35;
             display: flex;
             align-items: center;
@@ -40,81 +41,23 @@
         }
 
         .schedule-right-strips {
-            flex: 0.8;
+            flex: 1;
             background: #ffd7bf;
             position: relative;
             overflow: hidden;
             min-height: 100vh;
         }
 
-        .schedule-illustration {
-            position: absolute;
-            inset: 0;
-            display: flex;
-            align-items: flex-start;
-            justify-content: space-evenly;
-            overflow: hidden;
-            flex-wrap: nowrap;
-        }
 
-        .schedule-illustration::before,
-        .schedule-illustration::after {
-            content: '';
-            position: absolute;
-            left: 0;
-            right: 0;
-            height: 150px;
-            z-index: 2;
-            pointer-events: none;
-        }
-
-        .schedule-illustration::before {
-            top: 0;
-            background: linear-gradient(to bottom, #ffd7bf 0%, transparent 100%);
-        }
-
-        .schedule-illustration::after {
-            bottom: 0;
-            background: linear-gradient(to top, #ffd7bf 0%, transparent 100%);
-        }
-
-        .schedule-right-strips .symbols-container {
-            --strip-offset: 0px;
-            animation: scrollSeamless 20s linear infinite;
-        }
-
-        .schedule-right-strips .symbols-container:nth-child(1) {
-            --strip-offset: -24px;
-            animation-delay: -8s;
-        }
-
-        .schedule-right-strips .symbols-container:nth-child(2) {
-            --strip-offset: 14px;
-            animation-delay: -4s;
-        }
-
-        .schedule-right-strips .symbols-container:nth-child(3) {
-            --strip-offset: -24px;
-            animation-delay: -8s;
-        }
-
-        .schedule-right-strips .symbols-container:nth-child(4) {
-            --strip-offset: 14px;
-            animation-delay: -12s;
-        }
-
-        .schedule-right-strips .symbols-container:nth-child(5) {
-            --strip-offset: -24px;
-            animation-delay: -16s;
-        }
 
         .course-row-card {
             background: rgba(255, 231, 216, 0.45);
             border: 1px solid rgba(42, 20, 6, 0.25);
             border-radius: 12px;
-            padding: 20px;
+            padding: 20px 72px 20px 20px;
             margin-bottom: 24px;
             position: relative;
+            isolation: isolate;
             box-shadow: 0 8px 16px rgba(42, 20, 6, 0.05);
             transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
@@ -122,6 +65,48 @@
         .course-row-card:hover {
             box-shadow: 0 12px 24px rgba(42, 20, 6, 0.08);
             transform: translateY(-2px);
+        }
+
+        .course-row-card select option {
+            background: #ffd7bf;
+            color: #2a1406;
+        }
+
+        /* Make time fields look more professional */
+        .course-row-card .time-input-wrapper select {
+            width: 100%;
+            padding: 12px 14px;
+            border: 1px solid rgba(42, 20, 6, 0.35);
+            border-radius: 10px;
+            background: rgba(255, 215, 191, 0.75);
+            color: #2a1406;
+            font-size: 14px;
+            font-weight: 650;
+            letter-spacing: 0.02em;
+            outline: none;
+            box-shadow: 0 10px 22px -18px rgba(42, 20, 6, 0.55);
+            appearance: none;
+        }
+
+        .course-row-card .time-input-wrapper select:focus {
+            border-color: rgba(42, 20, 6, 0.75);
+            box-shadow: 0 0 0 3px rgba(255, 215, 191, 0.35), 0 14px 26px -20px rgba(42, 20, 6, 0.7);
+        }
+
+        .course-row-card .time-input-wrapper {
+            border-bottom: none;
+        }
+
+        .course-row-card .invalid-wrapper input,
+        .course-row-card .invalid-wrapper select {
+            border-color: rgba(138, 43, 226, 0.7) !important;
+            box-shadow: 0 0 0 3px rgba(138, 43, 226, 0.12) !important;
+        }
+
+        .course-row-card .overlap-invalid input,
+        .course-row-card .overlap-invalid select {
+            border-color: rgba(138, 43, 226, 0.7) !important;
+            box-shadow: 0 0 0 3px rgba(138, 43, 226, 0.12) !important;
         }
 
         .remove-course-btn {
@@ -133,19 +118,52 @@
             font-size: 16px;
             color: #8a2be2;
             cursor: pointer;
-            width: 28px;
-            height: 28px;
+            width: 38px;
+            height: 38px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             transition: all 0.2s ease;
+            z-index: 999;
+            line-height: 1;
+            touch-action: manipulation;
+        }
+
+        .remove-course-btn::before {
+            content: '';
+            position: absolute;
+            inset: -10px;
+            border-radius: 999px;
         }
 
         .remove-course-btn:hover {
             background: #8a2be2;
             color: #fff;
             transform: scale(1.1);
+        }
+
+        .max-courses-message {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 8px 12px;
+            border-radius: 999px;
+            border: 1px solid rgba(42, 20, 6, 0.35);
+            background: rgba(255, 215, 191, 0.65);
+            color: #2a1406;
+            font-size: 12px;
+            font-weight: 800;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            margin-top: 10px;
+        }
+
+        .error-overlap {
+            display: block;
+            margin-top: -6px;
+            margin-bottom: 12px;
         }
 
         .days-checklist {
@@ -180,7 +198,7 @@
             background: #ffe7d8;
         }
 
-        .day-checkbox-label input:checked + span {
+        .day-checkbox-label input:checked+span {
             background: #2a1406;
             color: #ffd7bf;
             border-color: #2a1406;
@@ -260,43 +278,6 @@
                 overflow-y: visible;
                 padding-right: 0;
             }
-
-            .schedule-illustration {
-                flex-direction: row;
-                align-items: center;
-                justify-content: flex-start;
-                height: 100px;
-                min-height: 80px;
-                max-height: 100px;
-                flex-wrap: nowrap;
-                padding: 0;
-                margin: 0;
-                position: relative;
-            }
-
-            .schedule-illustration .symbols-container {
-                flex-direction: row;
-                width: auto;
-                margin-top: 0 !important;
-                padding-bottom: 0 !important;
-                gap: 0;
-                padding: 0;
-                --strip-offset: 0vw;
-                --mobile-loop-distance: 50%;
-                animation: scrollSeamlessH 28s linear infinite;
-                align-items: center;
-                will-change: transform;
-            }
-
-            .schedule-illustration .symbols-container:not(:first-child) {
-                display: none !important;
-            }
-
-            .schedule-illustration .symbols-container:nth-child(1) {
-                animation: scrollSeamlessH 28s linear infinite;
-                animation-delay: 0s;
-                width: max-content;
-            }
         }
     </style>
 </head>
@@ -306,8 +287,9 @@
         <!-- LEFT: Form window -->
         <div class="schedule-left-form">
             <div class="additional-form-window" style="max-width: 580px;">
-                <h2>SET UP YOUR COURSE SCHEDULE</h2>
-                <p style="color: #3a1e0a; margin-bottom: 26px;">Please select your courses for this semester, set their starting and ending times, and choose the days of class.</p>
+                <h2>SET UP YOUR COURSES SCHEDULE</h2>
+                <p style="color: #3a1e0a; margin-bottom: 26px;">Please select your courses for this semester, set their
+                    starting and ending times, and choose the days of class.</p>
 
                 <form method="post" id="courseScheduleForm" novalidate>
                     <div class="scrollable-form-container" id="courseRowsContainer">
@@ -315,124 +297,601 @@
                     </div>
 
                     <div style="text-align: center; margin-bottom: 28px;">
-                        <button type="button" id="addCourseBtn" title="Add another course" aria-label="Add course">+</button>
-                        <div style="font-size: 11px; color: #2a1406; font-weight: 700; margin-top: 8px; text-transform: uppercase; letter-spacing: 0.05em;">Add Course</div>
+                        <button type="button" id="addCourseBtn" title="Add another course"
+                            aria-label="Add course">+</button>
+                        <div
+                            style="font-size: 11px; color: #2a1406; font-weight: 700; margin-top: 8px; text-transform: uppercase; letter-spacing: 0.05em;">
+                            Add Course</div>
+                        <div id="maxCoursesMessage" class="max-courses-message" style="display:none;">
+                            Maximum 8 courses allowed.
+                        </div>
                     </div>
 
                     <button type="submit" class="btn btn-primary" style="width: 100%;">
                         <span>Continue</span>
                         <span class="btn-icon">→</span>
                     </button>
+                    {% if has_schedule %}
+                    <div style="margin-top: 12px; text-align: center;">
+                        <a href="{{ url_for('schedule') }}" class="btn"
+                            style="display: flex; align-items: center; justify-content: center; width: 100%; text-decoration: none; box-sizing: border-box; background: rgba(255, 255, 255, 0.25); border: 2px solid #2a1406; color: #2a1406; font-weight: 700; padding: 12px 24px; border-radius: 12px; transition: all 0.2s; font-size: 14.5px;">
+                            Cancel &amp; Go Back
+                        </a>
+                    </div>
+                    {% endif %}
                 </form>
             </div>
         </div>
 
         <!-- RIGHT: Strips illustration -->
         <div class="schedule-right-strips">
-            <div class="schedule-illustration">
-                <!-- STRIP 1 -->
-                <div class="symbols-container">
-                    <div class="symbol"><img src="{{ url_for('static', filename='images/image_1.jpg') }}" alt="1"></div>
-                    <div class="symbol"><img src="{{ url_for('static', filename='images/image_2.jpg') }}" alt="laptop"></div>
-                    <div class="symbol"><img src="{{ url_for('static', filename='images/image_3.jpg') }}" alt="3"></div>
-                    <div class="symbol"><img src="{{ url_for('static', filename='images/image_4.jpg') }}" alt="4"></div>
-                    <div class="symbol"><img src="{{ url_for('static', filename='images/image_5.jpg') }}" alt="teacher"></div>
-                    <div class="symbol"><img src="{{ url_for('static', filename='images/image_20.jpg') }}" alt="1"></div>
-                    <div class="symbol"><img src="{{ url_for('static', filename='images/image_6.jpg') }}" alt="laptop"></div>
-                    <div class="symbol"><img src="{{ url_for('static', filename='images/image_12.jpg') }}" alt="3"></div>
-                    <div class="symbol"><img src="{{ url_for('static', filename='images/image_2.jpg') }}" alt="4"></div>
-                    <div class="symbol"><img src="{{ url_for('static', filename='images/image_17.jpg') }}" alt="teacher"></div>
-                    <div class="symbol"><img src="{{ url_for('static', filename='images/image_11.jpg') }}" alt="1"></div>
-                    <div class="symbol"><img src="{{ url_for('static', filename='images/image_18.jpg') }}" alt="laptop"></div>
-                    <div class="symbol"><img src="{{ url_for('static', filename='images/image_12.jpg') }}" alt="3"></div>
-                    <div class="symbol"><img src="{{ url_for('static', filename='images/image_16.jpg') }}" alt="4"></div>
-                    <div class="symbol"><img src="{{ url_for('static', filename='images/image_11.jpg') }}" alt="teacher"></div>
-                </div>
+            <div class="login-illustration" data-strips-static="true">
 
-                <!-- STRIP 2 -->
-                <div class="symbols-container">
-                    <div class="symbol"><img src="{{ url_for('static', filename='images/image_11.jpg') }}" alt="laptop"></div>
-                    <div class="symbol"><img src="{{ url_for('static', filename='images/image_13.jpg') }}" alt="3"></div>
-                    <div class="symbol"><img src="{{ url_for('static', filename='images/image_1.jpg') }}" alt="1"></div>
-                    <div class="symbol"><img src="{{ url_for('static', filename='images/image_9.jpg') }}" alt="teacher"></div>
-                    <div class="symbol"><img src="{{ url_for('static', filename='images/image_12.jpg') }}" alt="4"></div>
-                    <div class="symbol"><img src="{{ url_for('static', filename='images/image_6.jpg') }}" alt="laptop"></div>
-                    <div class="symbol"><img src="{{ url_for('static', filename='images/image_3.jpg') }}" alt="3"></div>
-                    <div class="symbol"><img src="{{ url_for('static', filename='images/image_18.jpg') }}" alt="1"></div>
-                    <div class="symbol"><img src="{{ url_for('static', filename='images/image_11.jpg') }}" alt="teacher"></div>
-                    <div class="symbol"><img src="{{ url_for('static', filename='images/image_12.jpg') }}" alt="4"></div>
-                    <div class="symbol"><img src="{{ url_for('static', filename='images/image_14.jpg') }}" alt="laptop"></div>
-                    <div class="symbol"><img src="{{ url_for('static', filename='images/image_20.jpg') }}" alt="3"></div>
-                    <div class="symbol"><img src="{{ url_for('static', filename='images/image_13.jpg') }}" alt="1"></div>
-                    <div class="symbol"><img src="{{ url_for('static', filename='images/image_16.jpg') }}" alt="teacher"></div>
-                    <div class="symbol"><img src="{{ url_for('static', filename='images/image_1.jpg') }}" alt="4"></div>
-                </div>
+                                        <!-- STRIP 1 — starts with image_1 -->
+                                        <div class="symbols-container">
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_1.jpg') }}"
+                                                                alt="1">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_2.jpg') }}"
+                                                                alt="laptop"></div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_3.jpg') }}"
+                                                                alt="3">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_4.jpg') }}"
+                                                                alt="4">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_5.jpg') }}"
+                                                                alt="teacher"></div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_20.jpg') }}"
+                                                                alt="1">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_6.jpg') }}"
+                                                                alt="laptop"></div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_12.jpg') }}"
+                                                                alt="3">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_2.jpg') }}"
+                                                                alt="4">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_17.jpg') }}"
+                                                                alt="teacher"></div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_10.jpg') }}"
+                                                                alt="1">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_18.jpg') }}"
+                                                                alt="laptop"></div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_12.jpg') }}"
+                                                                alt="3">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_16.jpg') }}"
+                                                                alt="4">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_10.jpg') }}"
+                                                                alt="teacher"></div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_1.jpg') }}"
+                                                                alt="1">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_2.jpg') }}"
+                                                                alt="laptop"></div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_3.jpg') }}"
+                                                                alt="3">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_4.jpg') }}"
+                                                                alt="4">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_5.jpg') }}"
+                                                                alt="teacher"></div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_20.jpg') }}"
+                                                                alt="1">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_6.jpg') }}"
+                                                                alt="laptop"></div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_12.jpg') }}"
+                                                                alt="3">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_2.jpg') }}"
+                                                                alt="4">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_17.jpg') }}"
+                                                                alt="teacher"></div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_10.jpg') }}"
+                                                                alt="1">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_18.jpg') }}"
+                                                                alt="laptop"></div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_12.jpg') }}"
+                                                                alt="3">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_16.jpg') }}"
+                                                                alt="4">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_10.jpg') }}"
+                                                                alt="teacher"></div>
+                                        </div>
 
-                <!-- STRIP 3 -->
-                <div class="symbols-container">
-                    <div class="symbol"><img src="{{ url_for('static', filename='images/image_18.jpg') }}" alt="3"></div>
-                    <div class="symbol"><img src="{{ url_for('static', filename='images/image_11.jpg') }}" alt="4"></div>
-                    <div class="symbol"><img src="{{ url_for('static', filename='images/image_9.jpg') }}" alt="1"></div>
-                    <div class="symbol"><img src="{{ url_for('static', filename='images/image_5.jpg') }}" alt="laptop"></div>
-                    <div class="symbol"><img src="{{ url_for('static', filename='images/image_12.jpg') }}" alt="teacher"></div>
-                    <div class="symbol"><img src="{{ url_for('static', filename='images/image_3.jpg') }}" alt="3"></div>
-                    <div class="symbol"><img src="{{ url_for('static', filename='images/image_6.jpg') }}" alt="4"></div>
-                    <div class="symbol"><img src="{{ url_for('static', filename='images/image_1.jpg') }}" alt="1"></div>
-                    <div class="symbol"><img src="{{ url_for('static', filename='images/image_12.jpg') }}" alt="laptop"></div>
-                    <div class="symbol"><img src="{{ url_for('static', filename='images/image_4.jpg') }}" alt="teacher"></div>
-                    <div class="symbol"><img src="{{ url_for('static', filename='images/image_11.jpg') }}" alt="clock"></div>
-                    <div class="symbol"><img src="{{ url_for('static', filename='images/image_20.jpg') }}" alt="extra"></div>
-                    <div class="symbol"><img src="{{ url_for('static', filename='images/image_12.jpg') }}" alt="extra"></div>
-                    <div class="symbol"><img src="{{ url_for('static', filename='images/image_7.jpg') }}" alt="extra"></div>
-                    <div class="symbol"><img src="{{ url_for('static', filename='images/image_8.jpg') }}" alt="extra"></div>
-                </div>
+                                        <!-- STRIP 2 -->
+                                        <div class="symbols-container">
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_11.jpg') }}"
+                                                                alt="laptop"></div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_13.jpg') }}"
+                                                                alt="3">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_1.jpg') }}"
+                                                                alt="1">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_9.jpg') }}"
+                                                                alt="teacher"></div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_12.jpg') }}"
+                                                                alt="4">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_6.jpg') }}"
+                                                                alt="laptop"></div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_3.jpg') }}"
+                                                                alt="3">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_18.jpg') }}"
+                                                                alt="1">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_10.jpg') }}"
+                                                                alt="teacher"></div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_12.jpg') }}"
+                                                                alt="4">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_14.jpg') }}"
+                                                                alt="laptop"></div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_20.jpg') }}"
+                                                                alt="3">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_13.jpg') }}"
+                                                                alt="1">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_16.jpg') }}"
+                                                                alt="teacher"></div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_1.jpg') }}"
+                                                                alt="4">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_11.jpg') }}"
+                                                                alt="laptop"></div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_13.jpg') }}"
+                                                                alt="3">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_1.jpg') }}"
+                                                                alt="1">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_9.jpg') }}"
+                                                                alt="teacher"></div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_12.jpg') }}"
+                                                                alt="4">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_6.jpg') }}"
+                                                                alt="laptop"></div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_3.jpg') }}"
+                                                                alt="3">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_18.jpg') }}"
+                                                                alt="1">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_10.jpg') }}"
+                                                                alt="teacher"></div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_12.jpg') }}"
+                                                                alt="4">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_14.jpg') }}"
+                                                                alt="laptop"></div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_20.jpg') }}"
+                                                                alt="3">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_13.jpg') }}"
+                                                                alt="1">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_16.jpg') }}"
+                                                                alt="teacher"></div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_11.jpg') }}"
+                                                                alt="4">
+                                                </div>
+                                        </div>
 
-                <!-- STRIP 4 -->
-                <div class="symbols-container">
-                    <div class="symbol"><img src="{{ url_for('static', filename='images/image_12.jpg') }}" alt="4"></div>
-                    <div class="symbol"><img src="{{ url_for('static', filename='images/image_17.jpg') }}" alt="1"></div>
-                    <div class="symbol"><img src="{{ url_for('static', filename='images/image_12.jpg') }}" alt="laptop"></div>
-                    <div class="symbol"><img src="{{ url_for('static', filename='images/image_3.jpg') }}" alt="3"></div>
-                    <div class="symbol"><img src="{{ url_for('static', filename='images/image_12.jpg') }}" alt="teacher"></div>
-                    <div class="symbol"><img src="{{ url_for('static', filename='images/image_14.jpg') }}" alt="4"></div>
-                    <div class="symbol"><img src="{{ url_for('static', filename='images/image_18.jpg') }}" alt="1"></div>
-                    <div class="symbol"><img src="{{ url_for('static', filename='images/image_13.jpg') }}" alt="laptop"></div>
-                    <div class="symbol"><img src="{{ url_for('static', filename='images/image_3.jpg') }}" alt="3"></div>
-                    <div class="symbol"><img src="{{ url_for('static', filename='images/image_2.jpg') }}" alt="teacher"></div>
-                    <div class="symbol"><img src="{{ url_for('static', filename='images/image_11.jpg') }}" alt="clock"></div>
-                    <div class="symbol"><img src="{{ url_for('static', filename='images/image_1.jpg') }}" alt="extra"></div>
-                    <div class="symbol"><img src="{{ url_for('static', filename='images/image_6.jpg') }}" alt="extra"></div>
-                    <div class="symbol"><img src="{{ url_for('static', filename='images/image_19.jpg') }}" alt="extra"></div>
-                    <div class="symbol"><img src="{{ url_for('static', filename='images/image_11.jpg') }}" alt="extra"></div>
-                </div>
+                                        <!-- STRIP 3 -->
+                                        <div class="symbols-container">
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_18.jpg') }}"
+                                                                alt="3">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_11.jpg') }}"
+                                                                alt="4">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_9.jpg') }}"
+                                                                alt="1">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_5.jpg') }}"
+                                                                alt="laptop"></div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_12.jpg') }}"
+                                                                alt="teacher"></div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_3.jpg') }}"
+                                                                alt="3">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_6.jpg') }}"
+                                                                alt="4">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_1.jpg') }}"
+                                                                alt="1">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_12.jpg') }}"
+                                                                alt="laptop"></div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_4.jpg') }}"
+                                                                alt="teacher"></div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_10.jpg') }}"
+                                                                alt="clock"></div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_20.jpg') }}"
+                                                                alt="extra"></div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_15.jpg') }}"
+                                                                alt="extra"></div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_7.jpg') }}"
+                                                                alt="extra"></div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_8.jpg') }}"
+                                                                alt="extra"></div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_18.jpg') }}"
+                                                                alt="3">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_11.jpg') }}"
+                                                                alt="4">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_9.jpg') }}"
+                                                                alt="1">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_5.jpg') }}"
+                                                                alt="laptop"></div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_12.jpg') }}"
+                                                                alt="teacher"></div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_3.jpg') }}"
+                                                                alt="3">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_6.jpg') }}"
+                                                                alt="4">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_1.jpg') }}"
+                                                                alt="1">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_12.jpg') }}"
+                                                                alt="laptop"></div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_4.jpg') }}"
+                                                                alt="teacher"></div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_10.jpg') }}"
+                                                                alt="clock"></div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_20.jpg') }}"
+                                                                alt="extra"></div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_15.jpg') }}"
+                                                                alt="extra"></div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_7.jpg') }}"
+                                                                alt="extra"></div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_18.jpg') }}"
+                                                                alt="extra"></div>
+                                        </div>
 
-                <!-- STRIP 5 -->
-                <div class="symbols-container">
-                    <div class="symbol"><img src="{{ url_for('static', filename='images/image_11.jpg') }}" alt="clock"></div>
-                    <div class="symbol"><img src="{{ url_for('static', filename='images/image_12.jpg') }}" alt="5"></div>
-                    <div class="symbol"><img src="{{ url_for('static', filename='images/image_6.jpg') }}" alt="6"></div>
-                    <div class="symbol"><img src="{{ url_for('static', filename='images/image_2.jpg') }}" alt="7"></div>
-                    <div class="symbol"><img src="{{ url_for('static', filename='images/image_1.jpg') }}" alt="8"></div>
-                    <div class="symbol"><img src="{{ url_for('static', filename='images/image_7.jpg') }}" alt="clock"></div>
-                    <div class="symbol"><img src="{{ url_for('static', filename='images/image_13.jpg') }}" alt="5"></div>
-                    <div class="symbol"><img src="{{ url_for('static', filename='images/image_9.jpg') }}" alt="6"></div>
-                    <div class="symbol"><img src="{{ url_for('static', filename='images/image_20.jpg') }}" alt="7"></div>
-                    <div class="symbol"><img src="{{ url_for('static', filename='images/image_8.jpg') }}" alt="8"></div>
-                    <div class="symbol"><img src="{{ url_for('static', filename='images/image_11.jpg') }}" alt="clock"></div>
-                    <div class="symbol"><img src="{{ url_for('static', filename='images/image_12.jpg') }}" alt="5"></div>
-                    <div class="symbol"><img src="{{ url_for('static', filename='images/image_6.jpg') }}" alt="6"></div>
-                    <div class="symbol"><img src="{{ url_for('static', filename='images/image_17.jpg') }}" alt="7"></div>
-                    <div class="symbol"><img src="{{ url_for('static', filename='images/image_18.jpg') }}" alt="8"></div>
-                </div>
-            </div>
+                                        <!-- STRIP 4 -->
+                                        <div class="symbols-container">
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_12.jpg') }}"
+                                                                alt="4">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_17.jpg') }}"
+                                                                alt="1">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_12.jpg') }}"
+                                                                alt="laptop"></div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_3.jpg') }}"
+                                                                alt="3">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_15.jpg') }}"
+                                                                alt="teacher"></div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_14.jpg') }}"
+                                                                alt="4">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_18.jpg') }}"
+                                                                alt="1">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_13.jpg') }}"
+                                                                alt="laptop"></div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_3.jpg') }}"
+                                                                alt="3">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_2.jpg') }}"
+                                                                alt="teacher"></div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_10.jpg') }}"
+                                                                alt="clock"></div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_1.jpg') }}"
+                                                                alt="extra"></div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_6.jpg') }}"
+                                                                alt="extra"></div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_19.jpg') }}"
+                                                                alt="extra"></div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_11.jpg') }}"
+                                                                alt="extra"></div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_12.jpg') }}"
+                                                                alt="4">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_17.jpg') }}"
+                                                                alt="1">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_12.jpg') }}"
+                                                                alt="laptop"></div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_3.jpg') }}"
+                                                                alt="3">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_15.jpg') }}"
+                                                                alt="teacher"></div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_14.jpg') }}"
+                                                                alt="4">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_18.jpg') }}"
+                                                                alt="1">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_13.jpg') }}"
+                                                                alt="laptop"></div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_3.jpg') }}"
+                                                                alt="3">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_2.jpg') }}"
+                                                                alt="teacher"></div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_10.jpg') }}"
+                                                                alt="clock"></div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_1.jpg') }}"
+                                                                alt="extra"></div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_6.jpg') }}"
+                                                                alt="extra"></div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_19.jpg') }}"
+                                                                alt="extra"></div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_11.jpg') }}"
+                                                                alt="extra"></div>
+                                        </div>
+
+                                        <!-- STRIP 5 -->
+                                        <div class="symbols-container">
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_10.jpg') }}"
+                                                                alt="clock"></div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_15.jpg') }}"
+                                                                alt="5">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_6.jpg') }}"
+                                                                alt="6">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_2.jpg') }}"
+                                                                alt="7">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_1.jpg') }}"
+                                                                alt="8">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_7.jpg') }}"
+                                                                alt="clock"></div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_13.jpg') }}"
+                                                                alt="5">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_9.jpg') }}"
+                                                                alt="6">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_20.jpg') }}"
+                                                                alt="7">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_8.jpg') }}"
+                                                                alt="8">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_11.jpg') }}"
+                                                                alt="clock"></div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_12.jpg') }}"
+                                                                alt="5">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_6.jpg') }}"
+                                                                alt="6">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_17.jpg') }}"
+                                                                alt="7">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_18.jpg') }}"
+                                                                alt="8">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_10.jpg') }}"
+                                                                alt="clock"></div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_15.jpg') }}"
+                                                                alt="5">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_6.jpg') }}"
+                                                                alt="6">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_2.jpg') }}"
+                                                                alt="7">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_1.jpg') }}"
+                                                                alt="8">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_7.jpg') }}"
+                                                                alt="clock"></div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_13.jpg') }}"
+                                                                alt="5">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_9.jpg') }}"
+                                                                alt="6">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_20.jpg') }}"
+                                                                alt="7">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_8.jpg') }}"
+                                                                alt="8">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_10.jpg') }}"
+                                                                alt="clock"></div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_15.jpg') }}"
+                                                                alt="5">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_6.jpg') }}"
+                                                                alt="6">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_2.jpg') }}"
+                                                                alt="7">
+                                                </div>
+                                                <div class="symbol"><img
+                                                                src="{{ url_for('static', filename='images/image_1.jpg') }}"
+                                                                alt="8">
+                                                </div>
+                                        </div>
+
+                                </div>
+                                <script src="{{ url_for('static', filename='js/strips.js') }}" defer></script>
         </div>
     </div>
 
     <!-- Template for new course row cards -->
     <template id="courseRowTemplate">
         <div class="course-row-card">
-            <button type="button" class="remove-course-btn" title="Remove course" aria-label="Remove course">&times;</button>
-            
+            <button type="button" class="remove-course-btn" title="Remove course"
+                aria-label="Remove course">&times;</button>
+
             <div class="form-group" style="margin-bottom: 16px;">
                 <label>Course Name</label>
                 <div class="input-wrapper">
@@ -454,13 +913,15 @@
                         <option value="Differential Equations 1">Differential Equations 1</option>
                         <option value="Advanced Calculus">Advanced Calculus</option>
                         <option value="Mechanics 3">Mechanics 3</option>
-                        <option value="Introduction to Statistics and Probability">Introduction to Statistics and Probability</option>
+                        <option value="Introduction to Statistics and Probability">Introduction to Statistics and
+                            Probability</option>
                         <option value="Scientific Terminology in English">Scientific Terminology in English</option>
                         <option value="Real Analysis">Real Analysis</option>
                         <option value="Linear Algebra 1">Linear Algebra 1</option>
                         <option value="Analytical Geometry">Analytical Geometry</option>
                         <option value="Mechanics 4">Mechanics 4</option>
-                        <option value="Fundamentals of Electromagnetic Theory">Fundamentals of Electromagnetic Theory</option>
+                        <option value="Fundamentals of Electromagnetic Theory">Fundamentals of Electromagnetic Theory
+                        </option>
                         <option value="Introduction to Logic">Introduction to Logic</option>
                         <option value="Cultural Studies">Cultural Studies</option>
                         <option value="Measure Theory">Measure Theory</option>
@@ -493,7 +954,8 @@
                         <option value="Partial Differential Equations">Partial Differential Equations</option>
                         <option value="Graph Theory">Graph Theory</option>
                         <option value="Modeling and Simulation">Modeling and Simulation</option>
-                        <option value="Computer Organization and Assembly Language">Computer Organization and Assembly Language</option>
+                        <option value="Computer Organization and Assembly Language">Computer Organization and Assembly
+                            Language</option>
                         <option value="Discrete Mathematics">Discrete Mathematics</option>
                         <option value="Probability Theory 1">Probability Theory 1</option>
                         <option value="Computer Algebra Systems">Computer Algebra Systems</option>
@@ -509,7 +971,8 @@
                         <option value="Operating Systems">Operating Systems</option>
                         <option value="Artificial Intelligence">Artificial Intelligence</option>
                         <option value="Structured Programming">Structured Programming</option>
-                        <option value="Data Analysis Using Statistical Software">Data Analysis Using Statistical Software</option>
+                        <option value="Data Analysis Using Statistical Software">Data Analysis Using Statistical
+                            Software</option>
                         <option value="Selected Topics in Computing">Selected Topics in Computing</option>
                         <option value="Analysis of Variance">Analysis of Variance</option>
                         <option value="Stochastic Processes">Stochastic Processes</option>
@@ -531,19 +994,67 @@
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px;">
                 <div class="form-group" style="margin-bottom: 0;">
                     <label>Start Time</label>
-                    <div class="input-wrapper">
-                        <input type="time" name="start_time" required>
+                    <div class="input-wrapper time-input-wrapper">
+                        <select name="start_time" required>
+                            <option value="" disabled selected>Select time</option>
+                            <option value="08:00">08:00</option>
+                            <option value="08:30">08:30</option>
+                            <option value="09:00">09:00</option>
+                            <option value="09:30">09:30</option>
+                            <option value="10:00">10:00</option>
+                            <option value="10:30">10:30</option>
+                            <option value="11:00">11:00</option>
+                            <option value="11:30">11:30</option>
+                            <option value="12:00">12:00</option>
+                            <option value="12:30">12:30</option>
+                            <option value="13:00">13:00</option>
+                            <option value="13:30">13:30</option>
+                            <option value="14:00">14:00</option>
+                            <option value="14:30">14:30</option>
+                            <option value="15:00">15:00</option>
+                            <option value="15:30">15:30</option>
+                            <option value="16:00">16:00</option>
+                            <option value="16:30">16:30</option>
+                            <option value="17:00">17:00</option>
+                            <option value="17:30">17:30</option>
+                            <option value="18:00">18:00</option>
+                        </select>
                     </div>
                     <span class="input-error error-start"></span>
                 </div>
                 <div class="form-group" style="margin-bottom: 0;">
                     <label>End Time</label>
-                    <div class="input-wrapper">
-                        <input type="time" name="end_time" required>
+                    <div class="input-wrapper time-input-wrapper">
+                        <select name="end_time" required>
+                            <option value="" disabled selected>Select time</option>
+                            <option value="08:00">08:00</option>
+                            <option value="08:30">08:30</option>
+                            <option value="09:00">09:00</option>
+                            <option value="09:30">09:30</option>
+                            <option value="10:00">10:00</option>
+                            <option value="10:30">10:30</option>
+                            <option value="11:00">11:00</option>
+                            <option value="11:30">11:30</option>
+                            <option value="12:00">12:00</option>
+                            <option value="12:30">12:30</option>
+                            <option value="13:00">13:00</option>
+                            <option value="13:30">13:30</option>
+                            <option value="14:00">14:00</option>
+                            <option value="14:30">14:30</option>
+                            <option value="15:00">15:00</option>
+                            <option value="15:30">15:30</option>
+                            <option value="16:00">16:00</option>
+                            <option value="16:30">16:30</option>
+                            <option value="17:00">17:00</option>
+                            <option value="17:30">17:30</option>
+                            <option value="18:00">18:00</option>
+                        </select>
                     </div>
                     <span class="input-error error-end"></span>
                 </div>
             </div>
+
+            <span class="input-error error-overlap"></span>
 
             <div class="form-group" style="margin-bottom: 0;">
                 <label>Days of class</label>
@@ -563,11 +1074,85 @@
     </template>
 
     <script>
+        window.existingSchedule = {{ existing_schedule | tojson if existing_schedule is defined else '[]' }};
         (function () {
             const courseRowsContainer = document.getElementById('courseRowsContainer');
             const addCourseBtn = document.getElementById('addCourseBtn');
             const courseScheduleForm = document.getElementById('courseScheduleForm');
             const courseRowTemplate = document.getElementById('courseRowTemplate');
+
+            const MAX_COURSES = 8;
+            const ALLOWED_MIN_TIME = '08:00';
+            const ALLOWED_MAX_TIME = '18:00';
+
+            function timeToMinutes(value) {
+                if (!value || typeof value !== 'string' || !value.includes(':')) {
+                    return null;
+                }
+                const parts = value.split(':');
+                const hours = Number(parts[0]);
+                const minutes = Number(parts[1]);
+                if (!Number.isFinite(hours) || !Number.isFinite(minutes)) {
+                    return null;
+                }
+                return hours * 60 + minutes;
+            }
+
+            function isWithinAllowedTime(value) {
+                const minutes = timeToMinutes(value);
+                const minMinutes = timeToMinutes(ALLOWED_MIN_TIME);
+                const maxMinutes = timeToMinutes(ALLOWED_MAX_TIME);
+                if (minutes === null || minMinutes === null || maxMinutes === null) {
+                    return false;
+                }
+                return minutes >= minMinutes && minutes <= maxMinutes;
+            }
+
+            function updateAddCourseState() {
+                const count = courseRowsContainer.querySelectorAll('.course-row-card').length;
+                const maxMessage = document.getElementById('maxCoursesMessage');
+                if (count >= MAX_COURSES) {
+                    addCourseBtn.disabled = true;
+                    addCourseBtn.style.opacity = '0.55';
+                    addCourseBtn.style.cursor = 'not-allowed';
+                    addCourseBtn.title = 'Maximum 8 courses allowed';
+                    if (maxMessage) {
+                        maxMessage.style.display = 'inline-flex';
+                    }
+                    return;
+                }
+
+                addCourseBtn.disabled = false;
+                addCourseBtn.style.opacity = '1';
+                addCourseBtn.style.cursor = 'pointer';
+                addCourseBtn.title = 'Add another course';
+                if (maxMessage) {
+                    maxMessage.style.display = 'none';
+                }
+            }
+
+            function refreshCourseOptions() {
+                const cards = Array.from(courseRowsContainer.querySelectorAll('.course-row-card'));
+                const selectedValues = new Set();
+
+                cards.forEach(card => {
+                    const select = card.querySelector('select[name="course_name"]');
+                    if (select && select.value) {
+                        selectedValues.add(select.value);
+                    }
+                });
+
+                cards.forEach(card => {
+                    const select = card.querySelector('select[name="course_name"]');
+                    if (!select) return;
+                    const currentValue = select.value;
+                    Array.from(select.options).forEach(option => {
+                        if (!option.value) return;
+                        option.disabled = option.value !== currentValue && selectedValues.has(option.value);
+                    });
+                });
+            }
+
 
             function enableSymbolHover() {
                 document.body.classList.add('enable-symbol-hover');
@@ -577,7 +1162,7 @@
 
             function syncMobileStripLoopDistance() {
                 const isMobile = window.matchMedia('(max-width: 1024px)').matches;
-                const firstStrip = document.querySelector('.schedule-illustration .symbols-container:first-child');
+                const firstStrip = document.querySelector('.login-illustration .symbols-container:first-child');
                 if (!firstStrip) return;
 
                 if (!isMobile) {
@@ -629,37 +1214,56 @@
 
             window.addEventListener('mousemove', enableSymbolHover, { once: true });
             window.addEventListener('touchstart', enableSymbolHover, { once: true });
-            window.addEventListener('load', syncMobileStripLoopDistance);
-            window.addEventListener('resize', syncMobileStripLoopDistance);
+            window.addEventListener('load', () => {
+                syncMobileStripLoopDistance();
+            });
+
+            window.addEventListener('resize', () => {
+                syncMobileStripLoopDistance();
+            });
 
             // Update the hidden days field value based on checked checkboxes in a card
             function updateDaysHiddenInput(card) {
-                const checkedCheckboxes = Array.from(card.querySelectorAll('.days-checklist input[type="checkbox"]:checked'));
-                const daysVal = checkedCheckboxes.map(cb => cb.value).join(',');
-                card.querySelector('.days-hidden-input').value = daysVal;
+                const checked = card.querySelector('.days-checklist input[type="checkbox"]:checked');
+                card.querySelector('.days-hidden-input').value = checked ? checked.value : '';
             }
 
             // Bind change events to validation and days collection
             function bindRowEvents(card) {
                 const courseSelect = card.querySelector('select[name="course_name"]');
-                const startTimeInput = card.querySelector('input[name="start_time"]');
-                const endTimeInput = card.querySelector('input[name="end_time"]');
+                const startTimeInput = card.querySelector('select[name="start_time"]');
+                const endTimeInput = card.querySelector('select[name="end_time"]');
                 const daysCheckboxes = card.querySelectorAll('.days-checklist input[type="checkbox"]');
 
-                courseSelect.addEventListener('change', () => validateField(courseSelect, card.querySelector('.error-course'), 'Please select a course.'));
-                startTimeInput.addEventListener('input', () => {
+                courseSelect.addEventListener('change', () => {
+                    validateField(courseSelect, card.querySelector('.error-course'), 'Please select a course.');
+                    validateNoDuplicateCourses();
+                    refreshCourseOptions();
+                });
+                startTimeInput.addEventListener('change', () => {
                     validateField(startTimeInput, card.querySelector('.error-start'), 'Start time is required.');
                     validateTimeRange(card);
+                    validateNoOverlaps();
                 });
-                endTimeInput.addEventListener('input', () => {
+                endTimeInput.addEventListener('change', () => {
                     validateField(endTimeInput, card.querySelector('.error-end'), 'End time is required.');
                     validateTimeRange(card);
+                    validateNoOverlaps();
                 });
 
                 daysCheckboxes.forEach(cb => {
                     cb.addEventListener('change', () => {
+                        // Allow only one day per course.
+                        if (cb.checked) {
+                            daysCheckboxes.forEach(other => {
+                                if (other !== cb) {
+                                    other.checked = false;
+                                }
+                            });
+                        }
                         updateDaysHiddenInput(card);
                         validateDays(card);
+                        validateNoOverlaps();
                     });
                 });
 
@@ -667,6 +1271,10 @@
                 removeBtn.addEventListener('click', () => {
                     card.remove();
                     updateRemoveButtonsVisibility();
+                    updateAddCourseState();
+                    validateNoOverlaps();
+                    validateNoDuplicateCourses();
+                    refreshCourseOptions();
                 });
             }
 
@@ -682,10 +1290,22 @@
             }
 
             function validateTimeRange(card) {
-                const startTimeInput = card.querySelector('input[name="start_time"]');
-                const endTimeInput = card.querySelector('input[name="end_time"]');
+                const startTimeInput = card.querySelector('select[name="start_time"]');
+                const endTimeInput = card.querySelector('select[name="end_time"]');
                 const startError = card.querySelector('.error-start');
                 const endError = card.querySelector('.error-end');
+
+                if (startTimeInput.value && !isWithinAllowedTime(startTimeInput.value)) {
+                    startError.textContent = 'Start time must be between 8:00 AM and 6:00 PM.';
+                    startTimeInput.closest('.input-wrapper').classList.add('invalid-wrapper');
+                    return false;
+                }
+
+                if (endTimeInput.value && !isWithinAllowedTime(endTimeInput.value)) {
+                    endError.textContent = 'End time must be between 8:00 AM and 6:00 PM.';
+                    endTimeInput.closest('.input-wrapper').classList.add('invalid-wrapper');
+                    return false;
+                }
 
                 if (startTimeInput.value && endTimeInput.value) {
                     if (startTimeInput.value >= endTimeInput.value) {
@@ -700,11 +1320,101 @@
                 return true;
             }
 
+            function clearOverlapState(card) {
+                const overlapError = card.querySelector('.error-overlap');
+                if (overlapError) {
+                    overlapError.textContent = '';
+                }
+                const startWrapper = card.querySelector('select[name="start_time"]').closest('.input-wrapper');
+                const endWrapper = card.querySelector('select[name="end_time"]').closest('.input-wrapper');
+                startWrapper.classList.remove('overlap-invalid');
+                endWrapper.classList.remove('overlap-invalid');
+            }
+
+            function markOverlap(card, message) {
+                const overlapError = card.querySelector('.error-overlap');
+                if (overlapError) {
+                    overlapError.textContent = message;
+                }
+                const startWrapper = card.querySelector('select[name="start_time"]').closest('.input-wrapper');
+                const endWrapper = card.querySelector('select[name="end_time"]').closest('.input-wrapper');
+                startWrapper.classList.add('overlap-invalid');
+                endWrapper.classList.add('overlap-invalid');
+            }
+
+            function validateNoOverlaps() {
+                const cards = Array.from(courseRowsContainer.querySelectorAll('.course-row-card'));
+                cards.forEach(clearOverlapState);
+
+                const entries = cards
+                    .map((card, index) => {
+                        const day = (card.querySelector('.days-hidden-input')?.value || '').trim();
+                        const startValue = (card.querySelector('select[name="start_time"]')?.value || '').trim();
+                        const endValue = (card.querySelector('select[name="end_time"]')?.value || '').trim();
+                        const startMinutes = timeToMinutes(startValue);
+                        const endMinutes = timeToMinutes(endValue);
+                        return { card, index, day, startMinutes, endMinutes, startValue, endValue };
+                    })
+                    .filter(e => e.day && e.startMinutes !== null && e.endMinutes !== null);
+
+                let ok = true;
+                for (let i = 0; i < entries.length; i++) {
+                    for (let j = i + 1; j < entries.length; j++) {
+                        const a = entries[i];
+                        const b = entries[j];
+                        if (a.day !== b.day) continue;
+                        // Overlap rule: [start, end) intervals must not intersect.
+                        const overlaps = a.startMinutes < b.endMinutes && a.endMinutes > b.startMinutes;
+                        if (overlaps) {
+                            ok = false;
+                            const msg = `Overlapping time on ${a.day}. Please adjust times.`;
+                            markOverlap(a.card, msg);
+                            markOverlap(b.card, msg);
+                        }
+                    }
+                }
+                return ok;
+            }
+
+            function validateNoDuplicateCourses() {
+                const cards = Array.from(courseRowsContainer.querySelectorAll('.course-row-card'));
+                cards.forEach(card => {
+                    const courseSelect = card.querySelector('select[name="course_name"]');
+                    const errorCourse = card.querySelector('.error-course');
+                    if (errorCourse.textContent === 'This course is already added in another row.') {
+                        errorCourse.textContent = '';
+                        courseSelect.closest('.input-wrapper').classList.remove('invalid-wrapper');
+                    }
+                });
+
+                const values = cards.map((card, index) => {
+                    const select = card.querySelector('select[name="course_name"]');
+                    return { card, select, val: select?.value || '', index };
+                }).filter(e => e.val);
+
+                let ok = true;
+                const counts = {};
+                values.forEach(e => {
+                    counts[e.val] = (counts[e.val] || 0) + 1;
+                });
+
+                values.forEach(e => {
+                    if (counts[e.val] > 1) {
+                        ok = false;
+                        const errorCourse = e.card.querySelector('.error-course');
+                        errorCourse.textContent = 'This course is already added in another row.';
+                        e.select.closest('.input-wrapper').classList.add('invalid-wrapper');
+                    }
+                });
+
+                return ok;
+            }
+
             function validateDays(card) {
                 const hiddenInput = card.querySelector('.days-hidden-input');
                 const daysError = card.querySelector('.error-days');
                 if (!hiddenInput.value) {
-                    daysError.textContent = 'Please select at least one day.';
+                    daysError.textContent = 'Please select one day.';
                     return false;
                 }
                 daysError.textContent = '';
@@ -713,8 +1423,8 @@
 
             function validateRow(card) {
                 const courseSelect = card.querySelector('select[name="course_name"]');
-                const startTimeInput = card.querySelector('input[name="start_time"]');
-                const endTimeInput = card.querySelector('input[name="end_time"]');
+                const startTimeInput = card.querySelector('select[name="start_time"]');
+                const endTimeInput = card.querySelector('select[name="end_time"]');
 
                 const isCourseValid = validateField(courseSelect, card.querySelector('.error-course'), 'Please select a course.');
                 const isStartValid = validateField(startTimeInput, card.querySelector('.error-start'), 'Start time is required.');
@@ -738,25 +1448,67 @@
             }
 
             function createNewRow() {
+                const currentCount = courseRowsContainer.querySelectorAll('.course-row-card').length;
+                if (currentCount >= MAX_COURSES) {
+                    updateAddCourseState();
+                    return null;
+                }
                 const clone = courseRowTemplate.content.cloneNode(true);
                 const card = clone.querySelector('.course-row-card');
                 courseRowsContainer.appendChild(clone);
                 bindRowEvents(card);
                 updateRemoveButtonsVisibility();
+                updateAddCourseState();
+                refreshCourseOptions();
                 return card;
             }
 
-            // Add first course row on load
-            createNewRow();
+            // Prefill existing schedule rows if available, else add one empty row
+            if (window.existingSchedule && window.existingSchedule.length > 0) {
+                window.existingSchedule.forEach(data => {
+                    const card = createNewRow();
+                    if (card) {
+                        const courseSelect = card.querySelector('select[name="course_name"]');
+                        if (courseSelect) courseSelect.value = data.course_name;
+
+                        const startTimeInput = card.querySelector('select[name="start_time"]');
+                        if (startTimeInput) startTimeInput.value = data.start_time;
+
+                        const endTimeInput = card.querySelector('select[name="end_time"]');
+                        if (endTimeInput) endTimeInput.value = data.end_time;
+
+                        const daysCheckboxes = card.querySelectorAll('.days-checklist input[type="checkbox"]');
+                        daysCheckboxes.forEach(cb => {
+                            if (cb.value === data.days) {
+                                cb.checked = true;
+                            }
+                        });
+                        updateDaysHiddenInput(card);
+                        refreshCourseOptions();
+                    }
+                });
+            } else {
+                createNewRow();
+            }
+            updateAddCourseState();
+            refreshCourseOptions();
 
             addCourseBtn.addEventListener('click', () => {
                 const newCard = createNewRow();
+                if (!newCard) {
+                    return;
+                }
                 newCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
             });
 
             courseScheduleForm.addEventListener('submit', (e) => {
                 const cards = courseRowsContainer.querySelectorAll('.course-row-card');
                 let allValid = true;
+
+                if (cards.length > MAX_COURSES) {
+                    allValid = false;
+                    updateAddCourseState();
+                }
 
                 cards.forEach(card => {
                     const isValid = validateRow(card);
@@ -765,10 +1517,20 @@
                     }
                 });
 
+                if (!validateNoOverlaps()) {
+                    allValid = false;
+                }
+
+                if (!validateNoDuplicateCourses()) {
+                    allValid = false;
+                }
+
+                refreshCourseOptions();
+
                 if (!allValid) {
                     e.preventDefault();
                     // Scroll to the first invalid field/card
-                    const firstInvalid = courseRowsContainer.querySelector('.invalid-wrapper, .error-days:not(:empty)');
+                    const firstInvalid = courseRowsContainer.querySelector('.invalid-wrapper, .overlap-invalid, .error-days:not(:empty), .error-overlap:not(:empty)');
                     if (firstInvalid) {
                         firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' });
                     }

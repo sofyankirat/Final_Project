@@ -86,6 +86,50 @@ def to_float_value(value: Any, default: float = 0.0) -> float:
         return default
 
 
+def get_user_courses_data(user_id: int) -> list[dict[str, Any]]:
+    """Fetch user's selected courses with deterministic mock attendance percent and color."""
+    import hashlib
+    courses_data = []
+    colors = ['#ff6b35', '#e8c547', '#3b82f6', '#22c55e', '#a855f7', '#ec4899', '#14b8a6', '#f43f5e']
+    try:
+        connection = get_db_connection()
+        if connection:
+            cursor = connection.cursor()
+            cursor.execute(
+                "SELECT course_name FROM user_course_schedule WHERE user_id = %s ORDER BY course_name",
+                (user_id,)
+            )
+            rows = cursor.fetchall()
+            cursor.close()
+            connection.close()
+            for idx, row in enumerate(rows):
+                name = to_clean_string(row[0])
+                hash_val = int(hashlib.md5(f"{name}_{user_id}".encode()).hexdigest(), 16)
+                pct = 40 + (hash_val % 59)
+                clr = colors[idx % len(colors)]
+                courses_data.append({
+                    'name': name,
+                    'pct': pct,
+                    'clr': clr
+                })
+    except Exception as e:
+        print(f"Error fetching user courses: {e}")
+
+    # Fallback to default set of courses if none selected
+    if not courses_data:
+        default_names = ['Mathematics', 'Physics', 'Computer Sci.', 'Data Structures', 'English']
+        for idx, name in enumerate(default_names):
+            hash_val = int(hashlib.md5(f"{name}_{user_id}".encode()).hexdigest(), 16)
+            pct = 40 + (hash_val % 59)
+            clr = colors[idx % len(colors)]
+            courses_data.append({
+                'name': name,
+                'pct': pct,
+                'clr': clr
+            })
+    return courses_data
+
+
 def has_additional_info(user_id: int):
     """Check if the user already submitted additional info."""
     connection = get_db_connection()
@@ -510,22 +554,30 @@ def dashboard():
     # Default fallback is capitalized email prefix
     username = email.split('@')[0].capitalize() if email else 'User'
     
-    # Fetch real first name from additional info
+    gpa_value = None
+    # Fetch real first name and GPA from additional info
     try:
         connection = get_db_connection()
         if connection:
             cursor = connection.cursor()
-            cursor.execute("SELECT first_name FROM user_additional_info WHERE user_id = %s", (user_id,))
+            cursor.execute(
+                "SELECT first_name, gpa FROM user_additional_info WHERE user_id = %s",
+                (user_id,)
+            )
             result = cursor.fetchone()
-            if result and result[0]:
-                username = result[0]
+            if result:
+                if result[0]:
+                    username = result[0]
+                gpa_value = float(result[1]) if result[1] is not None else None
             cursor.close()
             connection.close()
     except Exception as e:
         print(f"Error fetching user name: {e}")
         
+    courses = get_user_courses_data(to_int_value(user_id))
     return render_template('dashboard.html', username=username, email=email,
-                           profile_photo=_get_profile_photo(user_id))
+                           profile_photo=_get_profile_photo(user_id), gpa=gpa_value,
+                           courses=courses)
 
 
 def get_static_root() -> str:
@@ -834,14 +886,121 @@ def course_schedule():
     if not has_additional_info(user_id):
         return redirect(url_for('additional_info'))
 
-    if request.method == 'GET' and has_course_schedule(user_id):
+    if request.method == 'GET' and has_course_schedule(user_id) and not request.args.get('edit'):
         return redirect(url_for('dashboard'))
+
+    existing_schedule = []
+    if request.method == 'GET' and has_course_schedule(user_id):
+        try:
+            connection = get_db_connection()
+            if connection:
+                cursor = connection.cursor()
+                cursor.execute(
+                    """
+                    SELECT course_name, start_time, end_time, days
+                    FROM user_course_schedule
+                    WHERE user_id = %s
+                    ORDER BY start_time
+                    """,
+                    (user_id,)
+                )
+                rows = cursor.fetchall()
+                cursor.close()
+                connection.close()
+                for row in rows:
+                    def _fmt_time(val):
+                        if val is None:
+                            return ''
+                        if hasattr(val, 'seconds'):
+                            total = int(val.total_seconds())
+                            h = total // 3600
+                            m = (total % 3600) // 60
+                            return f"{h:02d}:{m:02d}"
+                        return str(val)[:5]
+                    existing_schedule.append({
+                        'course_name': to_clean_string(row[0]),
+                        'start_time': _fmt_time(row[1]),
+                        'end_time': _fmt_time(row[2]),
+                        'days': to_clean_string(row[3])
+                    })
+        except Exception as error:
+            print(f"Error prefetching schedule for edit: {error}")
+
 
     if request.method == 'POST':
         course_names = request.form.getlist('course_name')
         start_times = request.form.getlist('start_time')
         end_times = request.form.getlist('end_time')
         days_list = request.form.getlist('days')
+
+        # Minimal server-side validation (client already enforces this)
+        if not course_names:
+            return render_template('course_schedule.html'), 400
+
+        if len(course_names) > 8:
+            return render_template('course_schedule.html'), 400
+
+        if not (len(course_names) == len(start_times) == len(end_times) == len(days_list)):
+            return render_template('course_schedule.html'), 400
+
+        def _to_minutes(value: str) -> int | None:
+            try:
+                parts = value.split(':')
+                if len(parts) != 2:
+                    return None
+                hours = int(parts[0])
+                minutes = int(parts[1])
+                return hours * 60 + minutes
+            except Exception:
+                return None
+
+        allowed_min = _to_minutes('08:00')
+        allowed_max = _to_minutes('18:00')
+
+        # Validate all rows first (do not partially save)
+        entries: list[tuple[str, str, str, str, int, int]] = []
+        for i in range(len(course_names)):
+            name = to_clean_string(course_names[i])
+            start = to_clean_string(start_times[i])
+            end = to_clean_string(end_times[i])
+            days = to_clean_string(days_list[i])
+
+            # All 4 fields required
+            if not (name and start and end and days):
+                return render_template('course_schedule.html'), 400
+
+            # Only one day allowed per course
+            if ',' in days:
+                return render_template('course_schedule.html'), 400
+
+            start_min = _to_minutes(start)
+            end_min = _to_minutes(end)
+            if start_min is None or end_min is None or allowed_min is None or allowed_max is None:
+                return render_template('course_schedule.html'), 400
+
+            # Enforce 08:00 - 18:00 window and end after start
+            if start_min < allowed_min or start_min > allowed_max:
+                return render_template('course_schedule.html'), 400
+            if end_min < allowed_min or end_min > allowed_max:
+                return render_template('course_schedule.html'), 400
+            if start_min >= end_min:
+                return render_template('course_schedule.html'), 400
+
+            entries.append((name, start, end, days, start_min, end_min))
+
+        # Disallow overlaps on the same day
+        entries_by_day: dict[str, list[tuple[int, int]]] = {}
+        for (_, _, _, day, start_min, end_min) in entries:
+            entries_by_day.setdefault(day, []).append((start_min, end_min))
+
+        for day, intervals in entries_by_day.items():
+            intervals_sorted = sorted(intervals, key=lambda t: t[0])
+            for idx in range(1, len(intervals_sorted)):
+                prev_start, prev_end = intervals_sorted[idx - 1]
+                cur_start, cur_end = intervals_sorted[idx]
+                # overlap if current starts before previous ends
+                if cur_start < prev_end:
+                    return render_template('course_schedule.html'), 400
 
         connection = get_db_connection()
         if connection is None:
@@ -852,21 +1011,16 @@ def course_schedule():
             # Clear any existing schedule first to prevent duplicates or clean edit/re-submit
             cursor.execute("DELETE FROM user_course_schedule WHERE user_id = %s", (user_id,))
 
-            for i in range(len(course_names)):
-                name = to_clean_string(course_names[i])
-                start = to_clean_string(start_times[i])
-                end = to_clean_string(end_times[i])
-                days = to_clean_string(days_list[i])
+            for (name, start, end, days, _, _) in entries:
+                cursor.execute(
+                    """
+                    INSERT INTO user_course_schedule (
+                        user_id, course_name, start_time, end_time, days
+                    ) VALUES (%s, %s, %s, %s, %s)
+                    """,
+                    (user_id, name, start, end, days)
+                )
 
-                if name and start and end and days:
-                    cursor.execute(
-                        """
-                        INSERT INTO user_course_schedule (
-                            user_id, course_name, start_time, end_time, days
-                        ) VALUES (%s, %s, %s, %s, %s)
-                        """,
-                        (user_id, name, start, end, days)
-                    )
             connection.commit()
             cursor.close()
         except Exception as error:
@@ -877,7 +1031,7 @@ def course_schedule():
 
         return redirect(url_for('dashboard'))
 
-    return render_template('course_schedule.html')
+    return render_template('course_schedule.html', existing_schedule=existing_schedule, has_schedule=has_course_schedule(user_id))
 
 
 @app.route('/recommendations', methods=['GET', 'POST'])
@@ -1104,7 +1258,8 @@ def ai_agent():
         'ai_agent.html',
         username=username,
         email=email,
-        profile_photo=_get_profile_photo(user_id)
+        profile_photo=_get_profile_photo(user_id),
+        user_id=user_id
     )
 
 
@@ -1135,6 +1290,77 @@ def our_team():
         username=username,
         email=email,
         profile_photo=_get_profile_photo(user_id)
+    )
+
+
+@app.route('/schedule')
+@login_required
+def schedule():
+    """Weekly schedule timetable page."""
+    user_id = to_int_value(session.get('user_id'))
+    email = session.get('email', '')
+
+    username = email.split('@')[0].capitalize() if email else 'User'
+
+    try:
+        connection = get_db_connection()
+        if connection:
+            cursor = connection.cursor()
+            cursor.execute("SELECT first_name FROM user_additional_info WHERE user_id = %s", (user_id,))
+            result = cursor.fetchone()
+            if result and result[0]:
+                username = result[0]
+            cursor.close()
+            connection.close()
+    except Exception as error:
+        print(f"Error fetching user name: {error}")
+
+    # Fetch the course schedule
+    schedule_entries: list[dict] = []
+    try:
+        connection = get_db_connection()
+        if connection:
+            cursor = connection.cursor()
+            cursor.execute(
+                """
+                SELECT course_name, start_time, end_time, days
+                FROM user_course_schedule
+                WHERE user_id = %s
+                ORDER BY start_time
+                """,
+                (user_id,)
+            )
+            rows = cursor.fetchall()
+            cursor.close()
+            connection.close()
+            for row in rows:
+                # start_time / end_time may come back as timedelta from MySQL
+                def _fmt_time(val):
+                    if val is None:
+                        return ''
+                    if hasattr(val, 'seconds'):
+                        # timedelta
+                        total = int(val.total_seconds())
+                        h = total // 3600
+                        m = (total % 3600) // 60
+                        return f"{h:02d}:{m:02d}"
+                    return str(val)[:5]  # "HH:MM:SS" → "HH:MM"
+
+                schedule_entries.append({
+                    'course_name': to_clean_string(row[0]),
+                    'start_time': _fmt_time(row[1]),
+                    'end_time': _fmt_time(row[2]),
+                    'day': to_clean_string(row[3]),
+                })
+    except Exception as error:
+        print(f"Error fetching schedule: {error}")
+
+    return render_template(
+        'schedule.html',
+        username=username,
+        email=email,
+        profile_photo=_get_profile_photo(user_id),
+        schedule_entries=schedule_entries,
     )
 
 
@@ -1405,8 +1631,10 @@ def attendance():
         print(f"Error fetching user name: {e}")
     
     enrolled = is_user_enrolled(student_name)
+    courses = get_user_courses_data(user_id)
     return render_template('attendance.html', username=username, email=email,
-                           profile_photo=_get_profile_photo(user_id), enrolled=enrolled)
+                           profile_photo=_get_profile_photo(user_id), enrolled=enrolled,
+                           courses=courses)
 
 
 @app.route('/api/attendance/enroll', methods=['POST'])

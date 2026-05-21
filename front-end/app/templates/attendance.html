@@ -6,7 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Attendance - {{ username }}</title>
     <meta name="description" content="Enroll your face for smart attendance in five guided positions.">
-    <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/favicon.png') }}?v=3">
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/logo1.png') }}?v=20260521">
+    <script src="{{ url_for('static', filename='js/favicon.js') }}" defer></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -17,143 +18,833 @@
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/blazeface@0.0.7/dist/blazeface.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.js"></script>
     <style>
-        .attendance-hero{margin-top:0;padding:18px 0 14px}
-        .attendance-title{font-size:clamp(26px,3vw,34px);font-weight:800;color:#2c2420;margin:0 0 6px;letter-spacing:-.4px}
-        .attendance-accent{color:#ff6b35}
-        .attendance-subtitle{font-size:14.5px;color:#7a6a5a;margin:0;max-width:none;line-height:1.6}
-        body.dark-mode .attendance-title{color:#e8f0ff}
-        body.dark-mode .attendance-subtitle{color:#9ba4c7}
-        .attendance-center{display:flex;justify-content:center;margin-top:24px}
-        .attendance-card{width:min(1020px,100%);border-radius:24px;border:1px solid rgba(255,107,53,.2);
-            background:radial-gradient(circle at 14% 16%,rgba(255,210,176,.65),transparent 42%),radial-gradient(circle at 86% 18%,rgba(255,159,117,.25),transparent 36%),linear-gradient(145deg,rgba(255,255,255,.95),rgba(255,241,230,.86));
-            box-shadow:0 20px 44px rgba(0,0,0,.1),inset 0 1px 0 rgba(255,255,255,.6);backdrop-filter:blur(12px);overflow:hidden}
-        body.dark-mode .attendance-card{border-color:rgba(79,212,255,.22);
-            background:radial-gradient(circle at 16% 20%,rgba(79,212,255,.16),transparent 42%),radial-gradient(circle at 84% 18%,rgba(120,140,255,.18),transparent 36%),linear-gradient(160deg,rgba(10,14,36,.96),rgba(10,12,36,.88));
-            box-shadow:0 20px 44px rgba(0,0,0,.28),inset 0 1px 0 rgba(255,255,255,.05)}
-        .attendance-card-header{display:flex;align-items:center;justify-content:space-between;padding:22px 28px 0;gap:16px}
-        .attendance-card-title{font-size:17px;font-weight:800;color:#2c2420;margin:0}
-        body.dark-mode .attendance-card-title{color:#e8f0ff}
-        .attendance-card-note{font-size:12.5px;color:#6a5a4a;margin:0}
-        body.dark-mode .attendance-card-note{color:#9fb3d9}
-        .attendance-card-body{padding:20px 28px 30px;display:grid;grid-template-columns:minmax(300px,1.3fr) minmax(240px,1fr);gap:24px;align-items:start}
-        @media(max-width:920px){.attendance-card-body{grid-template-columns:1fr}}
+        .attendance-hero {
+            margin-top: 0;
+            padding: 18px 0 14px
+        }
+
+        .attendance-title {
+            font-size: clamp(26px, 3vw, 34px);
+            font-weight: 800;
+            color: #2c2420;
+            margin: 0 0 6px;
+            letter-spacing: -.4px
+        }
+
+        .attendance-accent {
+            color: #ff6b35
+        }
+
+        .attendance-subtitle {
+            font-size: 14.5px;
+            color: #7a6a5a;
+            margin: 0;
+            max-width: none;
+            line-height: 1.6
+        }
+
+        body.dark-mode .attendance-title {
+            color: #e8f0ff
+        }
+
+        body.dark-mode .attendance-subtitle {
+            color: #9ba4c7
+        }
+
+        .attendance-center {
+            display: flex;
+            justify-content: center;
+            margin-top: 24px
+        }
+
+        .attendance-card {
+            width: min(1020px, 100%);
+            border-radius: 24px;
+            border: 1px solid rgba(255, 107, 53, .2);
+            background: radial-gradient(circle at 14% 16%, rgba(255, 210, 176, .65), transparent 42%), radial-gradient(circle at 86% 18%, rgba(255, 159, 117, .25), transparent 36%), linear-gradient(145deg, rgba(255, 255, 255, .95), rgba(255, 241, 230, .86));
+            box-shadow: 0 20px 44px rgba(0, 0, 0, .1), inset 0 1px 0 rgba(255, 255, 255, .6);
+            backdrop-filter: blur(12px);
+            overflow: hidden
+        }
+
+        body.dark-mode .attendance-card {
+            border-color: rgba(79, 212, 255, .22);
+            background: radial-gradient(circle at 16% 20%, rgba(79, 212, 255, .16), transparent 42%), radial-gradient(circle at 84% 18%, rgba(120, 140, 255, .18), transparent 36%), linear-gradient(160deg, rgba(10, 14, 36, .96), rgba(10, 12, 36, .88));
+            box-shadow: 0 20px 44px rgba(0, 0, 0, .28), inset 0 1px 0 rgba(255, 255, 255, .05)
+        }
+
+        .attendance-card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 22px 28px 0;
+            gap: 16px
+        }
+
+        .attendance-card-title {
+            font-size: 17px;
+            font-weight: 800;
+            color: #2c2420;
+            margin: 0
+        }
+
+        body.dark-mode .attendance-card-title {
+            color: #e8f0ff
+        }
+
+        .attendance-card-note {
+            font-size: 12.5px;
+            color: #6a5a4a;
+            margin: 0
+        }
+
+        body.dark-mode .attendance-card-note {
+            color: #9fb3d9
+        }
+
+        .attendance-card-body {
+            padding: 20px 28px 30px;
+            display: grid;
+            grid-template-columns: minmax(300px, 1.3fr) minmax(240px, 1fr);
+            gap: 24px;
+            align-items: start
+        }
+
+        @media(max-width:920px) {
+            .attendance-card-body {
+                grid-template-columns: 1fr
+            }
+        }
+
         /* --- Camera area --- */
-        .cam-area{position:relative;border-radius:18px;overflow:hidden;min-height:340px;background:#0d0f1a;display:flex;align-items:center;justify-content:center;border:2px solid rgba(255,107,53,.18)}
-        body.dark-mode .cam-area{border-color:rgba(79,212,255,.25)}
-        .cam-video{width:100%;height:100%;object-fit:cover;display:none;transform:scaleX(-1)}
-        .cam-video.active{display:block}
-        .cam-canvas{display:none}
-        .cam-overlay{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;color:#b8bfcf;text-align:center;padding:20px;z-index:2}
-        .cam-overlay.hidden{display:none}
-        .cam-icon{width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,#ff6b35,#e85c20);display:flex;align-items:center;justify-content:center;color:#fff;box-shadow:0 12px 28px rgba(255,107,53,.35);font-size:26px;cursor:pointer;transition:transform .2s}
-        .cam-icon:hover{transform:scale(1.08)}
-        body.dark-mode .cam-icon{background:linear-gradient(135deg,#6366f1,#14b8a6);box-shadow:0 12px 28px rgba(99,102,241,.4)}
+        .cam-area {
+            position: relative;
+            border-radius: 18px;
+            overflow: hidden;
+            min-height: 340px;
+            background: #0d0f1a;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid rgba(255, 107, 53, .18)
+        }
+
+        body.dark-mode .cam-area {
+            border-color: rgba(79, 212, 255, .25)
+        }
+
+        .cam-video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: none;
+            transform: scaleX(-1)
+        }
+
+        .cam-video.active {
+            display: block
+        }
+
+        .cam-canvas {
+            display: none
+        }
+
+        .cam-overlay {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 14px;
+            color: #b8bfcf;
+            text-align: center;
+            padding: 20px;
+            z-index: 2
+        }
+
+        .cam-overlay.hidden {
+            display: none
+        }
+
+        .cam-icon {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #ff6b35, #e85c20);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            box-shadow: 0 12px 28px rgba(255, 107, 53, .35);
+            font-size: 26px;
+            cursor: pointer;
+            transition: transform .2s
+        }
+
+        .cam-icon:hover {
+            transform: scale(1.08)
+        }
+
+        body.dark-mode .cam-icon {
+            background: linear-gradient(135deg, #6366f1, #14b8a6);
+            box-shadow: 0 12px 28px rgba(99, 102, 241, .4)
+        }
+
         /* Face guide overlay */
-        .face-guide{position:absolute;inset:0;display:none;align-items:center;justify-content:center;z-index:3;pointer-events:none}
-        .face-guide.visible{display:flex}
-        .face-guide-oval{width:190px;height:250px;border:3px dashed rgba(231,76,60,.8);border-radius:50%;transition:border-color .3s,box-shadow .3s}
-        .face-guide-oval.good{border-color:rgba(39,174,96,.9);box-shadow:0 0 20px rgba(39,174,96,.3)}
-        .face-guide-oval.bad{border-color:rgba(231,76,60,.9);box-shadow:0 0 20px rgba(231,76,60,.3);animation:pulse-oval 1.5s ease-in-out infinite}
-        @keyframes pulse-oval{0%,100%{opacity:.7;transform:scale(1)}50%{opacity:1;transform:scale(1.02)}}
-        .face-arrow{position:absolute;font-size:32px;color:rgba(255,255,255,.85);text-shadow:0 2px 8px rgba(0,0,0,.5);pointer-events:none;transition:opacity .3s}
-        .face-arrow.left{left:12%;top:50%;transform:translateY(-50%)}
-        .face-arrow.right{right:12%;top:50%;transform:translateY(-50%)}
-        .face-arrow.up{top:8%;left:50%;transform:translateX(-50%)}
-        .face-arrow.down{bottom:14%;left:50%;transform:translateX(-50%)}
-        .face-status-text{position:absolute;bottom:22%;left:50%;transform:translateX(-50%);color:#fff;font-size:12px;font-weight:700;background:rgba(0,0,0,.55);padding:4px 14px;border-radius:20px;white-space:nowrap;transition:background .3s}
-        .face-status-text.good{background:rgba(39,174,96,.7)}
-        .face-status-text.bad{background:rgba(231,76,60,.7)}
+        .face-guide {
+            position: absolute;
+            inset: 0;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 3;
+            pointer-events: none
+        }
+
+        .face-guide.visible {
+            display: flex
+        }
+
+        .face-guide-oval {
+            width: 190px;
+            height: 250px;
+            border: 3px dashed rgba(231, 76, 60, .8);
+            border-radius: 50%;
+            transition: border-color .3s, box-shadow .3s
+        }
+
+        .face-guide-oval.good {
+            border-color: rgba(39, 174, 96, .9);
+            box-shadow: 0 0 20px rgba(39, 174, 96, .3)
+        }
+
+        .face-guide-oval.bad {
+            border-color: rgba(231, 76, 60, .9);
+            box-shadow: 0 0 20px rgba(231, 76, 60, .3);
+            animation: pulse-oval 1.5s ease-in-out infinite
+        }
+
+        @keyframes pulse-oval {
+
+            0%,
+            100% {
+                opacity: .7;
+                transform: scale(1)
+            }
+
+            50% {
+                opacity: 1;
+                transform: scale(1.02)
+            }
+        }
+
+        .face-arrow {
+            position: absolute;
+            font-size: 32px;
+            color: rgba(255, 255, 255, .85);
+            text-shadow: 0 2px 8px rgba(0, 0, 0, .5);
+            pointer-events: none;
+            transition: opacity .3s
+        }
+
+        .face-arrow.left {
+            left: 12%;
+            top: 50%;
+            transform: translateY(-50%)
+        }
+
+        .face-arrow.right {
+            right: 12%;
+            top: 50%;
+            transform: translateY(-50%)
+        }
+
+        .face-arrow.up {
+            top: 8%;
+            left: 50%;
+            transform: translateX(-50%)
+        }
+
+        .face-arrow.down {
+            bottom: 14%;
+            left: 50%;
+            transform: translateX(-50%)
+        }
+
+        .face-status-text {
+            position: absolute;
+            bottom: 22%;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #fff;
+            font-size: 12px;
+            font-weight: 700;
+            background: rgba(0, 0, 0, .55);
+            padding: 4px 14px;
+            border-radius: 20px;
+            white-space: nowrap;
+            transition: background .3s
+        }
+
+        .face-status-text.good {
+            background: rgba(39, 174, 96, .7)
+        }
+
+        .face-status-text.bad {
+            background: rgba(231, 76, 60, .7)
+        }
+
         /* Position banner */
-        .pos-banner{position:absolute;bottom:0;left:0;right:0;padding:12px 18px;background:linear-gradient(0deg,rgba(0,0,0,.7),transparent);color:#fff;z-index:4;display:none;text-align:center}
-        .pos-banner.visible{display:block}
-        .pos-banner .pos-label{font-size:15px;font-weight:700;letter-spacing:.3px}
-        .pos-banner .pos-hint{font-size:12px;opacity:.8;margin-top:2px}
+        .pos-banner {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 12px 18px;
+            background: linear-gradient(0deg, rgba(0, 0, 0, .7), transparent);
+            color: #fff;
+            z-index: 4;
+            display: none;
+            text-align: center
+        }
+
+        .pos-banner.visible {
+            display: block
+        }
+
+        .pos-banner .pos-label {
+            font-size: 15px;
+            font-weight: 700;
+            letter-spacing: .3px
+        }
+
+        .pos-banner .pos-hint {
+            font-size: 12px;
+            opacity: .8;
+            margin-top: 2px
+        }
+
         /* --- Right panel --- */
-        .right-panel{display:flex;flex-direction:column;gap:14px}
-        .step-list{display:flex;flex-direction:column;gap:8px}
-        .step-item{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:12px;border:1px solid rgba(255,107,53,.15);background:rgba(255,255,255,.65);font-size:13px;font-weight:600;color:#4a3826;transition:all .25s;cursor:pointer;user-select:none}
-        .step-dot{width:28px;height:28px;border-radius:50%;border:2px solid rgba(255,107,53,.3);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:#ff6b35;flex-shrink:0;transition:all .25s}
-        .step-item.active{border-color:rgba(255,107,53,.5);background:rgba(255,208,176,.45)}
-        .step-item.active .step-dot{background:#ff6b35;color:#fff;border-color:#ff6b35;box-shadow:0 0 12px rgba(255,107,53,.4)}
-        .step-item.done{border-color:rgba(39,174,96,.35);background:rgba(39,174,96,.08);cursor:pointer}
-        .step-item.done .step-dot{background:#27ae60;color:#fff;border-color:#27ae60}
-        .step-item.fail{border-color:rgba(231,76,60,.35);background:rgba(231,76,60,.08);cursor:pointer}
-        .step-item.fail .step-dot{background:#e74c3c;color:#fff;border-color:#e74c3c;box-shadow:0 0 12px rgba(231,76,60,.3)}
-        body.dark-mode .step-item{border-color:rgba(79,212,255,.2);background:rgba(15,20,52,.7);color:#dbe7ff}
-        body.dark-mode .step-dot{border-color:rgba(79,212,255,.35);color:#4fd4ff}
-        body.dark-mode .step-item.active{border-color:rgba(79,212,255,.55);background:rgba(79,212,255,.12)}
-        body.dark-mode .step-item.active .step-dot{background:#4fd4ff;color:#0a0e24;border-color:#4fd4ff}
-        body.dark-mode .step-item.done .step-dot{background:#27ae60;border-color:#27ae60;color:#fff}
-        body.dark-mode .step-item.fail{border-color:rgba(231,76,60,.4);background:rgba(231,76,60,.12);color:#ffd8d8}
-        body.dark-mode .step-item.fail .step-dot{background:#e74c3c;border-color:#e74c3c;color:#fff}
+        .right-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 14px
+        }
+
+        .step-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px
+        }
+
+        .step-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 14px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 107, 53, .15);
+            background: rgba(255, 255, 255, .65);
+            font-size: 13px;
+            font-weight: 600;
+            color: #4a3826;
+            transition: all .25s;
+            cursor: pointer;
+            user-select: none
+        }
+
+        .step-dot {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            border: 2px solid rgba(255, 107, 53, .3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: 800;
+            color: #ff6b35;
+            flex-shrink: 0;
+            transition: all .25s
+        }
+
+        .step-item.active {
+            border-color: rgba(255, 107, 53, .5);
+            background: rgba(255, 208, 176, .45)
+        }
+
+        .step-item.active .step-dot {
+            background: #ff6b35;
+            color: #fff;
+            border-color: #ff6b35;
+            box-shadow: 0 0 12px rgba(255, 107, 53, .4)
+        }
+
+        .step-item.done {
+            border-color: rgba(39, 174, 96, .35);
+            background: rgba(39, 174, 96, .08);
+            cursor: pointer
+        }
+
+        .step-item.done .step-dot {
+            background: #27ae60;
+            color: #fff;
+            border-color: #27ae60
+        }
+
+        .step-item.fail {
+            border-color: rgba(231, 76, 60, .35);
+            background: rgba(231, 76, 60, .08);
+            cursor: pointer
+        }
+
+        .step-item.fail .step-dot {
+            background: #e74c3c;
+            color: #fff;
+            border-color: #e74c3c;
+            box-shadow: 0 0 12px rgba(231, 76, 60, .3)
+        }
+
+        body.dark-mode .step-item {
+            border-color: rgba(79, 212, 255, .2);
+            background: rgba(15, 20, 52, .7);
+            color: #dbe7ff
+        }
+
+        body.dark-mode .step-dot {
+            border-color: rgba(79, 212, 255, .35);
+            color: #4fd4ff
+        }
+
+        body.dark-mode .step-item.active {
+            border-color: rgba(79, 212, 255, .55);
+            background: rgba(79, 212, 255, .12)
+        }
+
+        body.dark-mode .step-item.active .step-dot {
+            background: #4fd4ff;
+            color: #0a0e24;
+            border-color: #4fd4ff
+        }
+
+        body.dark-mode .step-item.done .step-dot {
+            background: #27ae60;
+            border-color: #27ae60;
+            color: #fff
+        }
+
+        body.dark-mode .step-item.fail {
+            border-color: rgba(231, 76, 60, .4);
+            background: rgba(231, 76, 60, .12);
+            color: #ffd8d8
+        }
+
+        body.dark-mode .step-item.fail .step-dot {
+            background: #e74c3c;
+            border-color: #e74c3c;
+            color: #fff
+        }
+
         /* Thumbnails */
-        .thumb-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-top:4px}
-        .thumb-slot{border-radius:10px;border:1.5px dashed rgba(255,107,53,.25);background:rgba(255,255,255,.5);aspect-ratio:1;display:flex;align-items:center;justify-content:center;overflow:hidden;font-size:10px;color:#a08060;transition:all .25s}
-        .thumb-slot.filled{border-style:solid;border-color:rgba(39,174,96,.5)}
-        .thumb-slot img{width:100%;height:100%;object-fit:cover;display:none}
-        .thumb-slot.filled img{display:block}
-        body.dark-mode .thumb-slot{border-color:rgba(79,212,255,.25);background:rgba(12,16,42,.7);color:#6b82b0}
-        body.dark-mode .thumb-slot.filled{border-color:rgba(39,174,96,.5)}
+        .thumb-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 6px;
+            margin-top: 4px
+        }
+
+        .thumb-slot {
+            border-radius: 10px;
+            border: 1.5px dashed rgba(255, 107, 53, .25);
+            background: rgba(255, 255, 255, .5);
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            font-size: 10px;
+            color: #a08060;
+            transition: all .25s
+        }
+
+        .thumb-slot.filled {
+            border-style: solid;
+            border-color: rgba(39, 174, 96, .5)
+        }
+
+        .thumb-slot img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: none
+        }
+
+        .thumb-slot.filled img {
+            display: block
+        }
+
+        body.dark-mode .thumb-slot {
+            border-color: rgba(79, 212, 255, .25);
+            background: rgba(12, 16, 42, .7);
+            color: #6b82b0
+        }
+
+        body.dark-mode .thumb-slot.filled {
+            border-color: rgba(39, 174, 96, .5)
+        }
+
         /* Buttons */
-        .att-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:6px}
-        .att-btn{padding:11px 22px;border-radius:12px;border:none;font-weight:700;font-size:13.5px;cursor:pointer;transition:transform .15s,box-shadow .15s,opacity .15s;font-family:inherit;display:inline-flex;align-items:center;gap:7px}
-        .att-btn.primary{background:linear-gradient(135deg,#ff6b35,#e85c20);color:#fff;box-shadow:0 6px 18px rgba(255,107,53,.35)}
-        .att-btn.ghost{background:rgba(255,255,255,.8);border:1px solid rgba(255,107,53,.2);color:#5a4a3a}
-        .att-btn:disabled{cursor:not-allowed;opacity:.5;box-shadow:none}
-        .att-btn:hover:not(:disabled){transform:translateY(-1px)}
-        body.dark-mode .att-btn.primary{background:linear-gradient(135deg,#4fd4ff,#38b2d8);color:#0a0e24;box-shadow:0 6px 18px rgba(79,212,255,.35)}
-        body.dark-mode .att-btn.ghost{background:rgba(13,18,46,.9);color:#d2dcff;border-color:rgba(79,212,255,.35)}
+        .att-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 6px
+        }
+
+        .att-btn {
+            padding: 11px 22px;
+            border-radius: 12px;
+            border: none;
+            font-weight: 700;
+            font-size: 13.5px;
+            cursor: pointer;
+            transition: transform .15s, box-shadow .15s, opacity .15s;
+            font-family: inherit;
+            display: inline-flex;
+            align-items: center;
+            gap: 7px
+        }
+
+        .att-btn.primary {
+            background: linear-gradient(135deg, #ff6b35, #e85c20);
+            color: #fff;
+            box-shadow: 0 6px 18px rgba(255, 107, 53, .35)
+        }
+
+        .att-btn.ghost {
+            background: rgba(255, 255, 255, .8);
+            border: 1px solid rgba(255, 107, 53, .2);
+            color: #5a4a3a
+        }
+
+        .att-btn:disabled {
+            cursor: not-allowed;
+            opacity: .5;
+            box-shadow: none
+        }
+
+        .att-btn:hover:not(:disabled) {
+            transform: translateY(-1px)
+        }
+
+        body.dark-mode .att-btn.primary {
+            background: linear-gradient(135deg, #4fd4ff, #38b2d8);
+            color: #0a0e24;
+            box-shadow: 0 6px 18px rgba(79, 212, 255, .35)
+        }
+
+        body.dark-mode .att-btn.ghost {
+            background: rgba(13, 18, 46, .9);
+            color: #d2dcff;
+            border-color: rgba(79, 212, 255, .35)
+        }
+
         /* Status */
-        .att-status{font-size:13px;color:#6a5a4a;min-height:18px;margin-top:8px;white-space:pre-wrap;line-height:1.5}
-        body.dark-mode .att-status{color:#a7b9df}
+        .att-status {
+            font-size: 13px;
+            color: #6a5a4a;
+            min-height: 18px;
+            margin-top: 8px;
+            white-space: pre-wrap;
+            line-height: 1.5
+        }
+
+        body.dark-mode .att-status {
+            color: #a7b9df
+        }
+
         /* Result badges */
-        .result-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:6px;font-size:10.5px;font-weight:700}
-        .result-badge.ok{background:rgba(39,174,96,.12);color:#27ae60}
-        .result-badge.warn{background:rgba(241,196,15,.15);color:#d4a017}
-        .result-badge.fail{background:rgba(231,76,60,.12);color:#e74c3c}
+        .result-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-size: 10.5px;
+            font-weight: 700
+        }
+
+        .result-badge.ok {
+            background: rgba(39, 174, 96, .12);
+            color: #27ae60
+        }
+
+        .result-badge.warn {
+            background: rgba(241, 196, 15, .15);
+            color: #d4a017
+        }
+
+        .result-badge.fail {
+            background: rgba(231, 76, 60, .12);
+            color: #e74c3c
+        }
+
         /* Spinner */
-        .pipeline-spinner{display:inline-block;width:14px;height:14px;border:2px solid rgba(255,107,53,.3);border-top-color:#ff6b35;border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:6px}
-        @keyframes spin{to{transform:rotate(360deg)}}
-        body.dark-mode .pipeline-spinner{border-color:rgba(79,212,255,.3);border-top-color:#4fd4ff}
+        .pipeline-spinner {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            border: 2px solid rgba(255, 107, 53, .3);
+            border-top-color: #ff6b35;
+            border-radius: 50%;
+            animation: spin .7s linear infinite;
+            vertical-align: middle;
+            margin-right: 6px
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg)
+            }
+        }
+
+        body.dark-mode .pipeline-spinner {
+            border-color: rgba(79, 212, 255, .3);
+            border-top-color: #4fd4ff
+        }
+
         /* ── Post-enrollment dashboard ── */
-        .post-enroll{display:none}
-        .post-enroll.visible{display:block}
-        .post-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:16px}
-        @media(max-width:920px){.post-grid{grid-template-columns:1fr}}
-        .post-panel{border-radius:18px;border:1px solid rgba(255,107,53,.2);
-            background:radial-gradient(circle at 14% 16%,rgba(255,210,176,.65),transparent 42%),radial-gradient(circle at 86% 18%,rgba(255,159,117,.25),transparent 36%),linear-gradient(145deg,rgba(255,255,255,.95),rgba(255,241,230,.86));
-            box-shadow:0 20px 44px rgba(0,0,0,.08);padding:22px 24px}
-        body.dark-mode .post-panel{border-color:rgba(79,212,255,.22);
-            background:radial-gradient(circle at 16% 20%,rgba(79,212,255,.16),transparent 42%),radial-gradient(circle at 84% 18%,rgba(120,140,255,.18),transparent 36%),linear-gradient(160deg,rgba(10,14,36,.96),rgba(10,12,36,.88));
-            box-shadow:0 20px 44px rgba(0,0,0,.25)}
-        .post-panel-title{font-size:15px;font-weight:800;color:#2c2420;margin:0 0 14px;display:flex;align-items:center;gap:8px}
-        body.dark-mode .post-panel-title{color:#e8f0ff}
-        .test-cam-area{position:relative;border-radius:14px;overflow:hidden;min-height:220px;background:rgba(13,15,26,.65);display:flex;align-items:center;justify-content:center;border:2px dashed rgba(255,107,53,.22)}
-        body.dark-mode .test-cam-area{background:rgba(13,15,26,.65);border-color:rgba(79,212,255,.22)}
-        .test-cam-video{width:100%;height:100%;object-fit:cover;display:none;transform:scaleX(-1)}
-        .test-cam-video.active{display:block}
-        .test-upload-zone{border:2px dashed rgba(255,107,53,.22);border-radius:14px;padding:30px;text-align:center;cursor:pointer;transition:border-color .2s,background .2s;min-height:120px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:#6a5a4a;font-size:13px;background:rgba(255,255,255,.15)}
-        .test-upload-zone:hover{border-color:rgba(255,107,53,.5);background:rgba(255,107,53,.04)}
-        body.dark-mode .test-upload-zone{border-color:rgba(79,212,255,.22);color:#9fb3d9;background:rgba(0,0,0,.15)}
-        body.dark-mode .test-upload-zone:hover{border-color:rgba(79,212,255,.6);background:rgba(79,212,255,.06)}
-        .test-upload-zone img{max-width:100%;max-height:180px;border-radius:10px;display:none}
-        .test-result{margin-top:14px;padding:14px 18px;border-radius:12px;font-size:13px;display:none}
-        .test-result.success{display:block;background:rgba(39,174,96,.1);border:1px solid rgba(39,174,96,.3);color:#27ae60}
-        .test-result.fail{display:block;background:rgba(231,76,60,.1);border:1px solid rgba(231,76,60,.3);color:#e74c3c}
-        body.dark-mode .test-result.success{background:rgba(39,174,96,.15);color:#2ecc71}
-        body.dark-mode .test-result.fail{background:rgba(231,76,60,.15);color:#e74c3c}
-        .chart-placeholder{background:rgba(255,255,255,.25);border-radius:14px;padding:20px;min-height:160px;display:flex;align-items:center;justify-content:center;border:2px dashed rgba(255,107,53,.22)}
-        body.dark-mode .chart-placeholder{background:rgba(10,14,36,.4);border-color:rgba(79,212,255,.22)}
-        .post-title-icon{width:18px;height:18px;vertical-align:middle;margin-right:8px;color:#ff6b35;stroke-width:2.5;display:inline-block}
-        body.dark-mode .post-title-icon{color:#4fd4ff}
-        .step-icon{width:15px;height:15px;vertical-align:middle;margin-right:6px;opacity:.7;display:inline-block;stroke-width:2.5}
-        .step-item.active .step-icon{opacity:1;color:#ff6b35}
-        body.dark-mode .step-item.active .step-icon{color:#4fd4ff}
-        .upload-icon{width:32px;height:32px;color:#ff6b35;margin-bottom:8px;transition:transform .2s;display:inline-block;stroke-width:2}
-        .test-upload-zone:hover .upload-icon{transform:scale(1.08)}
-        body.dark-mode .upload-icon{color:#4fd4ff}
-        .camera-icon{width:32px;height:32px;color:#ff6b35;margin-bottom:8px;display:inline-block;stroke-width:2}
-        body.dark-mode .camera-icon{color:#4fd4ff}
+        .post-enroll {
+            display: none
+        }
+
+        .post-enroll.visible {
+            display: block
+        }
+
+        .post-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            margin-top: 16px
+        }
+
+        @media(max-width:920px) {
+            .post-grid {
+                grid-template-columns: 1fr
+            }
+        }
+
+        .post-panel {
+            border-radius: 18px;
+            border: 1px solid rgba(255, 107, 53, .2);
+            background: radial-gradient(circle at 14% 16%, rgba(255, 210, 176, .65), transparent 42%), radial-gradient(circle at 86% 18%, rgba(255, 159, 117, .25), transparent 36%), linear-gradient(145deg, rgba(255, 255, 255, .95), rgba(255, 241, 230, .86));
+            box-shadow: 0 20px 44px rgba(0, 0, 0, .08);
+            padding: 22px 24px
+        }
+
+        body.dark-mode .post-panel {
+            border-color: rgba(79, 212, 255, .22);
+            background: radial-gradient(circle at 16% 20%, rgba(79, 212, 255, .16), transparent 42%), radial-gradient(circle at 84% 18%, rgba(120, 140, 255, .18), transparent 36%), linear-gradient(160deg, rgba(10, 14, 36, .96), rgba(10, 12, 36, .88));
+            box-shadow: 0 20px 44px rgba(0, 0, 0, .25)
+        }
+
+        .post-panel-title {
+            font-size: 15px;
+            font-weight: 800;
+            color: #2c2420;
+            margin: 0 0 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px
+        }
+
+        body.dark-mode .post-panel-title {
+            color: #e8f0ff
+        }
+
+        .test-cam-area {
+            position: relative;
+            border-radius: 14px;
+            overflow: hidden;
+            min-height: 220px;
+            background: rgba(13, 15, 26, .65);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px dashed rgba(255, 107, 53, .22)
+        }
+
+        body.dark-mode .test-cam-area {
+            background: rgba(13, 15, 26, .65);
+            border-color: rgba(79, 212, 255, .22)
+        }
+
+        .test-cam-video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: none;
+            transform: scaleX(-1)
+        }
+
+        .test-cam-video.active {
+            display: block
+        }
+
+        .test-upload-zone {
+            border: 2px dashed rgba(255, 107, 53, .22);
+            border-radius: 14px;
+            padding: 30px;
+            text-align: center;
+            cursor: pointer;
+            transition: border-color .2s, background .2s;
+            min-height: 120px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            color: #6a5a4a;
+            font-size: 13px;
+            background: rgba(255, 255, 255, .15)
+        }
+
+        .test-upload-zone:hover {
+            border-color: rgba(255, 107, 53, .5);
+            background: rgba(255, 107, 53, .04)
+        }
+
+        body.dark-mode .test-upload-zone {
+            border-color: rgba(79, 212, 255, .22);
+            color: #9fb3d9;
+            background: rgba(0, 0, 0, .15)
+        }
+
+        body.dark-mode .test-upload-zone:hover {
+            border-color: rgba(79, 212, 255, .6);
+            background: rgba(79, 212, 255, .06)
+        }
+
+        .test-upload-zone img {
+            max-width: 100%;
+            max-height: 180px;
+            border-radius: 10px;
+            display: none
+        }
+
+        .test-result {
+            margin-top: 14px;
+            padding: 14px 18px;
+            border-radius: 12px;
+            font-size: 13px;
+            display: none
+        }
+
+        .test-result.success {
+            display: block;
+            background: rgba(39, 174, 96, .1);
+            border: 1px solid rgba(39, 174, 96, .3);
+            color: #27ae60
+        }
+
+        .test-result.fail {
+            display: block;
+            background: rgba(231, 76, 60, .1);
+            border: 1px solid rgba(231, 76, 60, .3);
+            color: #e74c3c
+        }
+
+        body.dark-mode .test-result.success {
+            background: rgba(39, 174, 96, .15);
+            color: #2ecc71
+        }
+
+        body.dark-mode .test-result.fail {
+            background: rgba(231, 76, 60, .15);
+            color: #e74c3c
+        }
+
+        .chart-placeholder {
+            background: rgba(255, 255, 255, .25);
+            border-radius: 14px;
+            padding: 20px;
+            min-height: 160px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px dashed rgba(255, 107, 53, .22)
+        }
+
+        body.dark-mode .chart-placeholder {
+            background: rgba(10, 14, 36, .4);
+            border-color: rgba(79, 212, 255, .22)
+        }
+
+        .post-title-icon {
+            width: 18px;
+            height: 18px;
+            vertical-align: middle;
+            margin-right: 8px;
+            color: #ff6b35;
+            stroke-width: 2.5;
+            display: inline-block
+        }
+
+        body.dark-mode .post-title-icon {
+            color: #4fd4ff
+        }
+
+        .step-icon {
+            width: 15px;
+            height: 15px;
+            vertical-align: middle;
+            margin-right: 6px;
+            opacity: .7;
+            display: inline-block;
+            stroke-width: 2.5
+        }
+
+        .step-item.active .step-icon {
+            opacity: 1;
+            color: #ff6b35
+        }
+
+        body.dark-mode .step-item.active .step-icon {
+            color: #4fd4ff
+        }
+
+        .upload-icon {
+            width: 32px;
+            height: 32px;
+            color: #ff6b35;
+            margin-bottom: 8px;
+            transition: transform .2s;
+            display: inline-block;
+            stroke-width: 2
+        }
+
+        .test-upload-zone:hover .upload-icon {
+            transform: scale(1.08)
+        }
+
+        body.dark-mode .upload-icon {
+            color: #4fd4ff
+        }
+
+        .camera-icon {
+            width: 32px;
+            height: 32px;
+            color: #ff6b35;
+            margin-bottom: 8px;
+            display: inline-block;
+            stroke-width: 2
+        }
+
+        body.dark-mode .camera-icon {
+            color: #4fd4ff
+        }
     </style>
 </head>
 
@@ -165,7 +856,8 @@
         <aside class="dash-sidebar" id="dashSidebar">
             <div class="sidebar-header">
                 <a href="{{ url_for('dashboard') }}" class="dash-logo-link">
-                    <img src="{{ url_for('static', filename='images/Logo_BR.png') }}" alt="Logo" class="dash-logo-img">
+                    <img src="{{ url_for('static', filename='images/Logo_BR.png') }}?v=20260521" alt="Logo"
+                        class="dash-logo-img">
                 </a>
                 <button class="sidebar-toggle-btn" id="sidebarToggle" aria-label="Toggle Sidebar">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
@@ -222,6 +914,24 @@
                                 <line x1="16" y1="16" x2="16" y2="16"></line>
                             </svg>
                             <span class="sidebar-text">AI Agent</span>
+                        </a>
+                    </nav>
+                </div>
+
+                <!-- TOOLS SECTION -->
+                <div class="sidebar-section">
+                    <span class="section-title">Tools</span>
+                    <nav class="sidebar-nav">
+                        <a href="{{ url_for('schedule') }}" class="sidebar-item">
+                            <svg class="sidebar-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18"
+                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                                <line x1="16" y1="2" x2="16" y2="6"></line>
+                                <line x1="8" y1="2" x2="8" y2="6"></line>
+                                <line x1="3" y1="10" x2="21" y2="10"></line>
+                            </svg>
+                            <span class="sidebar-text">Schedule</span>
                         </a>
                     </nav>
                 </div>
@@ -375,10 +1085,13 @@
 
                 <div class="attendance-hero">
                     <h1 class="attendance-title">Smart <span class="attendance-accent">Attendance</span> Enrollment</h1>
-                    <p class="attendance-subtitle">Quickly register your face profile using our guided camera setup to enable automated attendance, track your weekly class statistics, and test your recognition status.</p>
+                    <p class="attendance-subtitle">Quickly register your face profile using our guided camera setup to
+                        enable automated attendance, track your weekly class statistics, and test your recognition
+                        status.</p>
                 </div>
 
-                <div class="attendance-center" id="enrollmentSection">
+                <div class="attendance-center" id="enrollmentSection" {% if enrolled %} style="display:none" {% endif
+                    %}>
                     <section class="attendance-card" aria-label="Attendance capture">
                         <div class="attendance-card-header">
                             <div>
@@ -404,16 +1117,26 @@
                                     </div>
                                     <div class="cam-overlay" id="camOverlay">
                                         <div class="cam-icon" onclick="startCamera()">
-                                            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                                            <svg width="26" height="26" viewBox="0 0 24 24" fill="none"
+                                                stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                                stroke-linejoin="round">
+                                                <path
+                                                    d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+                                                <circle cx="12" cy="13" r="4" />
+                                            </svg>
                                         </div>
                                         <strong>Click to open camera</strong>
-                                        <span style="font-size:12px">Your camera stays in the browser — no desktop window needed</span>
+                                        <span style="font-size:12px">Your camera stays in the browser — no desktop
+                                            window needed</span>
                                     </div>
                                 </div>
                                 <div class="att-actions" id="actionsRow">
-                                    <button class="att-btn primary" id="btnStart" onclick="startCamera()">Open Camera</button>
-                                    <button class="att-btn primary" id="btnCapture" onclick="captureFrame()" disabled>Capture</button>
-                                    <button class="att-btn primary" id="btnSubmit" onclick="submitAll()" disabled style="display:none">Enroll Now</button>
+                                    <button class="att-btn primary" id="btnStart" onclick="startCamera()">Open
+                                        Camera</button>
+                                    <button class="att-btn primary" id="btnCapture" onclick="captureFrame()"
+                                        disabled>Capture</button>
+                                    <button class="att-btn primary" id="btnSubmit" onclick="submitAll()" disabled
+                                        style="display:none">Enroll Now</button>
                                 </div>
                                 <div class="att-status" id="statusEl">Ready — click "Open Camera" to begin.</div>
                             </div>
@@ -427,87 +1150,108 @@
                 </div>
 
                 <!-- ══ Post-enrollment dashboard ══ -->
-                <div class="post-enroll" id="postEnrollView">
+                <div class="post-enroll{% if enrolled %} visible{% endif %}" id="postEnrollView">
                     <div style="display:flex;justify-content:flex-end;margin-bottom:14px;">
                         <button class="att-btn ghost" onclick="reEnrollFromPost()">Enroll Again</button>
                     </div>
                     <div class="post-grid">
                         <!-- Left: Charts -->
                         <div class="post-panel">
-                            <div class="post-panel-title"><svg class="post-title-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>Weekly Attendance</div>
+                            <div class="post-panel-title"><svg class="post-title-icon"
+                                    xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                                    fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                                    <line x1="18" y1="20" x2="18" y2="10"></line>
+                                    <line x1="12" y1="20" x2="12" y2="4"></line>
+                                    <line x1="6" y1="20" x2="6" y2="14"></line>
+                                </svg>Weekly Attendance</div>
                             <div class="chart-placeholder" id="chartWeekly">
                                 <canvas id="weeklyChart" style="width:100%;max-height:200px"></canvas>
                             </div>
-                            <div class="post-panel-title" style="margin-top: 16px; display: flex; align-items: center; gap: 6px;">
-                                <svg class="post-title-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>Attendance by Course
+                            <div class="post-panel-title"
+                                style="margin-top: 16px; display: flex; align-items: center; justify-content: space-between; gap: 6px; width: 100%;">
+                                <div style="display: flex; align-items: center; gap: 6px;">
+                                    <svg class="post-title-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18"
+                                        viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"
+                                        stroke-linejoin="round">
+                                        <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
+                                        <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
+                                    </svg>Attendance by Course
+                                </div>
+                                <button class="card-expand-btn" type="button" aria-label="Expand" style="background: none; border: none; padding: 4px; cursor: pointer; color: var(--card-subtitle-color, #8a7a70); display: flex; align-items: center; justify-content: center; transition: color 0.2s, transform 0.2s;">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
+                                        fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+                                        stroke-linejoin="round">
+                                        <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" />
+                                    </svg>
+                                </button>
                             </div>
                             <div class="chart-placeholder" id="chartMonthly" style="display:block; padding: 18px 20px;">
                                 <div class="course-bars-area">
+                                    {% for course in courses %}
                                     <div class="course-bar-row">
-                                        <span class="course-bar-label">Mathematics</span>
+                                        <span class="course-bar-label">{{ course.name }}</span>
                                         <div class="course-bar-track">
-                                            <div class="course-bar-fill" style="--pct:76%; --clr:#ff6b35;"></div>
+                                            <div class="course-bar-fill" style="--pct:{{ course.pct }}%; --clr:{{ course.clr }};"></div>
                                         </div>
-                                        <span class="course-bar-pct">76%</span>
+                                        <span class="course-bar-pct">{{ course.pct }}%</span>
                                     </div>
-                                    <div class="course-bar-row">
-                                        <span class="course-bar-label">Physics</span>
-                                        <div class="course-bar-track">
-                                            <div class="course-bar-fill" style="--pct:90%; --clr:#e8c547;"></div>
-                                        </div>
-                                        <span class="course-bar-pct">90%</span>
-                                    </div>
-                                    <div class="course-bar-row">
-                                        <span class="course-bar-label">Computer Sci.</span>
-                                        <div class="course-bar-track">
-                                            <div class="course-bar-fill" style="--pct:60%; --clr:#3b82f6;"></div>
-                                        </div>
-                                        <span class="course-bar-pct">60%</span>
-                                    </div>
-                                    <div class="course-bar-row">
-                                        <span class="course-bar-label">Data Structures</span>
-                                        <div class="course-bar-track">
-                                            <div class="course-bar-fill" style="--pct:80%; --clr:#22c55e;"></div>
-                                        </div>
-                                        <span class="course-bar-pct">80%</span>
-                                    </div>
-                                    <div class="course-bar-row">
-                                        <span class="course-bar-label">English</span>
-                                        <div class="course-bar-track">
-                                            <div class="course-bar-fill" style="--pct:50%; --clr:#a855f7;"></div>
-                                        </div>
-                                        <span class="course-bar-pct">50%</span>
-                                    </div>
+                                    {% endfor %}
                                 </div>
-                                <p class="chart-coming-soon" style="text-align: center; margin-top: 12px;">Real course data will appear here once backend is connected</p>
                             </div>
                         </div>
                         <!-- Right: Recognition Test -->
                         <div class="post-panel">
-                            <div class="post-panel-title"><svg class="post-title-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>Enrollment Test</div>
-                            <p style="font-size:12.5px;color:#6a5a4a;margin:0 0 12px;line-height:1.5" class="test-desc">Verify your enrollment by uploading a photo or using the camera. The system will check if it recognizes you.</p>
+                            <div class="post-panel-title"><svg class="post-title-icon"
+                                    xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                                    fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                                </svg>Enrollment Test</div>
+                            <p style="font-size:12.5px;color:#6a5a4a;margin:0 0 12px;line-height:1.5" class="test-desc">
+                                Verify your enrollment by uploading a photo or using the camera. The system will check
+                                if it recognizes you.</p>
                             <!-- Camera test -->
                             <div class="test-cam-area" id="testCamArea">
                                 <video class="test-cam-video" id="testVideo" autoplay muted playsinline></video>
                                 <canvas id="testCanvas" style="display:none" width="640" height="480"></canvas>
                                 <div id="testCamOverlay" style="color:#6b82b0;text-align:center;font-size:13px">
-                                    <svg class="camera-icon" xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
+                                    <svg class="camera-icon" xmlns="http://www.w3.org/2000/svg" width="32" height="32"
+                                        viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"
+                                        stroke-linejoin="round">
+                                        <path
+                                            d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z">
+                                        </path>
+                                        <circle cx="12" cy="13" r="4"></circle>
+                                    </svg>
                                     <div>Click "Open Camera" to test live</div>
                                 </div>
                             </div>
                             <div style="display:flex;gap:10px;margin-top:10px;flex-wrap:wrap">
-                                <button class="att-btn primary" id="btnTestCam" onclick="testOpenCamera()">Open Camera</button>
-                                <button class="att-btn primary" id="btnTestCapture" onclick="testCaptureAndRecognize()" disabled>Capture & Recognize</button>
-                                <button class="att-btn ghost" id="btnTestStop" onclick="testStopCamera()" style="display:none">Stop Camera</button>
+                                <button class="att-btn primary" id="btnTestCam" onclick="testOpenCamera()">Open
+                                    Camera</button>
+                                <button class="att-btn primary" id="btnTestCapture" onclick="testCaptureAndRecognize()"
+                                    disabled>Capture & Recognize</button>
+                                <button class="att-btn ghost" id="btnTestStop" onclick="testStopCamera()"
+                                    style="display:none">Stop Camera</button>
                             </div>
-                            <div style="margin-top:14px;font-size:12.5px;font-weight:700;color:#6a5a4a;text-align:center" class="test-desc">— or upload a photo —</div>
-                            <div class="test-upload-zone" id="testUploadZone" onclick="if(!testAnalyzing)document.getElementById('testFileInput').click()">
-                                <svg class="upload-icon" xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+                            <div style="margin-top:14px;font-size:12.5px;font-weight:700;color:#6a5a4a;text-align:center"
+                                class="test-desc">— or upload a photo —</div>
+                            <div class="test-upload-zone" id="testUploadZone"
+                                onclick="if(!testAnalyzing)document.getElementById('testFileInput').click()">
+                                <svg class="upload-icon" xmlns="http://www.w3.org/2000/svg" width="32" height="32"
+                                    viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"
+                                    stroke-linejoin="round">
+                                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                                    <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                                    <polyline points="21 15 16 10 5 21"></polyline>
+                                </svg>
                                 <div>Click to upload an image</div>
                                 <img id="testPreview" alt="">
-                                <input type="file" id="testFileInput" accept="image/*" style="display:none" onchange="testHandleUpload(event)">
+                                <input type="file" id="testFileInput" accept="image/*" style="display:none"
+                                    onchange="testHandleUpload(event)">
                             </div>
-                            <button class="att-btn primary" id="btnTestUpload" onclick="testRecognizeUpload()" style="display:none;margin-top:10px;width:100%;justify-content:center">Recognize Face</button>
+                            <button class="att-btn primary" id="btnTestUpload" onclick="testRecognizeUpload()"
+                                style="display:none;margin-top:10px;width:100%;justify-content:center">Recognize
+                                Face</button>
                             <div class="test-result" id="testResult"></div>
                         </div>
                     </div>
@@ -516,432 +1260,451 @@
         </main>
     </div>
 
+    <!-- Zoom Modal for Course Attendance -->
+    <div id="courseAttendanceModal" class="custom-modal">
+        <div class="custom-modal-overlay"></div>
+        <div class="custom-modal-container">
+            <button class="custom-modal-close" aria-label="Close modal">&times;</button>
+            <div class="custom-modal-header">
+                <h2 class="custom-modal-title">Attendance by Course</h2>
+                <p class="custom-modal-subtitle">Current semester — sessions attended per course</p>
+            </div>
+            <div class="custom-modal-content">
+                <!-- Dynamic zoomed course bars go here -->
+            </div>
+        </div>
+    </div>
+
     <script>
-    let weeklyChartInst = null;
-    let monthlyChartInst = null;
-    /* ── Sidebar / Dark-mode / Particles (unchanged logic) ── */
-    const sidebar=document.getElementById('dashSidebar'),toggleBtn=document.getElementById('sidebarToggle'),darkModeBtn=document.getElementById('btnDarkMode'),darkModeText=darkModeBtn?darkModeBtn.querySelector('.sidebar-text'):null;
-    if(toggleBtn)toggleBtn.addEventListener('click',()=>sidebar.classList.toggle('collapsed'));
-    const isDark=localStorage.getItem('theme')==='dark';
-    if(isDark){document.body.classList.add('dark-mode');if(darkModeText)darkModeText.textContent='Dark mode (on)';if(darkModeBtn)darkModeBtn.classList.add('active');}
-    let particlesContainer;
-    tsParticles.load("particles-bg",{fpsLimit:60,particles:{color:{value:isDark?["#e8c547","#ff6b35","#80706a"]:["#ff6b35","#ffc5d0","#ffffff"]},move:{enable:true,direction:"top",random:true,speed:.6,straight:false},number:{density:{enable:true,area:800},value:100},opacity:{value:{min:.2,max:.6},animation:{enable:true,speed:.8,minimumValue:.1}},shape:{type:"circle"},size:{value:{min:2,max:8},animation:{enable:true,speed:1.5,minimumValue:2}}},detectRetina:true}).then(c=>{particlesContainer=c});
-    if(darkModeBtn)darkModeBtn.addEventListener('click',()=>{
-        document.body.classList.toggle('dark-mode');
-        const on=document.body.classList.contains('dark-mode');
-        localStorage.setItem('theme',on?'dark':'light');
-        if(darkModeText)darkModeText.textContent=on?'Dark mode (on)':'Dark mode (off)';
-        darkModeBtn.classList.toggle('active',on);
-        if(particlesContainer){
-            particlesContainer.options.particles.color.value=on?["#e8c547","#ff6b35","#80706a"]:["#ff6b35","#ffc5d0","#ffffff"];
-            particlesContainer.refresh();
-        }
-        if(typeof initCharts === 'function' && document.getElementById('postEnrollView') && document.getElementById('postEnrollView').classList.contains('visible')){
-            initCharts();
-        }
-    });
-    function setupPopup(b,p){const btn=document.getElementById(b),pop=document.getElementById(p);if(!btn||!pop)return;btn.addEventListener('click',e=>{e.stopPropagation();document.querySelectorAll('.header-popup.open').forEach(x=>{if(x!==pop)x.classList.remove('open')});pop.classList.toggle('open')})}
-    setupPopup('headerBtnMsg','msgPopup');setupPopup('headerBtnNotif','notifPopup');
-    document.addEventListener('click',()=>document.querySelectorAll('.header-popup.open').forEach(p=>p.classList.remove('open')));
-
-    /* ── Enrollment Logic with real-time face detection ── */
-    const positions=[
-        {id:'front',label:'Look straight ahead',icon:'<svg class="step-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="3"></circle></svg>',arrow:''},
-        {id:'left',label:'Turn slightly left',icon:'<svg class="step-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>',arrow:'←'},
-        {id:'right',label:'Turn slightly right',icon:'<svg class="step-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>',arrow:'→'},
-        {id:'up',label:'Look slightly up',icon:'<svg class="step-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline></svg>',arrow:'↑'},
-        {id:'down',label:'Look slightly down',icon:'<svg class="step-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><polyline points="19 12 12 19 5 12"></polyline></svg>',arrow:'↓'}
-    ];
-    const captures=[];
-    let capIdx=0, stream=null, detecting=false, faceOK=false, stepErrors=[null,null,null,null,null], stepResults=[null,null,null,null,null];
-    let goodSince=0, hasSubmitted=false, isProcessing=false;
-    const HOLD_MS=400;
-    const video=document.getElementById('camVideo'),canvas=document.getElementById('camCanvas'),
-          overlay=document.getElementById('camOverlay'),faceGuide=document.getElementById('faceGuide'),
-          faceOval=document.getElementById('faceOval'),arrowHint=document.getElementById('arrowHint'),
-          faceStatusText=document.getElementById('faceStatusText'),
-          posBanner=document.getElementById('posBanner'),posLabel=document.getElementById('posLabel'),
-          btnStart=document.getElementById('btnStart'),btnCapture=document.getElementById('btnCapture'),
-          btnSubmit=document.getElementById('btnSubmit'),
-          statusEl=document.getElementById('statusEl'),counterEl=document.getElementById('counterEl'),
-          stepList=document.getElementById('stepList'),thumbGrid=document.getElementById('thumbGrid');
-
-    /* ── BlazeFace model (loaded from CDN) ── */
-    let blazeModel=null, modelReady=false;
-    (async function(){
-        try{ blazeModel=await blazeface.load(); modelReady=true; console.log('BlazeFace loaded'); }
-        catch(e){ console.warn('BlazeFace failed to load:',e); }
-    })();
-
-    function setGuide(good, msg){
-        if(!good){
-            faceOK=false; goodSince=0;
-            faceOval.className='face-guide-oval bad';
-            faceStatusText.className='face-status-text bad';
-            faceStatusText.textContent=msg;
-            btnCapture.disabled=true;
-        } else {
-            const now=Date.now();
-            if(goodSince===0) goodSince=now;
-            if(now-goodSince>=HOLD_MS){
-                faceOK=true;
-                faceOval.className='face-guide-oval good';
-                faceStatusText.className='face-status-text good';
-                faceStatusText.textContent=msg;
-                btnCapture.disabled=false;
-            } else {
-                faceOK=false;
-                faceOval.className='face-guide-oval bad';
-                faceStatusText.className='face-status-text bad';
-                faceStatusText.textContent='Hold still...';
-                btnCapture.disabled=true;
+        let weeklyChartInst = null;
+        let monthlyChartInst = null;
+        /* ── Sidebar / Dark-mode / Particles (unchanged logic) ── */
+        const sidebar = document.getElementById('dashSidebar'), toggleBtn = document.getElementById('sidebarToggle'), darkModeBtn = document.getElementById('btnDarkMode'), darkModeText = darkModeBtn ? darkModeBtn.querySelector('.sidebar-text') : null;
+        if (toggleBtn) toggleBtn.addEventListener('click', () => sidebar.classList.toggle('collapsed'));
+        const isDark = localStorage.getItem('theme') === 'dark';
+        if (isDark) { document.body.classList.add('dark-mode'); if (darkModeText) darkModeText.textContent = 'Dark mode (on)'; if (darkModeBtn) darkModeBtn.classList.add('active'); }
+        let particlesContainer;
+        tsParticles.load("particles-bg", { fpsLimit: 60, particles: { color: { value: isDark ? ["#e8c547", "#ff6b35", "#80706a"] : ["#ff6b35", "#ffc5d0", "#ffffff"] }, move: { enable: true, direction: "top", random: true, speed: .6, straight: false }, number: { density: { enable: true, area: 800 }, value: 100 }, opacity: { value: { min: .2, max: .6 }, animation: { enable: true, speed: .8, minimumValue: .1 } }, shape: { type: "circle" }, size: { value: { min: 2, max: 8 }, animation: { enable: true, speed: 1.5, minimumValue: 2 } } }, detectRetina: true }).then(c => { particlesContainer = c });
+        if (darkModeBtn) darkModeBtn.addEventListener('click', () => {
+            document.body.classList.toggle('dark-mode');
+            const on = document.body.classList.contains('dark-mode');
+            localStorage.setItem('theme', on ? 'dark' : 'light');
+            if (darkModeText) darkModeText.textContent = on ? 'Dark mode (on)' : 'Dark mode (off)';
+            darkModeBtn.classList.toggle('active', on);
+            if (particlesContainer) {
+                particlesContainer.options.particles.color.value = on ? ["#e8c547", "#ff6b35", "#80706a"] : ["#ff6b35", "#ffc5d0", "#ffffff"];
+                particlesContainer.refresh();
             }
-        }
-        const pos=positions[capIdx];
-        if(pos&&pos.arrow){arrowHint.textContent=pos.arrow;arrowHint.style.display='';
-            arrowHint.className='face-arrow '+pos.id;
-        }else{arrowHint.style.display='none';}
-    }
+            if (typeof initCharts === 'function' && document.getElementById('postEnrollView') && document.getElementById('postEnrollView').classList.contains('visible')) {
+                initCharts();
+                if (typeof animateCourseBars === 'function') {
+                    animateCourseBars();
+                }
+            }
+        });
+        function setupPopup(b, p) { const btn = document.getElementById(b), pop = document.getElementById(p); if (!btn || !pop) return; btn.addEventListener('click', e => { e.stopPropagation(); document.querySelectorAll('.header-popup.open').forEach(x => { if (x !== pop) x.classList.remove('open') }); pop.classList.toggle('open') }) }
+        setupPopup('headerBtnMsg', 'msgPopup'); setupPopup('headerBtnNotif', 'notifPopup');
+        document.addEventListener('click', () => document.querySelectorAll('.header-popup.open').forEach(p => p.classList.remove('open')));
 
-    async function detectLoop(){
-        if(!stream||capIdx>=positions.length) return;
+        /* ── Enrollment Logic with real-time face detection ── */
+        const positions = [
+            { id: 'front', label: 'Look straight ahead', icon: '<svg class="step-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="3"></circle></svg>', arrow: '' },
+            { id: 'left', label: 'Turn slightly left', icon: '<svg class="step-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>', arrow: '←' },
+            { id: 'right', label: 'Turn slightly right', icon: '<svg class="step-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>', arrow: '→' },
+            { id: 'up', label: 'Look slightly up', icon: '<svg class="step-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline></svg>', arrow: '↑' },
+            { id: 'down', label: 'Look slightly down', icon: '<svg class="step-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><polyline points="19 12 12 19 5 12"></polyline></svg>', arrow: '↓' }
+        ];
+        const captures = [];
+        let capIdx = 0, stream = null, detecting = false, faceOK = false, stepErrors = [null, null, null, null, null], stepResults = [null, null, null, null, null];
+        let goodSince = 0, hasSubmitted = false, isProcessing = false;
+        const HOLD_MS = 400;
+        const video = document.getElementById('camVideo'), canvas = document.getElementById('camCanvas'),
+            overlay = document.getElementById('camOverlay'), faceGuide = document.getElementById('faceGuide'),
+            faceOval = document.getElementById('faceOval'), arrowHint = document.getElementById('arrowHint'),
+            faceStatusText = document.getElementById('faceStatusText'),
+            posBanner = document.getElementById('posBanner'), posLabel = document.getElementById('posLabel'),
+            btnStart = document.getElementById('btnStart'), btnCapture = document.getElementById('btnCapture'),
+            btnSubmit = document.getElementById('btnSubmit'),
+            statusEl = document.getElementById('statusEl'), counterEl = document.getElementById('counterEl'),
+            stepList = document.getElementById('stepList'), thumbGrid = document.getElementById('thumbGrid');
 
-        /* Wait for model */
-        if(!modelReady){
-            setGuide(false,'Loading face detection model...');
-            setTimeout(detectLoop,500);
-            return;
-        }
+        /* ── BlazeFace model (loaded from CDN) ── */
+        let blazeModel = null, modelReady = false;
+        (async function () {
+            try { blazeModel = await blazeface.load(); modelReady = true; console.log('BlazeFace loaded'); }
+            catch (e) { console.warn('BlazeFace failed to load:', e); }
+        })();
 
-        /* Wait for video to be ready */
-        if(!video.videoWidth||video.readyState<2){
-            setTimeout(detectLoop,200);
-            return;
-        }
-
-        if(detecting) return;
-        detecting=true;
-
-        try{
-            /* BlazeFace runs on the RAW (un-mirrored) video element */
-            const preds=await blazeModel.estimateFaces(video, false);
-
-            if(!preds||preds.length===0){
-                setGuide(false,'No face detected — look at camera');
+        function setGuide(good, msg) {
+            if (!good) {
+                faceOK = false; goodSince = 0;
+                faceOval.className = 'face-guide-oval bad';
+                faceStatusText.className = 'face-status-text bad';
+                faceStatusText.textContent = msg;
+                btnCapture.disabled = true;
             } else {
-                const face=preds[0];
-                const tl=face.topLeft, br=face.bottomRight;
-                const fx1=tl[0], fy1=tl[1], fx2=br[0], fy2=br[1];
-                const fw=fx2-fx1, fh=fy2-fy1;
-                const vw=video.videoWidth, vh=video.videoHeight;
-
-                /* ── Distance check ── */
-                const sizeRatio=fh/vh;
-                if(sizeRatio<0.18){
-                    setGuide(false,'Move closer to camera');
-                } else if(sizeRatio>0.75){
-                    setGuide(false,'Move back from camera');
+                const now = Date.now();
+                if (goodSince === 0) goodSince = now;
+                if (now - goodSince >= HOLD_MS) {
+                    faceOK = true;
+                    faceOval.className = 'face-guide-oval good';
+                    faceStatusText.className = 'face-status-text good';
+                    faceStatusText.textContent = msg;
+                    btnCapture.disabled = false;
                 } else {
-                    /* ── Centering check ── */
-                    const cx=(fx1+fx2)/2, cy=(fy1+fy2)/2;
-                    if(cx<vw*0.35||cx>vw*0.65||cy<vh*0.25||cy>vh*0.75){
-                        setGuide(false,'Center your face in the oval');
+                    faceOK = false;
+                    faceOval.className = 'face-guide-oval bad';
+                    faceStatusText.className = 'face-status-text bad';
+                    faceStatusText.textContent = 'Hold still...';
+                    btnCapture.disabled = true;
+                }
+            }
+            const pos = positions[capIdx];
+            if (pos && pos.arrow) {
+                arrowHint.textContent = pos.arrow; arrowHint.style.display = '';
+                arrowHint.className = 'face-arrow ' + pos.id;
+            } else { arrowHint.style.display = 'none'; }
+        }
+
+        async function detectLoop() {
+            if (!stream || capIdx >= positions.length) return;
+
+            /* Wait for model */
+            if (!modelReady) {
+                setGuide(false, 'Loading face detection model...');
+                setTimeout(detectLoop, 500);
+                return;
+            }
+
+            /* Wait for video to be ready */
+            if (!video.videoWidth || video.readyState < 2) {
+                setTimeout(detectLoop, 200);
+                return;
+            }
+
+            if (detecting) return;
+            detecting = true;
+
+            try {
+                /* BlazeFace runs on the RAW (un-mirrored) video element */
+                const preds = await blazeModel.estimateFaces(video, false);
+
+                if (!preds || preds.length === 0) {
+                    setGuide(false, 'No face detected — look at camera');
+                } else {
+                    const face = preds[0];
+                    const tl = face.topLeft, br = face.bottomRight;
+                    const fx1 = tl[0], fy1 = tl[1], fx2 = br[0], fy2 = br[1];
+                    const fw = fx2 - fx1, fh = fy2 - fy1;
+                    const vw = video.videoWidth, vh = video.videoHeight;
+
+                    /* ── Distance check ── */
+                    const sizeRatio = fh / vh;
+                    if (sizeRatio < 0.18) {
+                        setGuide(false, 'Move closer to camera');
+                    } else if (sizeRatio > 0.75) {
+                        setGuide(false, 'Move back from camera');
                     } else {
-                        /* ── Head pose from landmarks ── */
-                        /* BlazeFace landmarks:
-                           [0]=right eye  [1]=left eye  [2]=nose
-                           [3]=mouth  [4]=right ear  [5]=left ear
-                           NOTE: "right/left" = viewer's perspective (raw image) */
-                        const lm=face.landmarks;
-                        const rEye=lm[0], lEye=lm[1], nose=lm[2];
-                        const eyeCx=(rEye[0]+lEye[0])/2;
-                        const eyeCy=(rEye[1]+lEye[1])/2;
-                        /* yaw: positive = nose RIGHT of eye center in raw image
-                                = user looking to THEIR LEFT */
-                        const yaw=(nose[0]-eyeCx)/fw;
-                        /* pitch: ratio of vertical nose-to-eye distance vs face height
-                                  normal ≈ 0.30-0.38, lower = looking up, higher = looking down */
-                        const pitch=(nose[1]-eyeCy)/fh;
+                        /* ── Centering check ── */
+                        const cx = (fx1 + fx2) / 2, cy = (fy1 + fy2) / 2;
+                        if (cx < vw * 0.35 || cx > vw * 0.65 || cy < vh * 0.25 || cy > vh * 0.75) {
+                            setGuide(false, 'Center your face in the oval');
+                        } else {
+                            /* ── Head pose from landmarks ── */
+                            /* BlazeFace landmarks:
+                               [0]=right eye  [1]=left eye  [2]=nose
+                               [3]=mouth  [4]=right ear  [5]=left ear
+                               NOTE: "right/left" = viewer's perspective (raw image) */
+                            const lm = face.landmarks;
+                            const rEye = lm[0], lEye = lm[1], nose = lm[2];
+                            const eyeCx = (rEye[0] + lEye[0]) / 2;
+                            const eyeCy = (rEye[1] + lEye[1]) / 2;
+                            /* yaw: positive = nose RIGHT of eye center in raw image
+                                    = user looking to THEIR LEFT */
+                            const yaw = (nose[0] - eyeCx) / fw;
+                            /* pitch: ratio of vertical nose-to-eye distance vs face height
+                                      normal ≈ 0.30-0.38, lower = looking up, higher = looking down */
+                            const pitch = (nose[1] - eyeCy) / fh;
 
-                        let posOK=false, posMsg='';
-                        const cur=positions[capIdx];
+                            let posOK = false, posMsg = '';
+                            const cur = positions[capIdx];
 
-                        switch(cur.id){
-                            case 'front':
-                                posOK=Math.abs(yaw)<0.08 && pitch>0.20 && pitch<0.45;
-                                if(Math.abs(yaw)>=0.08) posMsg='Look straight at the camera';
-                                else posMsg='Adjust your head angle';
-                                break;
-                            case 'left':
-                                posOK=yaw>0.06 && pitch>0.18 && pitch<0.48;
-                                posMsg='Turn your head to your LEFT ←';
-                                break;
-                            case 'right':
-                                posOK=yaw<-0.06 && pitch>0.18 && pitch<0.48;
-                                posMsg='Turn your head to your RIGHT →';
-                                break;
-                            case 'up':
-                                posOK=pitch<0.22 && Math.abs(yaw)<0.08;
-                                if(Math.abs(yaw)>=0.08) posMsg='Face the camera, then look UP ↑';
-                                else posMsg='Tilt your head UP more ↑';
-                                break;
-                            case 'down':
-                                posOK=pitch>0.28 && Math.abs(yaw)<0.12;
-                                if(Math.abs(yaw)>=0.12) posMsg='Face the camera, then look DOWN ↓';
-                                else posMsg='Tilt your head DOWN more ↓';
-                                break;
+                            switch (cur.id) {
+                                case 'front':
+                                    posOK = Math.abs(yaw) < 0.08 && pitch > 0.20 && pitch < 0.45;
+                                    if (Math.abs(yaw) >= 0.08) posMsg = 'Look straight at the camera';
+                                    else posMsg = 'Adjust your head angle';
+                                    break;
+                                case 'left':
+                                    posOK = yaw > 0.06 && pitch > 0.18 && pitch < 0.48;
+                                    posMsg = 'Turn your head to your LEFT ←';
+                                    break;
+                                case 'right':
+                                    posOK = yaw < -0.06 && pitch > 0.18 && pitch < 0.48;
+                                    posMsg = 'Turn your head to your RIGHT →';
+                                    break;
+                                case 'up':
+                                    posOK = pitch < 0.22 && Math.abs(yaw) < 0.08;
+                                    if (Math.abs(yaw) >= 0.08) posMsg = 'Face the camera, then look UP ↑';
+                                    else posMsg = 'Tilt your head UP more ↑';
+                                    break;
+                                case 'down':
+                                    posOK = pitch > 0.28 && Math.abs(yaw) < 0.12;
+                                    if (Math.abs(yaw) >= 0.12) posMsg = 'Face the camera, then look DOWN ↓';
+                                    else posMsg = 'Tilt your head DOWN more ↓';
+                                    break;
+                            }
+
+                            if (posOK) setGuide(true, 'Ready — capture now!');
+                            else setGuide(false, posMsg);
                         }
-
-                        if(posOK) setGuide(true,'Ready — capture now!');
-                        else setGuide(false, posMsg);
                     }
                 }
+            } catch (e) {
+                console.error('Detection error:', e);
+                setGuide(false, 'Detection error — retrying...');
             }
-        }catch(e){
-            console.error('Detection error:',e);
-            setGuide(false,'Detection error — retrying...');
+
+            detecting = false;
+            if (stream && capIdx < positions.length) setTimeout(detectLoop, 80);
         }
 
-        detecting=false;
-        if(stream && capIdx<positions.length) setTimeout(detectLoop,80);
-    }
+        function renderSteps() {
+            stepList.innerHTML = '';
+            positions.forEach((p, i) => {
+                let cls = 'step-item';
+                let dot = i + 1;
+                let clickable = false;
 
-    function renderSteps(){
-        stepList.innerHTML='';
-        positions.forEach((p,i)=>{
-            let cls = 'step-item';
-            let dot = i + 1;
-            let clickable = false;
-            
-            if (stepErrors[i]) {
-                cls = 'step-item fail';
-                dot = '✗';
-                clickable = true;
-            } else if (captures[i]) {
-                cls = 'step-item done';
-                dot = '✓';
-                clickable = true;
-            } else if (i === capIdx) {
-                cls = 'step-item active';
-            }
-            
-            const div = document.createElement('div');
-            div.className = cls;
-            div.innerHTML = `<div class="step-dot">${dot}</div><span>${p.icon} ${p.label}</span>`;
-            if (clickable) {
-                div.addEventListener('click', () => jumpToStep(i));
-            } else {
-                div.style.cursor = 'default';
-            }
-            stepList.appendChild(div);
-        });
-    }
-    function renderThumbs(){
-        thumbGrid.innerHTML='';
-        positions.forEach((_,i)=>{
-            const slot=document.createElement('div');
-            slot.className='thumb-slot'+(captures[i]?' filled':'');
-            if(captures[i]){
-                const img=document.createElement('img');
-                img.src=captures[i].dataUrl;
-                slot.appendChild(img);
-            } else {
-                slot.innerHTML=`<span>${i+1}</span>`;
-            }
-            
-            // Re-render the error/status badge if it exists
-            if (stepResults[i]) {
-                const r = stepResults[i];
-                const b = document.createElement('div');
-                b.className = 'result-badge ' + (r.status === 'ok' ? 'ok' : r.status === 'no_face' ? 'fail' : 'warn');
-                b.textContent = r.reason;
-                b.style.cssText = 'position:absolute;bottom:2px;left:2px;right:2px;text-align:center';
-                slot.style.position = 'relative';
-                slot.appendChild(b);
-            }
-            
-            thumbGrid.appendChild(slot);
-        });
-    }
-    function updateUI(){
-        const capturesCount = captures.filter(c => c !== null && c !== undefined).length;
-        counterEl.textContent=`${capturesCount} / ${positions.length} captured`;
-        renderSteps();renderThumbs();
-        if(stream){
-            posBanner.classList.toggle('visible',capIdx<positions.length);
-            if(capIdx<positions.length)posLabel.textContent=positions[capIdx].label;
-        }
-        if(capturesCount>=positions.length){
-            btnCapture.disabled=true;
-            btnSubmit.style.display='';btnSubmit.disabled=false;
-            if (hasSubmitted) {
-                btnSubmit.textContent = 'Retry';
-            } else {
-                btnSubmit.textContent = 'Enroll Now';
-            }
-            statusEl.textContent=`All 5 positions captured! Click "${btnSubmit.textContent}" to process.`;
-            statusEl.style.color='';arrowHint.style.display='none';
-            faceStatusText.textContent='All done!';faceStatusText.className='face-status-text good';
-            faceOval.className='face-guide-oval good';
-        } else {
-            faceStatusText.textContent='Detecting face...';
-            faceStatusText.className='face-status-text bad';
-            faceOval.className='face-guide-oval bad';
-            btnCapture.disabled=true;
-        }
-    }
-
-    function getFirstActionableStep(){
-        for(let i=0;i<positions.length;i++){
-            if(stepErrors[i]) return i;
-        }
-        for(let i=0;i<positions.length;i++){
-            if(!captures[i]) return i;
-        }
-        return 0;
-    }
-
-    async function startCamera(){
-        if(isProcessing) return;
-        if(capIdx>=positions.length){
-            const target=getFirstActionableStep();
-            capIdx=target;
-            captures[target]=null;
-            stepErrors[target]=null;
-            stepResults[target]=null;
-        }
-        detecting=false; // clear lock
-        if(stream)return;
-        btnStart.disabled=true;btnStart.textContent='Opening...';
-        statusEl.textContent='Opening camera...';
-        statusEl.style.color='';
-        try{
-            stream=await navigator.mediaDevices.getUserMedia({video:{width:{ideal:640},height:{ideal:480},facingMode:'user'},audio:false});
-            video.srcObject=stream;video.classList.add('active');
-            overlay.classList.add('hidden');faceGuide.classList.add('visible');
-            btnStart.style.display='none';
-            statusEl.textContent=`Position your face in the oval. ${positions[capIdx].label}.`;
-            btnCapture.disabled=true;
-            updateUI();
-            /* detectLoop handles FaceDetector fallback internally */
-            setTimeout(detectLoop, 500);
-        }catch(e){
-            statusEl.textContent='Camera access denied. Please allow camera permissions.';
-            statusEl.style.color='#e74c3c';btnStart.disabled=false;btnStart.textContent='Open Camera';
-        }
-    }
-    function stopCamera(){
-        if(!stream)return;stream.getTracks().forEach(t=>t.stop());stream=null;
-        video.classList.remove('active');overlay.classList.remove('hidden');
-        faceGuide.classList.remove('visible');posBanner.classList.remove('visible');
-        detecting=false; // clear lock when stopping camera
-    }
-    function captureFrame(){
-        if(!stream||capIdx>=positions.length)return;
-        if(!faceOK)return; // blocked by validation
-        const ctx=canvas.getContext('2d'),w=video.videoWidth||640,h=video.videoHeight||480;
-        canvas.width=w;canvas.height=h;ctx.save();ctx.scale(-1,1);ctx.drawImage(video,-w,0,w,h);ctx.restore();
-        const dataUrl=canvas.toDataURL('image/jpeg',0.92);
-        captures[capIdx]={label:positions[capIdx].label,dataUrl};
-        stepErrors[capIdx]=null; // Clear error for this step
-        
-        detecting = false;
-        goodSince = 0;
-        
-        if (hasSubmitted) {
-            capIdx = positions.length; // 5
-            updateUI();
-            stopCamera();
-        } else {
-            // Find next step to capture (wrapping around to find any empty or failed step)
-            let nextIdx = -1;
-            for (let offset = 1; offset <= positions.length; offset++) {
-                let checkIdx = (capIdx + offset) % positions.length;
-                if (!captures[checkIdx] || stepErrors[checkIdx]) {
-                    nextIdx = checkIdx;
-                    break;
+                if (stepErrors[i]) {
+                    cls = 'step-item fail';
+                    dot = '✗';
+                    clickable = true;
+                } else if (captures[i]) {
+                    cls = 'step-item done';
+                    dot = '✓';
+                    clickable = true;
+                } else if (i === capIdx) {
+                    cls = 'step-item active';
                 }
+
+                const div = document.createElement('div');
+                div.className = cls;
+                div.innerHTML = `<div class="step-dot">${dot}</div><span>${p.icon} ${p.label}</span>`;
+                if (clickable) {
+                    div.addEventListener('click', () => jumpToStep(i));
+                } else {
+                    div.style.cursor = 'default';
+                }
+                stepList.appendChild(div);
+            });
+        }
+        function renderThumbs() {
+            thumbGrid.innerHTML = '';
+            positions.forEach((_, i) => {
+                const slot = document.createElement('div');
+                slot.className = 'thumb-slot' + (captures[i] ? ' filled' : '');
+                if (captures[i]) {
+                    const img = document.createElement('img');
+                    img.src = captures[i].dataUrl;
+                    slot.appendChild(img);
+                } else {
+                    slot.innerHTML = `<span>${i + 1}</span>`;
+                }
+
+                // Re-render the error/status badge if it exists
+                if (stepResults[i]) {
+                    const r = stepResults[i];
+                    const b = document.createElement('div');
+                    b.className = 'result-badge ' + (r.status === 'ok' ? 'ok' : r.status === 'no_face' ? 'fail' : 'warn');
+                    b.textContent = r.reason;
+                    b.style.cssText = 'position:absolute;bottom:2px;left:2px;right:2px;text-align:center';
+                    slot.style.position = 'relative';
+                    slot.appendChild(b);
+                }
+
+                thumbGrid.appendChild(slot);
+            });
+        }
+        function updateUI() {
+            const capturesCount = captures.filter(c => c !== null && c !== undefined).length;
+            counterEl.textContent = `${capturesCount} / ${positions.length} captured`;
+            renderSteps(); renderThumbs();
+            if (stream) {
+                posBanner.classList.toggle('visible', capIdx < positions.length);
+                if (capIdx < positions.length) posLabel.textContent = positions[capIdx].label;
             }
-            
-            if (nextIdx === -1) {
-                capIdx = positions.length;
+            if (capturesCount >= positions.length) {
+                btnCapture.disabled = true;
+                btnSubmit.style.display = ''; btnSubmit.disabled = false;
+                if (hasSubmitted) {
+                    btnSubmit.textContent = 'Retry';
+                } else {
+                    btnSubmit.textContent = 'Enroll Now';
+                }
+                statusEl.textContent = `All 5 positions captured! Click "${btnSubmit.textContent}" to process.`;
+                statusEl.style.color = ''; arrowHint.style.display = 'none';
+                faceStatusText.textContent = 'All done!'; faceStatusText.className = 'face-status-text good';
+                faceOval.className = 'face-guide-oval good';
+            } else {
+                faceStatusText.textContent = 'Detecting face...';
+                faceStatusText.className = 'face-status-text bad';
+                faceOval.className = 'face-guide-oval bad';
+                btnCapture.disabled = true;
+            }
+        }
+
+        function getFirstActionableStep() {
+            for (let i = 0; i < positions.length; i++) {
+                if (stepErrors[i]) return i;
+            }
+            for (let i = 0; i < positions.length; i++) {
+                if (!captures[i]) return i;
+            }
+            return 0;
+        }
+
+        async function startCamera() {
+            if (isProcessing) return;
+            if (capIdx >= positions.length) {
+                const target = getFirstActionableStep();
+                capIdx = target;
+                captures[target] = null;
+                stepErrors[target] = null;
+                stepResults[target] = null;
+            }
+            detecting = false; // clear lock
+            if (stream) return;
+            btnStart.disabled = true; btnStart.textContent = 'Opening...';
+            statusEl.textContent = 'Opening camera...';
+            statusEl.style.color = '';
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({ video: { width: { ideal: 640 }, height: { ideal: 480 }, facingMode: 'user' }, audio: false });
+                video.srcObject = stream; video.classList.add('active');
+                overlay.classList.add('hidden'); faceGuide.classList.add('visible');
+                btnStart.style.display = 'none';
+                statusEl.textContent = `Position your face in the oval. ${positions[capIdx].label}.`;
+                btnCapture.disabled = true;
+                updateUI();
+                /* detectLoop handles FaceDetector fallback internally */
+                setTimeout(detectLoop, 500);
+            } catch (e) {
+                statusEl.textContent = 'Camera access denied. Please allow camera permissions.';
+                statusEl.style.color = '#e74c3c'; btnStart.disabled = false; btnStart.textContent = 'Open Camera';
+            }
+        }
+        function stopCamera() {
+            if (!stream) return; stream.getTracks().forEach(t => t.stop()); stream = null;
+            video.classList.remove('active'); overlay.classList.remove('hidden');
+            faceGuide.classList.remove('visible'); posBanner.classList.remove('visible');
+            detecting = false; // clear lock when stopping camera
+        }
+        function captureFrame() {
+            if (!stream || capIdx >= positions.length) return;
+            if (!faceOK) return; // blocked by validation
+            const ctx = canvas.getContext('2d'), w = video.videoWidth || 640, h = video.videoHeight || 480;
+            canvas.width = w; canvas.height = h; ctx.save(); ctx.scale(-1, 1); ctx.drawImage(video, -w, 0, w, h); ctx.restore();
+            const dataUrl = canvas.toDataURL('image/jpeg', 0.92);
+            captures[capIdx] = { label: positions[capIdx].label, dataUrl };
+            stepErrors[capIdx] = null; // Clear error for this step
+
+            detecting = false;
+            goodSince = 0;
+
+            if (hasSubmitted) {
+                capIdx = positions.length; // 5
                 updateUI();
                 stopCamera();
             } else {
-                capIdx = nextIdx;
-                updateUI();
-                statusEl.textContent = `Captured! Next: ${positions[capIdx].label}`;
-                setTimeout(detectLoop, 200);
-            }
-        }
-    }
-    async function jumpToStep(i){
-        if(isProcessing) return;
-        if(i >= positions.length) return;
-        
-        capIdx=i;
-        captures[i]=null;
-        stepErrors[i]=null;
-        stepResults[i]=null;
-        
-        detecting=false; // Reset detecting lock
-        
-        let needStart = !stream;
-        if(needStart) {
-            await startCamera();
-        }
-        
-        btnSubmit.style.display='none';btnSubmit.disabled=true;
-        statusEl.textContent=`Re-capture step ${i+1}: ${positions[i].label}`;
-        statusEl.style.color='';
-        goodSince=0; 
-        updateUI();
-    }
-    async function submitAll(){
-        const capturesCount = captures.filter(c => c !== null && c !== undefined).length;
-        if(capturesCount!==5)return;
-        isProcessing=true; // Lock interactions!
-        hasSubmitted=true; // Set flag
-        btnSubmit.disabled=true;btnSubmit.textContent='Processing...';
-        statusEl.style.color='';
-        statusEl.innerHTML=`<div style="display:flex;align-items:center;gap:8px;"><span class="pipeline-spinner"></span> <span>Processing your captures...</span></div>`;
-        try{
-            const res=await fetch('/api/attendance/enroll',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({captures})});
-            
-            // Catch non-OK HTTP status codes (e.g. 500 server error, 413 payload too large, 504 timeout)
-            if(!res.ok) {
-                const text = await res.text();
-                let errMsg = "HTTP error " + res.status;
-                try {
-                    const errData = JSON.parse(text);
-                    if(errData && errData.message) errMsg = errData.message;
-                } catch(err) {}
-                throw new Error(errMsg);
-            }
-            
-            const data=await res.json();
-            const d=data.details||{};
-            
-            /* Show per-image badges on thumbnails and update step errors */
-            if(d.per_image){
-                d.per_image.forEach((r,i)=>{
-                    stepResults[i] = {
-                        status: r.status,
-                        reason: r.status === 'ok' ? '✓ OK' : (r.reason || 'Failed')
-                    };
-                    if(r.status!=='ok') {
-                        stepErrors[i] = r.reason || 'Quality checks failed';
-                    } else {
-                        stepErrors[i] = null;
+                // Find next step to capture (wrapping around to find any empty or failed step)
+                let nextIdx = -1;
+                for (let offset = 1; offset <= positions.length; offset++) {
+                    let checkIdx = (capIdx + offset) % positions.length;
+                    if (!captures[checkIdx] || stepErrors[checkIdx]) {
+                        nextIdx = checkIdx;
+                        break;
                     }
-                });
-                renderSteps();
-                renderThumbs();
+                }
+
+                if (nextIdx === -1) {
+                    capIdx = positions.length;
+                    updateUI();
+                    stopCamera();
+                } else {
+                    capIdx = nextIdx;
+                    updateUI();
+                    statusEl.textContent = `Captured! Next: ${positions[capIdx].label}`;
+                    setTimeout(detectLoop, 200);
+                }
             }
-            
-            if(data.success){
-                statusEl.style.color='#27ae60';
-                statusEl.innerHTML=`<div style="display:flex;flex-direction:column;gap:8px;">
+        }
+        async function jumpToStep(i) {
+            if (isProcessing) return;
+            if (i >= positions.length) return;
+
+            capIdx = i;
+            captures[i] = null;
+            stepErrors[i] = null;
+            stepResults[i] = null;
+
+            detecting = false; // Reset detecting lock
+
+            let needStart = !stream;
+            if (needStart) {
+                await startCamera();
+            }
+
+            btnSubmit.style.display = 'none'; btnSubmit.disabled = true;
+            statusEl.textContent = `Re-capture step ${i + 1}: ${positions[i].label}`;
+            statusEl.style.color = '';
+            goodSince = 0;
+            updateUI();
+        }
+        async function submitAll() {
+            const capturesCount = captures.filter(c => c !== null && c !== undefined).length;
+            if (capturesCount !== 5) return;
+            isProcessing = true; // Lock interactions!
+            hasSubmitted = true; // Set flag
+            btnSubmit.disabled = true; btnSubmit.textContent = 'Processing...';
+            statusEl.style.color = '';
+            statusEl.innerHTML = `<div style="display:flex;align-items:center;gap:8px;"><span class="pipeline-spinner"></span> <span>Processing your captures...</span></div>`;
+            try {
+                const res = await fetch('/api/attendance/enroll', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ captures }) });
+
+                // Catch non-OK HTTP status codes (e.g. 500 server error, 413 payload too large, 504 timeout)
+                if (!res.ok) {
+                    const text = await res.text();
+                    let errMsg = "HTTP error " + res.status;
+                    try {
+                        const errData = JSON.parse(text);
+                        if (errData && errData.message) errMsg = errData.message;
+                    } catch (err) { }
+                    throw new Error(errMsg);
+                }
+
+                const data = await res.json();
+                const d = data.details || {};
+
+                /* Show per-image badges on thumbnails and update step errors */
+                if (d.per_image) {
+                    d.per_image.forEach((r, i) => {
+                        stepResults[i] = {
+                            status: r.status,
+                            reason: r.status === 'ok' ? '✓ OK' : (r.reason || 'Failed')
+                        };
+                        if (r.status !== 'ok') {
+                            stepErrors[i] = r.reason || 'Quality checks failed';
+                        } else {
+                            stepErrors[i] = null;
+                        }
+                    });
+                    renderSteps();
+                    renderThumbs();
+                }
+
+                if (data.success) {
+                    statusEl.style.color = '#27ae60';
+                    statusEl.innerHTML = `<div style="display:flex;flex-direction:column;gap:8px;">
                     <div style="font-size:18px;font-weight:800">Welcome aboard!</div>
                     <div style="font-size:13.5px;line-height:1.6;opacity:.9">Your face has been successfully enrolled into the Smart Attendance System. You're all set to be recognized automatically in future sessions.</div>
                     <div style="display:flex;gap:10px;margin-top:6px;">
@@ -949,228 +1712,265 @@
                         <button class="att-btn primary" onclick="showPostEnroll()">Continue →</button>
                     </div>
                 </div>`;
-                btnSubmit.style.display='none';
-                stepList.querySelectorAll('.step-item').forEach(s=>s.className='step-item done');
-            }else{
-                statusEl.style.color='#e74c3c';
-                statusEl.innerHTML=`<div style="display:flex;flex-direction:column;gap:6px;">
+                    btnSubmit.style.display = 'none';
+                    stepList.querySelectorAll('.step-item').forEach(s => s.className = 'step-item done');
+                } else {
+                    statusEl.style.color = '#e74c3c';
+                    statusEl.innerHTML = `<div style="display:flex;flex-direction:column;gap:6px;">
                     <div><strong>Enrollment Failed</strong></div>
                     <div style="font-size:12.5px;line-height:1.5;">${data.message}</div>
                     <div style="font-size:11.5px;opacity:.85;margin-top:2px;">Please click on the failed step to recapture it or start over.</div>
                 </div>`;
-                btnSubmit.textContent='Retry';btnSubmit.disabled=false;
-            }
-        }catch(e){
-            console.error("Enrollment submission failed:", e);
-            statusEl.style.color='#e74c3c';
-            statusEl.innerHTML=`<div style="display:flex;flex-direction:column;gap:4px;">
+                    btnSubmit.textContent = 'Retry'; btnSubmit.disabled = false;
+                }
+            } catch (e) {
+                console.error("Enrollment submission failed:", e);
+                statusEl.style.color = '#e74c3c';
+                statusEl.innerHTML = `<div style="display:flex;flex-direction:column;gap:4px;">
                 <div><strong>Enrollment Error</strong></div>
                 <div style="font-size:12.5px;">${e.message || 'Could not reach the server. Please check your connection and try again.'}</div>
             </div>`;
-            btnSubmit.textContent='Retry';btnSubmit.disabled=false;
-        }finally{
-            isProcessing=false; // Unlock interactions!
+                btnSubmit.textContent = 'Retry'; btnSubmit.disabled = false;
+            } finally {
+                isProcessing = false; // Unlock interactions!
+            }
         }
-    }
 
-    function resetEnroll(){
-        captures.length=0;capIdx=0;
-        stepErrors=[null,null,null,null,null];
-        stepResults=[null,null,null,null,null];
-        hasSubmitted=false;
-        isProcessing=false;
-        btnSubmit.style.display='none';btnStart.style.display='';btnStart.disabled=false;btnStart.textContent='Open Camera';
-        statusEl.textContent='Ready — click "Open Camera" to begin.';statusEl.style.color='';
-        updateUI();
-    }
+        function resetEnroll() {
+            captures.length = 0; capIdx = 0;
+            stepErrors = [null, null, null, null, null];
+            stepResults = [null, null, null, null, null];
+            hasSubmitted = false;
+            isProcessing = false;
+            btnSubmit.style.display = 'none'; btnStart.style.display = ''; btnStart.disabled = false; btnStart.textContent = 'Open Camera';
+            statusEl.textContent = 'Ready — click "Open Camera" to begin.'; statusEl.style.color = '';
+            updateUI();
+        }
 
-    function showPostEnroll(){
-        document.getElementById('enrollmentSection').style.display='none';
-        document.getElementById('postEnrollView').classList.add('visible');
-        initCharts();
-        // Animate course attendance horizontal bars on load
-        document.querySelectorAll('.course-bar-fill').forEach((fill, i) => {
-            fill.style.width = '0';
-            requestAnimationFrame(() => {
-                setTimeout(() => { fill.style.width = 'var(--pct)'; }, 100 + i * 120);
+        function animateCourseBars() {
+            document.querySelectorAll('.course-bar-fill').forEach((fill, i) => {
+                fill.style.width = '0';
+                requestAnimationFrame(() => {
+                    setTimeout(() => { fill.style.width = 'var(--pct)'; }, 100 + i * 120);
+                });
             });
-        });
-    }
+        }
 
-    function reEnrollFromPost(){
-        document.getElementById('enrollmentSection').style.display='';
-        document.getElementById('postEnrollView').classList.remove('visible');
-        resetEnroll();
-    }
+        function showPostEnroll() {
+            document.getElementById('enrollmentSection').style.display = 'none';
+            document.getElementById('postEnrollView').classList.add('visible');
+            initCharts();
+            animateCourseBars();
+        }
 
-    const isEnrolledServerSide = "{{ enrolled }}" === "True" || "{{ enrolled }}" === "true";
-    if (isEnrolledServerSide) {
-        showPostEnroll();
-    } else {
-        renderSteps();renderThumbs();
-    }    /* ══════════════════════════════════════════════════════
+        function reEnrollFromPost() {
+            document.getElementById('enrollmentSection').style.display = '';
+            document.getElementById('postEnrollView').classList.remove('visible');
+            resetEnroll();
+        }
+
+        const isEnrolledServerSide = "{{ enrolled }}" === "True" || "{{ enrolled }}" === "true";
+        if (isEnrolledServerSide) {
+            showPostEnroll();
+        } else {
+            renderSteps(); renderThumbs();
+        }    /* ══════════════════════════════════════════════════════
        Post-Enrollment: Charts + Recognition Test
        ══════════════════════════════════════════════════════ */
 
-    function initCharts(){
-        if(weeklyChartInst) weeklyChartInst.destroy();
+        function initCharts() {
+            if (weeklyChartInst) weeklyChartInst.destroy();
 
-        const isDark=document.body.classList.contains('dark-mode');
-        const txtColor=isDark?'#c0d0f0':'#4a3a2a';
-        const gridColor=isDark?'rgba(255,255,255,.07)':'rgba(0,0,0,.06)';
-        const accent1=isDark?'#4fd4ff':'#ff6b35';
-        const accent1bg=isDark?'rgba(79,212,255,.15)':'rgba(255,107,53,.15)';
-        const accent2=isDark?'rgba(162,89,255,.8)':'rgba(99,102,241,.8)';
-        const accent2bg=isDark?'rgba(162,89,255,.15)':'rgba(99,102,241,.15)';
+            const isDark = document.body.classList.contains('dark-mode');
+            const txtColor = isDark ? '#c0d0f0' : '#4a3a2a';
+            const gridColor = isDark ? 'rgba(255,255,255,.07)' : 'rgba(0,0,0,.06)';
+            const accent1 = isDark ? '#4fd4ff' : '#ff6b35';
+            const accent1bg = isDark ? 'rgba(79,212,255,.15)' : 'rgba(255,107,53,.15)';
+            const accent2 = isDark ? 'rgba(162,89,255,.8)' : 'rgba(99,102,241,.8)';
+            const accent2bg = isDark ? 'rgba(162,89,255,.15)' : 'rgba(99,102,241,.15)';
 
-        const days=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
-        weeklyChartInst = new Chart(document.getElementById('weeklyChart'),{
-            type:'bar',
-            data:{
-                labels:days,
-                datasets:[{
-                    label:'Attendance Rate (%)',
-                    data:[80,75,80,60,0,80,0],
-                    backgroundColor:accent1,
-                    borderRadius:6,
-                    borderSkipped:false,
-                }]
-            },
-            options:{
-                responsive:true,
-                plugins:{legend:{display:false},
-                    title:{display:false}},
-                scales:{
-                    x:{ticks:{color:txtColor},grid:{display:false}},
-                    y:{
-                        ticks:{
-                            color:txtColor,
-                            callback:function(value){return value+'%'}
-                        },
-                        grid:{color:gridColor},
-                        beginAtZero:true,
-                        max:100
+            const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+            weeklyChartInst = new Chart(document.getElementById('weeklyChart'), {
+                type: 'bar',
+                data: {
+                    labels: days,
+                    datasets: [{
+                        label: 'Attendance Rate (%)',
+                        data: [80, 75, 80, 60, 0, 80, 0],
+                        backgroundColor: accent1,
+                        borderRadius: 6,
+                        borderSkipped: false,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { display: false },
+                        title: { display: false }
+                    },
+                    scales: {
+                        x: { ticks: { color: txtColor }, grid: { display: false } },
+                        y: {
+                            ticks: {
+                                color: txtColor,
+                                callback: function (value) { return value + '%' }
+                            },
+                            grid: { color: gridColor },
+                            beginAtZero: true,
+                            max: 100
+                        }
                     }
                 }
-            }
-        });
-    }
-
-    /* ── Recognition Test ── */
-    let testStream=null, testUploadData=null, testAnalyzing=false;
-
-    function setTestLoading(loading){
-        testAnalyzing = loading;
-        const fileInput = document.getElementById('testFileInput');
-        if(fileInput) fileInput.disabled = loading;
-        
-        const uploadZone = document.getElementById('testUploadZone');
-        if(uploadZone) {
-            if(loading) {
-                uploadZone.style.pointerEvents = 'none';
-                uploadZone.style.opacity = '0.5';
-            } else {
-                uploadZone.style.pointerEvents = '';
-                uploadZone.style.opacity = '';
-            }
-        }
-        
-        const btnCam = document.getElementById('btnTestCam');
-        const btnCap = document.getElementById('btnTestCapture');
-        const btnStop = document.getElementById('btnTestStop');
-        const btnUpload = document.getElementById('btnTestUpload');
-        
-        if(btnCam) btnCam.disabled = loading;
-        if(btnCap) btnCap.disabled = loading || !testStream;
-        if(btnStop) btnStop.disabled = loading;
-        if(btnUpload) btnUpload.disabled = loading;
-    }
-
-    async function testOpenCamera(){
-        if(testStream) return;
-        const tv=document.getElementById('testVideo');
-        const ov=document.getElementById('testCamOverlay');
-        try{
-            testStream=await navigator.mediaDevices.getUserMedia({video:{width:{ideal:640},height:{ideal:480},facingMode:'user'},audio:false});
-            tv.srcObject=testStream;tv.classList.add('active');ov.style.display='none';
-            document.getElementById('btnTestCapture').disabled=false;
-            document.getElementById('btnTestStop').style.display='';
-            document.getElementById('btnTestCam').style.display='none';
-        }catch(e){
-            document.getElementById('testResult').className='test-result fail';
-            document.getElementById('testResult').innerHTML='<strong>Camera access denied.</strong> Please allow camera permissions.';
-        }
-    }
-    function testStopCamera(){
-        if(!testStream) return;
-        testStream.getTracks().forEach(t=>t.stop());testStream=null;
-        const tv=document.getElementById('testVideo');
-        tv.classList.remove('active');tv.srcObject=null;
-        document.getElementById('testCamOverlay').style.display='';
-        document.getElementById('btnTestCapture').disabled=true;
-        document.getElementById('btnTestStop').style.display='none';
-        document.getElementById('btnTestCam').style.display='';
-    }
-    async function testCaptureAndRecognize(){
-        if(!testStream) return;
-        const tv=document.getElementById('testVideo'),tc=document.getElementById('testCanvas');
-        const w=tv.videoWidth||640,h=tv.videoHeight||480;
-        tc.width=w;tc.height=h;
-        const ctx=tc.getContext('2d');
-        ctx.save();ctx.scale(-1,1);ctx.drawImage(tv,-w,0,w,h);ctx.restore();
-        const dataUrl=tc.toDataURL('image/jpeg',0.92);
-        await sendRecognize(dataUrl);
-    }
-    function testHandleUpload(e){
-        if(testAnalyzing) return;
-        const file=e.target.files[0];
-        if(!file) return;
-        const reader=new FileReader();
-        reader.onload=function(ev){
-            testUploadData=ev.target.result;
-            const prev=document.getElementById('testPreview');
-            prev.src=testUploadData;prev.style.display='block';
-            document.getElementById('btnTestUpload').style.display='';
-        };
-        reader.readAsDataURL(file);
-    }
-    async function testRecognizeUpload(){
-        if(!testUploadData) return;
-        await sendRecognize(testUploadData);
-    }
-    async function sendRecognize(imageData){
-        const rEl=document.getElementById('testResult');
-        rEl.className='test-result';rEl.style.display='block';
-        rEl.innerHTML='<span class="pipeline-spinner"></span> Analyzing...';
-        setTestLoading(true);
-        try{
-            const res=await fetch('/api/attendance/test-recognize',{
-                method:'POST',
-                headers:{'Content-Type':'application/json'},
-                body:JSON.stringify({image:imageData})
             });
-            const data=await res.json();
-            if(data.success && data.recognized_count>0){
-                rEl.className='test-result success';
-                rEl.innerHTML=`<div style="font-size:15px;font-weight:800;display:flex;align-items:center;gap:6px;justify-content:center;">
+        }
+
+        /* ── Recognition Test ── */
+        let testStream = null, testUploadData = null, testAnalyzing = false;
+
+        function setTestLoading(loading) {
+            testAnalyzing = loading;
+            const fileInput = document.getElementById('testFileInput');
+            if (fileInput) fileInput.disabled = loading;
+
+            const uploadZone = document.getElementById('testUploadZone');
+            if (uploadZone) {
+                if (loading) {
+                    uploadZone.style.pointerEvents = 'none';
+                    uploadZone.style.opacity = '0.5';
+                } else {
+                    uploadZone.style.pointerEvents = '';
+                    uploadZone.style.opacity = '';
+                }
+            }
+
+            const btnCam = document.getElementById('btnTestCam');
+            const btnCap = document.getElementById('btnTestCapture');
+            const btnStop = document.getElementById('btnTestStop');
+            const btnUpload = document.getElementById('btnTestUpload');
+
+            if (btnCam) btnCam.disabled = loading;
+            if (btnCap) btnCap.disabled = loading || !testStream;
+            if (btnStop) btnStop.disabled = loading;
+            if (btnUpload) btnUpload.disabled = loading;
+        }
+
+        async function testOpenCamera() {
+            if (testStream) return;
+            const tv = document.getElementById('testVideo');
+            const ov = document.getElementById('testCamOverlay');
+            try {
+                testStream = await navigator.mediaDevices.getUserMedia({ video: { width: { ideal: 640 }, height: { ideal: 480 }, facingMode: 'user' }, audio: false });
+                tv.srcObject = testStream; tv.classList.add('active'); ov.style.display = 'none';
+                document.getElementById('btnTestCapture').disabled = false;
+                document.getElementById('btnTestStop').style.display = '';
+                document.getElementById('btnTestCam').style.display = 'none';
+            } catch (e) {
+                document.getElementById('testResult').className = 'test-result fail';
+                document.getElementById('testResult').innerHTML = '<strong>Camera access denied.</strong> Please allow camera permissions.';
+            }
+        }
+        function testStopCamera() {
+            if (!testStream) return;
+            testStream.getTracks().forEach(t => t.stop()); testStream = null;
+            const tv = document.getElementById('testVideo');
+            tv.classList.remove('active'); tv.srcObject = null;
+            document.getElementById('testCamOverlay').style.display = '';
+            document.getElementById('btnTestCapture').disabled = true;
+            document.getElementById('btnTestStop').style.display = 'none';
+            document.getElementById('btnTestCam').style.display = '';
+        }
+        async function testCaptureAndRecognize() {
+            if (!testStream) return;
+            const tv = document.getElementById('testVideo'), tc = document.getElementById('testCanvas');
+            const w = tv.videoWidth || 640, h = tv.videoHeight || 480;
+            tc.width = w; tc.height = h;
+            const ctx = tc.getContext('2d');
+            ctx.save(); ctx.scale(-1, 1); ctx.drawImage(tv, -w, 0, w, h); ctx.restore();
+            const dataUrl = tc.toDataURL('image/jpeg', 0.92);
+            await sendRecognize(dataUrl);
+        }
+        function testHandleUpload(e) {
+            if (testAnalyzing) return;
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function (ev) {
+                testUploadData = ev.target.result;
+                const prev = document.getElementById('testPreview');
+                prev.src = testUploadData; prev.style.display = 'block';
+                document.getElementById('btnTestUpload').style.display = '';
+            };
+            reader.readAsDataURL(file);
+        }
+        async function testRecognizeUpload() {
+            if (!testUploadData) return;
+            await sendRecognize(testUploadData);
+        }
+        async function sendRecognize(imageData) {
+            const rEl = document.getElementById('testResult');
+            rEl.className = 'test-result'; rEl.style.display = 'block';
+            rEl.innerHTML = '<span class="pipeline-spinner"></span> Analyzing...';
+            setTestLoading(true);
+            try {
+                const res = await fetch('/api/attendance/test-recognize', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ image: imageData })
+                });
+                const data = await res.json();
+                if (data.success && data.recognized_count > 0) {
+                    rEl.className = 'test-result success';
+                    rEl.innerHTML = `<div style="font-size:15px;font-weight:800;display:flex;align-items:center;gap:6px;justify-content:center;">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color:#27ae60"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
                     <span>Recognized Successfully!</span>
                 </div>`;
-            } else if(data.success){
-                rEl.className='test-result fail';
-                rEl.innerHTML=`<div style="font-size:15px;font-weight:800;margin-bottom:4px">Not Recognized</div>
+                } else if (data.success) {
+                    rEl.className = 'test-result fail';
+                    rEl.innerHTML = `<div style="font-size:15px;font-weight:800;margin-bottom:4px">Not Recognized</div>
                     <div style="font-size:11.5px;opacity:.8;margin-top:4px">Try a clearer photo or re-enroll.</div>`;
-            } else {
-                rEl.className='test-result fail';
-                rEl.innerHTML=`<div style="font-weight:700;margin-bottom:4px">Detection Failed</div><div>${data.message}</div>`;
+                } else {
+                    rEl.className = 'test-result fail';
+                    rEl.innerHTML = `<div style="font-weight:700;margin-bottom:4px">Detection Failed</div><div>${data.message}</div>`;
+                }
+            } catch (e) {
+                rEl.className = 'test-result fail';
+                rEl.innerHTML = '<strong>Connection Error</strong> — could not reach the server.';
+            } finally {
+                setTestLoading(false);
             }
-        }catch(e){
-            rEl.className='test-result fail';
-            rEl.innerHTML='<strong>Connection Error</strong> — could not reach the server.';
-        }finally{
-            setTestLoading(false);
         }
-    }
+
+        // Zoom Modal logic for Attendance by Course
+        const expandBtn = document.querySelector('.card-expand-btn');
+        if (expandBtn) {
+            expandBtn.addEventListener('click', () => {
+                const modal = document.getElementById('courseAttendanceModal');
+                const contentArea = modal.querySelector('.custom-modal-content');
+                const originalBars = document.querySelector('.course-bars-area');
+                if (originalBars && contentArea) {
+                    contentArea.innerHTML = originalBars.innerHTML;
+                }
+                modal.classList.add('open');
+                // Animate bars inside the modal container
+                modal.querySelectorAll('.course-bar-fill').forEach((fill, i) => {
+                    fill.style.width = '0';
+                    requestAnimationFrame(() => {
+                        setTimeout(() => { fill.style.width = 'var(--pct)'; }, 100 + i * 120);
+                    });
+                });
+            });
+        }
+
+        const modal = document.getElementById('courseAttendanceModal');
+        if (modal) {
+            const closeBtn = modal.querySelector('.custom-modal-close');
+            const overlay = modal.querySelector('.custom-modal-overlay');
+            const closeFn = () => modal.classList.remove('open');
+            if (closeBtn) closeBtn.addEventListener('click', closeFn);
+            if (overlay) overlay.addEventListener('click', closeFn);
+        }
     </script>
+
 </body>
+
 </html>

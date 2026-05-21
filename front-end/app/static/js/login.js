@@ -180,7 +180,14 @@ window.addEventListener('DOMContentLoaded', () => {
         emailInput.value = pendingEmail;
     }
 
-    requestVerificationResend(pendingEmail);
+    // IMPORTANT: Do NOT auto-trigger resend here.
+    // The registration flow already sends a verification email.
+    // Auto-calling /resend-verification causes duplicate emails.
+    const resendMessage = document.getElementById('resendMessage');
+    if (resendMessage) {
+        resendMessage.textContent = 'We sent a verification email. If you do not see it, click “Resend verification email”.';
+        resendMessage.style.display = 'block';
+    }
 });
 
 // Clear error state when user starts typing

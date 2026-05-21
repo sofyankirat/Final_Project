@@ -480,6 +480,34 @@ select:focus {
     border: 1px solid rgba(42, 20, 6, 0.45);
 }
 
+.btn-secondary {
+    background: rgba(255, 215, 191, 0.14);
+    color: #2a1406;
+    border: 1px solid rgba(42, 20, 6, 0.35);
+}
+
+.btn-secondary:hover {
+    background: rgba(255, 231, 216, 0.78);
+    color: #1f0f04;
+    border-color: rgba(42, 20, 6, 0.65);
+    box-shadow: 0 12px 24px -18px rgba(42, 20, 6, 0.75);
+    transform: translateY(-2px);
+}
+
+.btn-secondary:active {
+    transform: translateY(0);
+}
+
+.btn-secondary .btn-icon {
+    font-size: 14px;
+    opacity: 0.95;
+    transition: transform 0.25s ease;
+}
+
+.btn-secondary:hover .btn-icon {
+    transform: rotate(-18deg);
+}
+
 .btn-primary:hover {
     background: #ffe7d8;
     color: #1f0f04;

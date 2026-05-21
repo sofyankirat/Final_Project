@@ -6,7 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - Student System</title>
     <meta name="description" content="Student Recommendation and Attendance System dashboard.">
-    <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/favicon.png') }}?v=3">
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/logo1.png') }}?v=20260521">
+    <script src="{{ url_for('static', filename='js/favicon.js') }}" defer></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -30,7 +31,8 @@
             <!-- Sidebar Header (Logo + Toggle) -->
             <div class="sidebar-header">
                 <a href="{{ url_for('dashboard') }}" class="dash-logo-link">
-                    <img src="{{ url_for('static', filename='images/Logo_BR.png') }}" alt="Logo" class="dash-logo-img">
+                    <img src="{{ url_for('static', filename='images/Logo_BR.png') }}?v=20260521" alt="Logo"
+                        class="dash-logo-img">
                 </a>
                 <button class="sidebar-toggle-btn" id="sidebarToggle" aria-label="Toggle Sidebar">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
@@ -88,6 +90,24 @@
                                 <line x1="16" y1="16" x2="16" y2="16"></line>
                             </svg>
                             <span class="sidebar-text">AI Agent</span>
+                        </a>
+                    </nav>
+                </div>
+
+                <!-- TOOLS SECTION -->
+                <div class="sidebar-section">
+                    <span class="section-title">Tools</span>
+                    <nav class="sidebar-nav">
+                        <a href="{{ url_for('schedule') }}" class="sidebar-item">
+                            <svg class="sidebar-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18"
+                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                                <line x1="16" y1="2" x2="16" y2="6"></line>
+                                <line x1="8" y1="2" x2="8" y2="6"></line>
+                                <line x1="3" y1="10" x2="21" y2="10"></line>
+                            </svg>
+                            <span class="sidebar-text">Schedule</span>
                         </a>
                     </nav>
                 </div>
@@ -278,7 +298,7 @@
                         <span class="stat-badge stat-badge-pending">Pending</span>
                     </div>
 
-                    <div class="dash-stat-card" id="stat-gpa">
+                    <div class="dash-stat-card" id="stat-percentage">
                         <div class="stat-icon-wrap stat-yellow">
                             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
                                 fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
@@ -288,10 +308,9 @@
                             </svg>
                         </div>
                         <div class="stat-info">
-                            <span class="stat-value" id="val-gpa">—</span>
-                            <span class="stat-label">Current GPA</span>
+                            <span class="stat-value" id="val-percentage">—</span>
+                            <span class="stat-label">Percentage</span>
                         </div>
-                        <span class="stat-badge stat-badge-pending">Pending</span>
                     </div>
 
                     <div class="dash-stat-card" id="stat-recommendations">
@@ -323,7 +342,6 @@
                             <span class="stat-value" id="val-assessment">—</span>
                             <span class="stat-label">Academic Grade</span>
                         </div>
-                        <span class="stat-badge stat-badge-pending">Pending</span>
                     </div>
                 </section>
 
@@ -355,19 +373,26 @@
                         <div class="card-header">
                             <div class="card-title-wrap">
                                 <h2 class="card-title">GPA Progress</h2>
-                                <span class="card-subtitle">This semester</span>
+                                <span class="card-subtitle">Overall standing</span>
                             </div>
                         </div>
-                        <div class="card-chart-area center-content">
-                            <div class="donut-ring" id="donut-gpa" aria-label="GPA donut placeholder">
-                                <svg viewBox="0 0 80 80" class="donut-svg">
-                                    <circle cx="40" cy="40" r="30" fill="none" stroke="#f0ede8" stroke-width="10" />
-                                    <circle cx="40" cy="40" r="30" fill="none" stroke="#e8c547" stroke-width="10"
-                                        stroke-dasharray="94 95" stroke-dashoffset="24" stroke-linecap="round" />
-                                </svg>
-                                <div class="donut-label">—<br><small>GPA</small></div>
+                        <div class="card-chart-area">
+                            <div class="gpa-progress-layout">
+                                <div class="donut-ring" id="donut-gpa" aria-label="GPA donut">
+                                    <svg viewBox="0 0 80 80" class="donut-svg">
+                                        <circle cx="40" cy="40" r="30" fill="none" stroke="#f0ede8" stroke-width="10" />
+                                        <circle cx="40" cy="40" r="30" fill="none" stroke="#e8c547" stroke-width="10"
+                                            stroke-dasharray="0 188" stroke-dashoffset="0" stroke-linecap="round"
+                                            id="donut-gpa-progress" />
+                                    </svg>
+                                    <div class="donut-label" id="donut-gpa-label">—<br><small>GPA</small></div>
+                                </div>
+                                <div class="gpa-grade-divider" aria-hidden="true"></div>
+                                <div class="gpa-grade-panel">
+                                    <span class="gpa-grade-label">Grade</span>
+                                    <span class="gpa-grade-value" id="gpa-letter-grade">—</span>
+                                </div>
                             </div>
-                            <p class="chart-coming-soon">Data coming soon</p>
                         </div>
                     </div>
 
@@ -441,43 +466,16 @@
                             </button>
                         </div>
                         <div class="course-bars-area">
+                            {% for course in courses %}
                             <div class="course-bar-row">
-                                <span class="course-bar-label">Mathematics</span>
+                                <span class="course-bar-label">{{ course.name }}</span>
                                 <div class="course-bar-track">
-                                    <div class="course-bar-fill" style="--pct:76%; --clr:#ff6b35;"></div>
+                                    <div class="course-bar-fill" style="--pct:{{ course.pct }}%; --clr:{{ course.clr }};"></div>
                                 </div>
-                                <span class="course-bar-pct">76%</span>
+                                <span class="course-bar-pct">{{ course.pct }}%</span>
                             </div>
-                            <div class="course-bar-row">
-                                <span class="course-bar-label">Physics</span>
-                                <div class="course-bar-track">
-                                    <div class="course-bar-fill" style="--pct:90%; --clr:#e8c547;"></div>
-                                </div>
-                                <span class="course-bar-pct">90%</span>
-                            </div>
-                            <div class="course-bar-row">
-                                <span class="course-bar-label">Computer Sci.</span>
-                                <div class="course-bar-track">
-                                    <div class="course-bar-fill" style="--pct:60%; --clr:#3b82f6;"></div>
-                                </div>
-                                <span class="course-bar-pct">60%</span>
-                            </div>
-                            <div class="course-bar-row">
-                                <span class="course-bar-label">Data Structures</span>
-                                <div class="course-bar-track">
-                                    <div class="course-bar-fill" style="--pct:80%; --clr:#22c55e;"></div>
-                                </div>
-                                <span class="course-bar-pct">80%</span>
-                            </div>
-                            <div class="course-bar-row">
-                                <span class="course-bar-label">English</span>
-                                <div class="course-bar-track">
-                                    <div class="course-bar-fill" style="--pct:50%; --clr:#a855f7;"></div>
-                                </div>
-                                <span class="course-bar-pct">50%</span>
-                            </div>
+                            {% endfor %}
                         </div>
-                        <p class="chart-coming-soon">Real course data will appear here once backend is connected</p>
                     </div>
 
                 </section>
@@ -485,49 +483,65 @@
         </main>
     </div>
 
+    <!-- Zoom Modal for Course Attendance -->
+    <div id="courseAttendanceModal" class="custom-modal">
+        <div class="custom-modal-overlay"></div>
+        <div class="custom-modal-container">
+            <button class="custom-modal-close" aria-label="Close modal">&times;</button>
+            <div class="custom-modal-header">
+                <h2 class="custom-modal-title">Attendance by Course</h2>
+                <p class="custom-modal-subtitle">Current semester — sessions attended per course</p>
+            </div>
+            <div class="custom-modal-content">
+                <!-- Dynamic zoomed course bars go here -->
+            </div>
+        </div>
+    </div>
+
     <script>
+        const dashboardGpa = {{ gpa | tojson }};
         // Check local storage for initial state immediately to avoid chart FOUC
         if (localStorage.getItem('theme') === 'dark') {
             document.body.classList.add('dark-mode');
         }
 
         let weeklyChartInst = null;
-        function initCharts(){
-            if(weeklyChartInst) weeklyChartInst.destroy();
-            const isDark=document.body.classList.contains('dark-mode');
-            const txtColor=isDark?'#c0d0f0':'#4a3a2a';
-            const gridColor=isDark?'rgba(255,255,255,.07)':'rgba(0,0,0,.06)';
-            const accent1=isDark?'#4fd4ff':'#ff6b35';
+        function initCharts() {
+            if (weeklyChartInst) weeklyChartInst.destroy();
+            const isDark = document.body.classList.contains('dark-mode');
+            const txtColor = isDark ? '#c0d0f0' : '#4a3a2a';
+            const gridColor = isDark ? 'rgba(255,255,255,.07)' : 'rgba(0,0,0,.06)';
+            const accent1 = isDark ? '#4fd4ff' : '#ff6b35';
 
-            const days=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
-            weeklyChartInst = new Chart(document.getElementById('weeklyChart'),{
-                type:'bar',
-                data:{
-                    labels:days,
-                    datasets:[{
-                        label:'Attendance Rate (%)',
-                        data:[80,75,80,60,0,80,0],
-                        backgroundColor:accent1,
-                        borderRadius:6,
-                        borderSkipped:false,
+            const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+            weeklyChartInst = new Chart(document.getElementById('weeklyChart'), {
+                type: 'bar',
+                data: {
+                    labels: days,
+                    datasets: [{
+                        label: 'Attendance Rate (%)',
+                        data: [80, 75, 80, 60, 0, 80, 0],
+                        backgroundColor: accent1,
+                        borderRadius: 6,
+                        borderSkipped: false,
                     }]
                 },
-                options:{
-                    responsive:true,
-                    plugins:{
-                        legend:{display:false},
-                        title:{display:false}
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { display: false },
+                        title: { display: false }
                     },
-                    scales:{
-                        x:{ticks:{color:txtColor},grid:{display:false}},
-                        y:{
-                            ticks:{
-                                color:txtColor,
-                                callback:function(value){return value+'%'}
+                    scales: {
+                        x: { ticks: { color: txtColor }, grid: { display: false } },
+                        y: {
+                            ticks: {
+                                color: txtColor,
+                                callback: function (value) { return value + '%' }
                             },
-                            grid:{color:gridColor},
-                            beginAtZero:true,
-                            max:100
+                            grid: { color: gridColor },
+                            beginAtZero: true,
+                            max: 100
                         }
                     }
                 }
@@ -547,13 +561,84 @@
 
         initCharts();
 
-        // Animate course attendance horizontal bars on load
-        document.querySelectorAll('.course-bar-fill').forEach((fill, i) => {
-            fill.style.width = '0';
-            requestAnimationFrame(() => {
-                setTimeout(() => { fill.style.width = 'var(--pct)'; }, 100 + i * 120);
+        function clampGpa(value) {
+            if (typeof value !== 'number' || Number.isNaN(value)) {
+                return null;
+            }
+            return Math.max(0, Math.min(5, value));
+        }
+
+        function getAcademicGrade(value) {
+            if (value >= 3.5) return 'EXCELLENT';
+            if (value >= 2.5) return 'VERY GOOD';
+            if (value >= 1.5) return 'GOOD';
+            if (value >= 1.0) return 'ACCEPTABLE';
+            return 'FAILING';
+        }
+
+        function getLetterGrade(value) {
+            if (value >= 4.0) return 'A+';
+            if (value >= 3.5) return 'A';
+            if (value >= 3.0) return 'B+';
+            if (value >= 2.5) return 'B';
+            if (value >= 2.0) return 'C+';
+            if (value >= 1.5) return 'C';
+            if (value >= 1.0) return 'D';
+            return 'F';
+        }
+
+        function updateGpaWidgets(rawValue, animate = false) {
+            const gpaValue = clampGpa(rawValue);
+            const gpaText = gpaValue === null ? '—' : gpaValue.toFixed(2);
+            const gradeText = gpaValue === null ? '—' : getAcademicGrade(gpaValue);
+            const percentageText = gpaValue === null ? '—' : `${(gpaValue * 10 + 50).toFixed(1)}%`;
+            const letterText = gpaValue === null ? '—' : getLetterGrade(gpaValue);
+
+            const percentageValueEl = document.getElementById('val-percentage');
+            if (percentageValueEl) percentageValueEl.textContent = percentageText;
+
+            const gradeValueEl = document.getElementById('val-assessment');
+            if (gradeValueEl) gradeValueEl.textContent = gradeText;
+
+            const letterValueEl = document.getElementById('gpa-letter-grade');
+            if (letterValueEl) letterValueEl.textContent = letterText;
+
+            const donutLabel = document.getElementById('donut-gpa-label');
+            if (donutLabel) {
+                donutLabel.innerHTML = `${gpaText}<br><small>GPA</small>`;
+            }
+
+            const donutProgress = document.getElementById('donut-gpa-progress');
+            if (donutProgress) {
+                const radius = 30;
+                const circumference = 2 * Math.PI * radius;
+                const progress = gpaValue === null ? 0 : (gpaValue / 5) * circumference;
+                if (animate) {
+                    donutProgress.style.transition = 'none';
+                    donutProgress.setAttribute('stroke-dasharray', `0 ${circumference}`);
+                    donutProgress.getBoundingClientRect(); // force reflow
+                    requestAnimationFrame(() => {
+                        donutProgress.style.transition = 'stroke-dasharray 0.8s ease';
+                        donutProgress.setAttribute('stroke-dasharray', `${progress} ${circumference}`);
+                    });
+                } else {
+                    donutProgress.setAttribute('stroke-dasharray', `${progress} ${circumference}`);
+                }
+            }
+        }
+
+        updateGpaWidgets(dashboardGpa, true);
+
+        // Animate course attendance horizontal bars
+        function animateCourseBars() {
+            document.querySelectorAll('.course-bar-fill').forEach((fill, i) => {
+                fill.style.width = '0';
+                requestAnimationFrame(() => {
+                    setTimeout(() => { fill.style.width = 'var(--pct)'; }, 100 + i * 120);
+                });
             });
-        });
+        }
+        animateCourseBars();
 
         // Sidebar toggle logic
         const sidebar = document.getElementById('dashSidebar');
@@ -627,6 +712,8 @@
                 }
             }
             initCharts();
+            updateGpaWidgets(dashboardGpa, true);
+            animateCourseBars();
         });
 
         // Popup toggle logic for Messages & Notifications
@@ -652,7 +739,38 @@
         document.addEventListener('click', () => {
             document.querySelectorAll('.header-popup.open').forEach(p => p.classList.remove('open'));
         });
+
+        // Zoom Modal logic for Attendance by Course
+        const expandBtn = document.querySelector('#card-course-attendance .card-expand-btn');
+        if (expandBtn) {
+            expandBtn.addEventListener('click', () => {
+                const modal = document.getElementById('courseAttendanceModal');
+                const contentArea = modal.querySelector('.custom-modal-content');
+                const originalBars = document.querySelector('#card-course-attendance .course-bars-area');
+                if (originalBars && contentArea) {
+                    contentArea.innerHTML = originalBars.innerHTML;
+                }
+                modal.classList.add('open');
+                // Animate bars inside the modal container
+                modal.querySelectorAll('.course-bar-fill').forEach((fill, i) => {
+                    fill.style.width = '0';
+                    requestAnimationFrame(() => {
+                        setTimeout(() => { fill.style.width = 'var(--pct)'; }, 100 + i * 120);
+                    });
+                });
+            });
+        }
+
+        const modal = document.getElementById('courseAttendanceModal');
+        if (modal) {
+            const closeBtn = modal.querySelector('.custom-modal-close');
+            const overlay = modal.querySelector('.custom-modal-overlay');
+            const closeFn = () => modal.classList.remove('open');
+            if (closeBtn) closeBtn.addEventListener('click', closeFn);
+            if (overlay) overlay.addEventListener('click', closeFn);
+        }
     </script>
+
 </body>
 
 </html>
