@@ -808,7 +808,8 @@
                         <span class="profile-name">{{ username }}</span>
                     </div>
                 </a>
-                <a href="{{ url_for('logout') }}" class="sidebar-logout-btn" title="Logout">
+                <a href="{{ url_for('logout') }}" class="sidebar-logout-btn" title="Logout"
+                    onclick="localStorage.removeItem('theme'); return true;">
                     <svg class="sidebar-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18"
                         viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
                         stroke-linejoin="round">
@@ -1202,12 +1203,14 @@
                                             </label>
                                             <div class="input-wrapper number-input-wrapper">
                                                 <input type="number" step="0.5" id="weekly_avg_study_hours_subject"
-                                                    name="weekly_avg_study_hours_subject" class="rec-input" required min="0"
-                                                    max="10" placeholder="0 to 10 Hours"
+                                                    name="weekly_avg_study_hours_subject" class="rec-input" required
+                                                    min="0" max="10" placeholder="0 to 10 Hours"
                                                     value="{{ form_data.get('weekly_avg_study_hours_subject', '') }}">
                                                 <div class="stepper-controls">
-                                                    <button type="button" class="stepper-btn step-up" aria-label="Increase weekly study hours">▲</button>
-                                                    <button type="button" class="stepper-btn step-down" aria-label="Decrease weekly study hours">▼</button>
+                                                    <button type="button" class="stepper-btn step-up"
+                                                        aria-label="Increase weekly study hours">▲</button>
+                                                    <button type="button" class="stepper-btn step-down"
+                                                        aria-label="Decrease weekly study hours">▼</button>
                                                 </div>
                                             </div>
                                             <div id="hours-error" class="error-msg">Please enter hours between 0 and 10.
@@ -1233,8 +1236,10 @@
                                                     placeholder="Sessions (0-10)"
                                                     value="{{ form_data.get('attendance_count', '') }}">
                                                 <div class="stepper-controls">
-                                                    <button type="button" class="stepper-btn step-up" aria-label="Increase attendance count">▲</button>
-                                                    <button type="button" class="stepper-btn step-down" aria-label="Decrease attendance count">▼</button>
+                                                    <button type="button" class="stepper-btn step-up"
+                                                        aria-label="Increase attendance count">▲</button>
+                                                    <button type="button" class="stepper-btn step-down"
+                                                        aria-label="Decrease attendance count">▼</button>
                                                 </div>
                                             </div>
                                             <div id="attendance-error" class="error-msg">Please enter a whole number

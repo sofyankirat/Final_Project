@@ -52,6 +52,10 @@ class SQLiteCursorWrapper:
     def lastrowid(self):
         return self.cursor.lastrowid
 
+    @property
+    def description(self):
+        return self.cursor.description
+
 class SQLiteConnectionWrapper:
     """Wrapper for SQLite connection"""
     def __init__(self, connection):

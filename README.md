@@ -8,34 +8,34 @@
 
 ---
 
-## 🔍 Project Overview
+## Project Overview
 
 The project is structured into two core components:
-1. **🌐 Front-End Web Application (`front-end/`)**: A Flask-based web application providing a student dashboard, dark/light theme switching, interactive course schedules, recommendations, help pages, and the user interface for face enrollment and recognition logs.
-2. **🧠 Smart Attendance System (`Smart-Attendance-System/`)**: An offline/online AI pipeline leveraging **YOLOv8s-Face** and **ArcFace** models to detect and align classroom faces, compute embedding similarity, and log student presence.
+1. **Front-End Web Application (`front-end/`)**: A Flask-based web application providing a student dashboard, theme switching, interactive course schedules, recommendations, help pages, and the user interface for face enrollment and recognition logs.
+2. **Smart Attendance System (`Smart-Attendance-System/`)**: An offline/online AI pipeline leveraging **YOLOv8s-Face** and **ArcFace** models to detect and align classroom faces, compute embedding similarity, and log student presence.
 
 ---
 
-## ✨ Main Features
+## Main Features
 
 The Student Attendance and Recommendation System offers the following features:
 
-* **🔒 Secure Authentication & Onboarding**: Fully integrated user signup, email verification via token, and secure login, followed by a personalized profile setup collection (First name, program, level, GPA, etc.).
-* **📊 Interactive Analytics Dashboard**: Deep visual metrics representing weekly attendance, course-wise presence, performance analytics, and dynamic theme switching with dark mode optimization.
-* **📷 Smart Face Capture Studio**: Real-time BlazeFace-assisted camera client checking head orientation to capture 5 training positions.
-* **📈 Intelligent Course Advisor & Recommendations**: Customized machine learning-based course suggestions utilizing personal performance, GPA, program, failed subjects, and interest parameters.
-* **💬 Personalized AI Advisor Chat**: Seamless, conversational AI agent with persisted conversation histories, multi-chat controls, and image attachments.
-* **🗓️ Dynamic Course Scheduler**: Time conflict checking scheduler to register and manage weekly class slots.
-* **✉️ Direct Support Contact System**: Standardized messaging contact form directly linked to administrators.
+- **Secure Authentication & Onboarding**: Fully integrated user signup, email verification via token, and secure login, followed by a personalized profile setup collection (first name, program, level, GPA, etc.).
+- **Interactive Analytics Dashboard**: Visual metrics representing weekly attendance, course-wise presence, performance analytics, and theme switching with dark mode optimization.
+- **Smart Face Capture Studio**: Real-time BlazeFace-assisted camera client checking head orientation to capture multiple training positions.
+- **Intelligent Course Advisor & Recommendations**: Customized course suggestions utilizing personal performance, GPA, program, failed subjects, and interest parameters.
+- **Personalized AI Advisor Chat**: Conversational AI agent with persisted conversation histories, multi-chat controls, and image attachments.
+- **Dynamic Course Scheduler**: Time conflict checking scheduler to register and manage weekly class slots.
+- **Direct Support Contact System**: Standardized messaging contact form directly linked to administrators.
 
 ---
 
-## 🚀 Step-by-Step Local Setup Guide
+## Step-by-Step Local Setup Guide
 
-Follow these steps to run both the web dashboard and the AI backend on your local machine. *Thanks to the integrated SQLite database layer, no complex MySQL or XAMPP setup is required!*
+Follow these steps to run both the web dashboard and the AI backend on your local machine. The integrated SQLite database layer removes the need for external DB servers.
 
-### 📋 Prerequisites
-- **Python 3.11** (recommended version for machine learning compatibility)
+### Prerequisites
+- **Python 3.11** (recommended for ML compatibility)
 - **Webcam** or WiFi-connected IoT camera
 
 ---
@@ -61,25 +61,13 @@ Follow these steps to run both the web dashboard and the AI backend on your loca
    pip install -r requirements.txt
    ```
 4. Create your configuration `.env` file:
-   - Copy `.env.example` to `.env`
-   - Fill in your Gmail SMTP settings (used for verification emails):
-     ```env
-     SECRET_KEY=your_super_secret_key
-     DB_NAME=student_system
-     SMTP_SERVER=smtp.gmail.com
-     SMTP_PORT=587
-     EMAIL_ADDRESS=your_email@gmail.com
-     EMAIL_PASSWORD=your_app_password
-     HELP_RECEIVER_EMAIL=your_email@gmail.com
-     ```
-   - **💡 Easy Verification Shortcuts (No Inbox Needed)**:
-     * **Auto-Verification Mode**: If you do not configure SMTP settings (or if email sending fails), the system will automatically verify newly registered users in the database so you can log in immediately.
-     * **Developer Email Log**: When you register a user locally, the system writes the verification link directly to the local file `front-end/email_logs.txt`. You can just open this file, copy the verification link, and paste it into your browser to verify manually.
+    - Copy `.env.example` to `.env`
+    - Open `.env` and fill in the configuration variables with appropriate values for your environment.
 5. Launch the Flask web server:
    ```bash
    python app.py
    ```
-   *The SQLite database file `student_system.db` and all required tables will be automatically created on its first run.* Open your browser to `http://127.0.0.1:5000`.
+   The SQLite database file `student_system.db` and required tables will be created on first run. Open your browser to `http://127.0.0.1:5000`.
 
 ---
 

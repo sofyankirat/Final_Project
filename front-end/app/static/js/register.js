@@ -113,7 +113,7 @@ document.getElementById('registerForm').addEventListener('submit', async (e) => 
             }
 
             const pendingEmail = email.value.trim();
-            if (pendingEmail) {
+            if (pendingEmail && data.email_verification_sent !== false) {
                 localStorage.setItem('pendingVerificationEmail', pendingEmail);
                 localStorage.setItem('pendingVerificationAt', String(Date.now()));
             }

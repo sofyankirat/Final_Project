@@ -107,6 +107,8 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
         const data = await response.json();
 
         if (data.success) {
+            // Reset theme to light mode for new login
+            localStorage.removeItem('theme');
             window.location.href = data.redirect;
         } else {
             // Show server error
@@ -132,31 +134,34 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
     }
 });
 
-document.getElementById('resendVerification').addEventListener('click', async () => {
-    const email = document.getElementById('email');
-    const errorMessage = document.getElementById('errorMessage');
-    const successMessage = document.getElementById('successMessage');
-    const resendMessage = document.getElementById('resendMessage');
-    const emailError = document.getElementById('emailError');
+const resendVerificationBtn = document.getElementById('resendVerification');
+if (resendVerificationBtn) {
+    resendVerificationBtn.addEventListener('click', async () => {
+        const email = document.getElementById('email');
+        const errorMessage = document.getElementById('errorMessage');
+        const successMessage = document.getElementById('successMessage');
+        const resendMessage = document.getElementById('resendMessage');
+        const emailError = document.getElementById('emailError');
 
-    clearLoginMessages();
-    emailError.textContent = '';
-    email.classList.remove('error-input');
+        clearLoginMessages();
+        emailError.textContent = '';
+        email.classList.remove('error-input');
 
-    if (!email.value.trim()) {
-        emailError.textContent = 'Email is required';
-        email.classList.add('error-input');
-        return;
-    }
+        if (!email.value.trim()) {
+            emailError.textContent = 'Email is required';
+            email.classList.add('error-input');
+            return;
+        }
 
-    if (!isValidEmail(email.value)) {
-        emailError.textContent = 'Please enter a valid email address';
-        email.classList.add('error-input');
-        return;
-    }
+        if (!isValidEmail(email.value)) {
+            emailError.textContent = 'Please enter a valid email address';
+            email.classList.add('error-input');
+            return;
+        }
 
-    await requestVerificationResend(email.value);
-});
+        await requestVerificationResend(email.value);
+    });
+}
 
 window.addEventListener('DOMContentLoaded', () => {
     const emailInput = document.getElementById('email');

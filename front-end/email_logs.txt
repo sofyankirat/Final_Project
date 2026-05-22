@@ -11,3 +11,5 @@
 [2026-05-22T06:30:07.050448] Verification link for test_integration_user_new_1779424204@example.com: http://localhost:5000/verify-email/RnbKR3Yz6H5uXCGh6PUpHNUe7w2dv80kacfH4CM2A1M
 [2026-05-22T06:30:25.070436] Verification link for autoverify_test_1779424222@example.com: http://localhost:5000/verify-email/22RdjQ2KbEAmW9BMvBDPp2fZzxq9XBBTUV5I5gEk7dQ
 [2026-05-22T06:32:28.073405] Verification link for www.sofyankirat@gmail.com: http://localhost:5000/verify-email/G3DNxO3QM3kG7bRcaEfBnPF30XljtoDU_4h3klH88VI
+[2026-05-22T08:08:37.109729] Verification link for test_user_jrgj9d2c@example.com: http://localhost:5000/verify-email/MWfI2fvnv8OcoRZKOka1lGiy9hZd9QHbFeuU6K41Fi4
+[2026-05-22T08:09:03.488238] Verification link for test_user_gd0vclyk@example.com: http://localhost:5000/verify-email/pohcNKEhlTiS_aQXyU-uxh954CM63tVCIRjIPmQ2gTc
