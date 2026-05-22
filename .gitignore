@@ -17,12 +17,6 @@ __pycache__/
 Thumbs.db
 desktop.ini
 
-# Model weights and datasets
-Models/
-models/
-*.pt
-*.onnx
-
 # Private data
 Database/
 database/
