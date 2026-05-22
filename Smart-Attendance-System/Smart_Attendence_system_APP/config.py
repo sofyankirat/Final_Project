@@ -1,16 +1,21 @@
 # Smart Attendance System — Configuration
 # All tunable parameters in one place
 
+import os
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+PROJECT_ROOT = os.path.abspath(os.path.join(BASE_DIR, os.pardir))
+
 CAMERA_SOURCE = 0
 # 0           = laptop built-in webcam
 # 1           = external USB webcam
 # "http://192.168.1.100/video" = ESP32-CAM IoT camera
 # "rtsp://192.168.1.100:554"   = IP camera
 
-YOLO_PATH = r"C:\Users\Administrator\Documents\Smart Attendence System\Models\yolov8s-face-lindevs.pt"
-ARCFACE_PATH = r"C:\Users\Administrator\Documents\Smart Attendence System\Models\w600k_mbf.onnx"
-DATABASE_PATH = r"C:\Users\Administrator\Documents\Smart Attendence System\Database\database.pkl"
-LOG_PATH = r"logs/attendance_log.csv" # Output path
+YOLO_PATH = os.path.join(PROJECT_ROOT, "models", "yolov8s-face-lindevs.pt")
+ARCFACE_PATH = os.path.join(PROJECT_ROOT, "models", "w600k_mbf.onnx")
+DATABASE_PATH = os.path.join(PROJECT_ROOT, "database", "database.pkl")
+LOG_PATH = os.path.join(PROJECT_ROOT, "logs", "attendance_log.csv") # Output path
 
 # RECOGNETION
 THRESHOLD = 0.3

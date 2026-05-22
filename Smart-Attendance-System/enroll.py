@@ -13,12 +13,31 @@ import onnxruntime as ort
 from ultralytics import YOLO
 import config
 
+
+def _resolve_model_path(path):
+    if os.path.exists(path):
+        return path
+
+    candidate_names = [os.path.basename(path), path]
+    candidate_roots = [
+        os.path.dirname(os.path.abspath(__file__)),
+        os.path.join(os.path.dirname(os.path.abspath(__file__)), "models"),
+        os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), os.pardir)),
+        os.path.join(os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), os.pardir)), "models"),
+    ]
+    for root in candidate_roots:
+        for name in candidate_names:
+            candidate = os.path.join(root, name)
+            if os.path.exists(candidate):
+                return candidate
+    return path
+
 # ============================================================
 # LOAD MODELS
 # ============================================================
 print("Loading models...\n")
-yolo_model = YOLO(config.YOLO_PATH)
-session    = ort.InferenceSession(config.ARCFACE_PATH,
+yolo_model = YOLO(_resolve_model_path(config.YOLO_PATH))
+session    = ort.InferenceSession(_resolve_model_path(config.ARCFACE_PATH),
                providers=['CPUExecutionProvider'])
 input_name = session.get_inputs()[0].name
 print("✅ Models loaded\n")

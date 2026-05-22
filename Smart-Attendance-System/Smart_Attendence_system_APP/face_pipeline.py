@@ -15,6 +15,25 @@ from datetime import datetime
 from ultralytics import YOLO
 # from insightface.app import FaceAnalysis
 import config
+
+
+def _resolve_model_path(path):
+    if os.path.exists(path):
+        return path
+
+    candidate_names = [os.path.basename(path), path]
+    candidate_roots = [
+        os.path.dirname(os.path.abspath(__file__)),
+        os.path.join(os.path.dirname(os.path.abspath(__file__)), "models"),
+        os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), os.pardir)),
+        os.path.join(os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), os.pardir)), "models"),
+    ]
+    for root in candidate_roots:
+        for name in candidate_names:
+            candidate = os.path.join(root, name)
+            if os.path.exists(candidate):
+                return candidate
+    return path
 #------------------
 #ARCFACE ONNX CLASS
 #------------------
@@ -54,10 +73,10 @@ class ArcFaceONNX:
 returns yolo_model (for ace detection) , face_app(for embedding) and the database
 """
 def load_models():
-    yolo_detection_model = YOLO(config.YOLO_PATH)      #  Load YOLOv8 face detector 
+    yolo_detection_model = YOLO(_resolve_model_path(config.YOLO_PATH))      #  Load YOLOv8 face detector 
     print("  ✅ YOLOv8s-Face loaded")
 
-    face_app_embedding = ArcFaceONNX(config.ARCFACE_PATH)
+    face_app_embedding = ArcFaceONNX(_resolve_model_path(config.ARCFACE_PATH))
     # face_app_embedding = FaceAnalysis(name='buffalo_sc')
     # face_app_embedding.prepare(ctx_id=0, det_size=(112, 112),
     #                         providers=['CPUExecutionProvider'])   # Load ArcFace embedding model

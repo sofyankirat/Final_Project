@@ -15,6 +15,25 @@ from ultralytics import YOLO
 from datetime import datetime
 import config
 
+
+def _resolve_model_path(path):
+    if os.path.exists(path):
+        return path
+
+    candidate_names = [os.path.basename(path), path]
+    candidate_roots = [
+        os.path.dirname(os.path.abspath(__file__)),
+        os.path.join(os.path.dirname(os.path.abspath(__file__)), "models"),
+        os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), os.pardir)),
+        os.path.join(os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), os.pardir)), "models"),
+    ]
+    for root in candidate_roots:
+        for name in candidate_names:
+            candidate = os.path.join(root, name)
+            if os.path.exists(candidate):
+                return candidate
+    return path
+
 app = Flask(__name__)
 
 # ============================================================
@@ -22,9 +41,9 @@ app = Flask(__name__)
 # ============================================================
 print("Loading models...")
 
-yolo_model = YOLO(config.YOLO_PATH)
+yolo_model = YOLO(_resolve_model_path(config.YOLO_PATH))
 session    = ort.InferenceSession(
-                config.ARCFACE_PATH,
+                _resolve_model_path(config.ARCFACE_PATH),
                 providers=['CPUExecutionProvider'])
 input_name = session.get_inputs()[0].name
 

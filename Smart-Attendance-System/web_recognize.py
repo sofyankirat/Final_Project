@@ -19,7 +19,21 @@ sys.path.insert(0, _DIR)
 import config
 
 def _resolve(p):
-    return p if os.path.isabs(p) else os.path.join(_DIR, p)
+    candidates = []
+    if p:
+        candidates.append(p)
+        if not os.path.isabs(p):
+            candidates.append(os.path.join(_DIR, p))
+    base_name = os.path.basename(p) if p else ""
+    for root in (_DIR, os.path.join(_DIR, "models"), os.path.abspath(os.path.join(_DIR, os.pardir)), os.path.join(os.path.abspath(os.path.join(_DIR, os.pardir)), "models")):
+        if base_name:
+            candidates.append(os.path.join(root, base_name))
+        if p:
+            candidates.append(os.path.join(root, p))
+    for candidate in candidates:
+        if candidate and os.path.exists(candidate):
+            return candidate
+    return p
 
 import typing
 
