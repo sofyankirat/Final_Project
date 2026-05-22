@@ -77,15 +77,7 @@ Follow these steps to download the project, open it in your code editor, and run
    ```bash
    pip install -r requirements.txt
    ```
-4. Create your configuration `.env` file:
-   - Copy `.env.example` to `.env`
-   - Open `.env` and fill in the configuration variables with values appropriate for your environment. The application runs without SMTP configured; see the note below for local verification options.
-
-**Local verification note:**
-- If you do not configure SMTP settings (or if email sending fails), the system will automatically verify newly registered users in the database so you can log in immediately.
-- When running locally, verification links are also written to `front-end/email_logs.txt` for convenience.
-
-5. Launch the Flask web server:
+4. Launch the Flask web server:
    ```bash
    python app.py
    ```
