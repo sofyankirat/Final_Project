@@ -15,9 +15,9 @@ Thumbs.db
 desktop.ini
 
 # Model weights (too large)
-Models/
-*.pt
-*.onnx
+# Models/
+# *.pt
+# *.onnx
 
 # Private data
 Database/
