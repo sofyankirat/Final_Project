@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="front-end/app/static/images/Logo.jpg" alt="HAMAS Logo" width="220px" style="border-radius: 12px; margin-bottom: 20px;">
+  <img src="front-end/app/static/images/Logo.jpg" alt="HAMAS Logo" width="420px" style="border-radius: 12px; margin-bottom: 20px; box-shadow: 0 8px 24px rgba(0,0,0,0.15);">
   
   # HAMAS: Student Recommendation & Smart Attendance System
   
@@ -16,55 +16,31 @@ The project is structured into two core components:
 
 ---
 
-## ✨ Features Added & System Refinements
+## ✨ Main Features
 
-The following enhancements, visual optimizations, and bug fixes were added to the codebase:
+The Student Attendance and Recommendation System offers the following features:
 
-### 1. 🎨 Premium Redesign & Theme Harmonization
-- **Theme Consistency**: Applied a global cohesive color palette. Dark mode icons and badges across the **Student Recommendation** page now match the primary brand color.
-- **Improved Layouts & Typography**:
-  - Refactored form fields on the **Recommendations** and **Help (Contact Us)** pages to ensure user inputs do not touch the boundaries (added proper inner padding).
-  - Designed responsive card layouts with dynamic hover animations.
-- **Interactive Team Visualizations**: Implemented canvas-based S-curve interactive animated connectors on the **Our Team** page to link team members dynamically to the central brand logo.
-- **AI Agent Chat Cursor**: Replaced the basic image hover magnifying cursor on the **AI Agent** chat page with a more creative and professional custom preview interface.
-
-### 2. 🛡️ Robust Face Capture & Overwriting Logic
-- **Embeddings Overwrite on Re-Enrollment**: Updated `enroll.py` and front-end endpoints so that re-enrolling a student with 5 new face positions successfully replaces the existing embeddings in `database.pkl` instead of generating conflicts.
-- **Client-Side Face Validation**: Embedded a client-side BlazeFace model to validate the student's face angle and orientation before capturing each frame.
-- **Fixed Infinite Reload Loops**: Solved front-end script race conditions on the attendance dashboard.
-
-### 3. 🧹 Clean Syntax & Validation Fixes
-- **Zero ESLint Warnings**: Removed all unused JavaScript variables and bound global event handlers to the `window` object in `attendance.html` to ensure perfect lint checks.
-- **Standardized Attributes**: Moved dynamic Jinja tags out of HTML `style="..."` attributes and into standard `class` names and `data-*` properties to prevent VS Code compiler warnings.
-- **Pyright Type Checking Fixes**: Solved all python static analysis type issues on OpenCV constants (`cv2.CV_64F`) and dynamically imported models.
+* **🔒 Secure Authentication & Onboarding**: Fully integrated user signup, email verification via token, and secure login, followed by a personalized profile setup collection (First name, program, level, GPA, etc.).
+* **📊 Interactive Analytics Dashboard**: Deep visual metrics representing weekly attendance, course-wise presence, performance analytics, and dynamic theme switching with dark mode optimization.
+* **📷 Smart Face Capture Studio**: Real-time BlazeFace-assisted camera client checking head orientation to capture 5 training positions.
+* **📈 Intelligent Course Advisor & Recommendations**: Customized machine learning-based course suggestions utilizing personal performance, GPA, program, failed subjects, and interest parameters.
+* **💬 Personalized AI Advisor Chat**: Seamless, conversational AI agent with persisted conversation histories, multi-chat controls, and image attachments.
+* **🗓️ Dynamic Course Scheduler**: Time conflict checking scheduler to register and manage weekly class slots.
+* **✉️ Direct Support Contact System**: Standardized messaging contact form directly linked to administrators.
 
 ---
 
 ## 🚀 Step-by-Step Local Setup Guide
 
-Follow these steps to run both the web dashboard and the AI backend on your local machine:
+Follow these steps to run both the web dashboard and the AI backend on your local machine. *Thanks to the integrated SQLite database layer, no complex MySQL or XAMPP setup is required!*
 
 ### 📋 Prerequisites
 - **Python 3.11** (recommended version for machine learning compatibility)
-- **MySQL Server** (local server instance or via XAMPP)
 - **Webcam** or WiFi-connected IoT camera
 
 ---
 
-### Step 1: Set Up MySQL Database
-Create a database named `student_system`.
-- **Using local MySQL Command Line**:
-  ```sql
-  CREATE DATABASE student_system;
-  ```
-- **Using XAMPP (phpMyAdmin)**:
-  1. Start the **MySQL** module from the XAMPP Control Panel.
-  2. Open `http://localhost/phpmyadmin` in your browser.
-  3. Create a new database named `student_system`.
-
----
-
-### Step 2: Configure and Run the Web App (`front-end/`)
+### Step 1: Configure and Run the Web App (`front-end/`)
 
 1. Open your terminal and navigate to the front-end folder:
    ```bash
@@ -86,12 +62,9 @@ Create a database named `student_system`.
    ```
 4. Create your configuration `.env` file:
    - Copy `.env.example` to `.env`
-   - Fill in your MySQL credentials and Gmail SMTP settings:
+   - Fill in your Gmail SMTP settings (used for verification emails):
      ```env
      SECRET_KEY=your_super_secret_key
-     DB_HOST=localhost
-     DB_USER=root
-     DB_PASSWORD=your_mysql_password
      DB_NAME=student_system
      SMTP_SERVER=smtp.gmail.com
      SMTP_PORT=587
@@ -103,11 +76,11 @@ Create a database named `student_system`.
    ```bash
    python app.py
    ```
-   *The application will automatically create the necessary database tables on its first run.* Open your browser to `http://127.0.0.1:5000`.
+   *The SQLite database file `student_system.db` and all required tables will be automatically created on its first run.* Open your browser to `http://127.0.0.1:5000`.
 
 ---
 
-### Step 3: Configure and Run the AI Backend (`Smart-Attendance-System/`)
+### Step 2: Configure and Run the AI Backend (`Smart-Attendance-System/`)
 
 1. Open a new terminal and navigate to the backend folder:
    ```bash

@@ -67,6 +67,8 @@ def to_clean_string(value: Any) -> str:
     """Safely convert request values to trimmed strings."""
     if value is None:
         return ''
+    if isinstance(value, (bytes, bytearray)):
+        return value.decode('utf-8', errors='replace').strip()
     return str(value).strip()
 
 
@@ -337,7 +339,7 @@ def login():
             
             if user:
                 user_id = to_int_value(user[0])
-                hashed_password = str(user[1])
+                hashed_password = to_clean_string(user[1])
                 is_verified = bool(user[2])
             else:
                 user_id = 0
@@ -1379,7 +1381,7 @@ def help():
             cursor.execute("SELECT first_name FROM user_additional_info WHERE user_id = %s", (user_id,))
             result = cursor.fetchone()
             if result and result[0]:
-                username = str(result[0])
+                username = to_clean_string(result[0])
             cursor.close()
             connection.close()
     except Exception as error:
@@ -1586,8 +1588,14 @@ def upload_ai_chat_attachment():
         return jsonify({'success': False, 'message': 'Failed to upload attachment'}), 500
 
 
-def is_user_enrolled(student_name: str) -> bool:
-    """Check if the student has successfully enrolled (exists in database.pkl)."""
+def is_user_enrolled(student_name: str, user_id: int = 0) -> bool:
+    """Check if the student has successfully enrolled (exists in database.pkl and local directory has captures)."""
+    if user_id > 0:
+        static_root = get_static_root()
+        upload_dir = os.path.join(static_root, 'uploads', 'attendance', f'user_{user_id}')
+        if not os.path.exists(upload_dir) or not os.listdir(upload_dir):
+            return False
+
     import pickle
     db_path = os.path.join(_ATTENDANCE_ROOT, 'database', 'database.pkl')
     if os.path.exists(db_path):
@@ -1623,14 +1631,14 @@ def attendance():
             cursor.execute("SELECT first_name FROM user_additional_info WHERE user_id = %s", (user_id,))
             result = cursor.fetchone()
             if result and result[0]:
-                username = result[0]
-                student_name = str(result[0])
+                username = to_clean_string(result[0])
+                student_name = to_clean_string(result[0])
             cursor.close()
             connection.close()
     except Exception as e:
         print(f"Error fetching user name: {e}")
     
-    enrolled = is_user_enrolled(student_name)
+    enrolled = is_user_enrolled(student_name, user_id)
     courses = get_user_courses_data(user_id)
     return render_template('attendance.html', username=username, email=email,
                            profile_photo=_get_profile_photo(user_id), enrolled=enrolled,
@@ -1659,7 +1667,7 @@ def attendance_enroll():
             cur.execute("SELECT first_name FROM user_additional_info WHERE user_id = %s", (user_id,))
             row = cur.fetchone()
             if row and row[0]:
-                student_name = str(row[0])
+                student_name = to_clean_string(row[0])
             cur.close()
             conn.close()
     except Exception:

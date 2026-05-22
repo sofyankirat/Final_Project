@@ -1,19 +1,16 @@
 """
-Database Configuration and Helper Functions
+Database Configuration and Helper Functions using SQLite
 """
 
-import mysql.connector  # type: ignore[import]
-from mysql.connector import Error  # type: ignore[import]
+import sqlite3
+from sqlite3 import Error
 from dotenv import load_dotenv  # type: ignore[import]
 import os
 
 load_dotenv()
 
-# Database Configuration
+# Database Configuration (for compatibility)
 DB_CONFIG = {
-    'host': os.getenv('DB_HOST', 'localhost'),
-    'user': os.getenv('DB_USER', 'root'),
-    'password': os.getenv('DB_PASSWORD', ''),
     'database': os.getenv('DB_NAME', 'student_system'),
 }
 
@@ -23,15 +20,70 @@ class User:
         self.email = email
         self.password = password
 
+class SQLiteCursorWrapper:
+    """Wrapper to map %s parameters to SQLite's ? parameters"""
+    def __init__(self, cursor):
+        self.cursor = cursor
+
+    def execute(self, query, params=None):
+        if query:
+            query = query.replace('%s', '?')
+        if params is not None:
+            if isinstance(params, list):
+                params = tuple(params)
+            return self.cursor.execute(query, params)
+        else:
+            return self.cursor.execute(query)
+
+    def fetchone(self):
+        return self.cursor.fetchone()
+
+    def fetchall(self):
+        return self.cursor.fetchall()
+
+    def close(self):
+        self.cursor.close()
+
+    @property
+    def rowcount(self):
+        return self.cursor.rowcount
+
+    @property
+    def lastrowid(self):
+        return self.cursor.lastrowid
+
+class SQLiteConnectionWrapper:
+    """Wrapper for SQLite connection"""
+    def __init__(self, connection):
+        self.connection = connection
+
+    def cursor(self):
+        return SQLiteCursorWrapper(self.connection.cursor())
+
+    def commit(self):
+        self.connection.commit()
+
+    def rollback(self):
+        self.connection.rollback()
+
+    def close(self):
+        self.connection.close()
+
 def get_db_connection():
     """Create and return a database connection"""
     try:
-        connection = mysql.connector.connect(**DB_CONFIG)
-        if connection.is_connected():
-            print("Database connection successful")
-            return connection
+        db_name = DB_CONFIG['database']
+        db_file = f"{db_name}.db"
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+        db_path = os.path.join(base_dir, db_file)
+        
+        connection = sqlite3.connect(db_path)
+        connection.execute("PRAGMA foreign_keys = ON;")
+        
+        # print("Database connection successful")
+        return SQLiteConnectionWrapper(connection)
     except Error as e:
-        print(f"Error while connecting to MySQL: {e}")
+        print(f"Error while connecting to SQLite: {e}")
         return None
 
 def init_db():
@@ -47,14 +99,14 @@ def init_db():
         # Create users table
         create_users_table = """
         CREATE TABLE IF NOT EXISTS users (
-            id INT AUTO_INCREMENT PRIMARY KEY,
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
             email VARCHAR(255) UNIQUE NOT NULL,
             password VARCHAR(255) NOT NULL,
             is_verified BOOLEAN DEFAULT FALSE,
             verification_token VARCHAR(255),
             token_expiry DATETIME,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
         """
         cursor.execute(create_users_table)
@@ -62,9 +114,9 @@ def init_db():
         # Create attendance table
         create_attendance_table = """
         CREATE TABLE IF NOT EXISTS attendance (
-            id INT AUTO_INCREMENT PRIMARY KEY,
-            user_id INT NOT NULL,
-            course_id INT,
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            course_id INTEGER,
             attendance_date DATE,
             status BOOLEAN DEFAULT FALSE,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -76,7 +128,7 @@ def init_db():
         # Create courses table
         create_courses_table = """
         CREATE TABLE IF NOT EXISTS courses (
-            id INT AUTO_INCREMENT PRIMARY KEY,
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
             course_name VARCHAR(255) NOT NULL,
             course_code VARCHAR(50) UNIQUE NOT NULL,
             professor VARCHAR(255),
@@ -90,9 +142,9 @@ def init_db():
         # Create recommendations table
         create_recommendations_table = """
         CREATE TABLE IF NOT EXISTS recommendations (
-            id INT AUTO_INCREMENT PRIMARY KEY,
-            user_id INT NOT NULL,
-            course_id INT NOT NULL,
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            course_id INTEGER NOT NULL,
             recommendation_score FLOAT,
             recommendation_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
@@ -104,22 +156,22 @@ def init_db():
         # Create additional user profile info table
         create_user_additional_info_table = """
         CREATE TABLE IF NOT EXISTS user_additional_info (
-            id INT AUTO_INCREMENT PRIMARY KEY,
-            user_id INT NOT NULL UNIQUE,
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL UNIQUE,
             first_name VARCHAR(100) NOT NULL,
-            age INT NOT NULL,
+            age INTEGER NOT NULL,
             program VARCHAR(255) NOT NULL,
             gender VARCHAR(50) NOT NULL,
-            level INT NOT NULL,
+            level INTEGER NOT NULL,
             is_working BOOLEAN NOT NULL DEFAULT FALSE,
-            failed_subjects INT NOT NULL DEFAULT 0,
-            discipline_score INT NOT NULL,
-            analytical_score INT NOT NULL,
-            practical_score INT NOT NULL,
+            failed_subjects INTEGER NOT NULL DEFAULT 0,
+            discipline_score INTEGER NOT NULL,
+            analytical_score INTEGER NOT NULL,
+            practical_score INTEGER NOT NULL,
             gpa DECIMAL(4,2) NOT NULL,
             screen_hours DECIMAL(4,1) NOT NULL,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
         )
         """
@@ -128,13 +180,13 @@ def init_db():
         # Create AI chat state table (persisted conversation history per user)
         create_ai_chat_state_table = """
         CREATE TABLE IF NOT EXISTS user_ai_chat_state (
-            id INT AUTO_INCREMENT PRIMARY KEY,
-            user_id INT NOT NULL UNIQUE,
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL UNIQUE,
             chat_data LONGTEXT NOT NULL,
-            chat_counter INT NOT NULL DEFAULT 1,
+            chat_counter INTEGER NOT NULL DEFAULT 1,
             current_chat_id VARCHAR(100) NOT NULL DEFAULT 'chat_1',
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
         )
         """
@@ -143,54 +195,60 @@ def init_db():
         # Create recommendation history table (persisted recommendation runs per user)
         create_recommendation_history_table = """
         CREATE TABLE IF NOT EXISTS user_recommendation_history (
-            id INT AUTO_INCREMENT PRIMARY KEY,
-            user_id INT NOT NULL,
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
             title VARCHAR(500) NOT NULL,
             course_name VARCHAR(255) NOT NULL,
             professor_name VARCHAR(255) NOT NULL,
             study_hours DECIMAL(5,2) NOT NULL,
-            attendance_count INT NOT NULL,
+            attendance_count INTEGER NOT NULL,
             score FLOAT NOT NULL,
             recommended BOOLEAN NOT NULL,
             reason TEXT NOT NULL,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-            INDEX idx_recommendation_history_user_created (user_id, created_at)
+            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
         )
         """
         cursor.execute(create_recommendation_history_table)
+        
+        # Create separate index for recommendation history
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_rec_hist_user_created ON user_recommendation_history (user_id, created_at)")
 
         # Create help requests table (messages from Help page)
         create_help_requests_table = """
         CREATE TABLE IF NOT EXISTS help_requests (
-            id INT AUTO_INCREMENT PRIMARY KEY,
-            user_id INT NOT NULL,
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
             email VARCHAR(255) NOT NULL,
             subject VARCHAR(255) NOT NULL,
             message TEXT NOT NULL,
             status VARCHAR(50) NOT NULL DEFAULT 'new',
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-            INDEX idx_help_requests_user_created (user_id, created_at)
+            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
         )
         """
         cursor.execute(create_help_requests_table)
+        
+        # Create separate index for help requests
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_help_req_user_created ON help_requests (user_id, created_at)")
 
         # Create user course schedule table
         create_course_schedule_table = """
         CREATE TABLE IF NOT EXISTS user_course_schedule (
-            id INT AUTO_INCREMENT PRIMARY KEY,
-            user_id INT NOT NULL,
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
             course_name VARCHAR(255) NOT NULL,
             start_time TIME NOT NULL,
             end_time TIME NOT NULL,
             days VARCHAR(255) NOT NULL,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-            INDEX idx_course_schedule_user (user_id)
+            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
         )
         """
         cursor.execute(create_course_schedule_table)
+        
+        # Create separate index for course schedule
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_course_sched_user ON user_course_schedule (user_id)")
         
         connection.commit()
         cursor.close()
@@ -204,20 +262,8 @@ def init_db():
         return False
 
 def create_database_if_not_exists():
-    """Create database if it doesn't exist"""
-    try:
-        connection = mysql.connector.connect(
-            host=DB_CONFIG['host'],
-            user=DB_CONFIG['user'],
-            password=DB_CONFIG['password']
-        )
-        cursor = connection.cursor()
-        cursor.execute(f"CREATE DATABASE IF NOT EXISTS {DB_CONFIG['database']}")
-        cursor.close()
-        connection.close()
-        print(f"Database '{DB_CONFIG['database']}' created or already exists")
-    except Error as e:
-        print(f"Error creating database: {e}")
+    """For SQLite, database file is created automatically on connect."""
+    pass
 
 # Create database on import
 create_database_if_not_exists()

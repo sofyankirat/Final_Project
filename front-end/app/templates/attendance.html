@@ -1160,13 +1160,24 @@
                     <div class="post-grid">
                         <!-- Left: Charts -->
                         <div class="post-panel">
-                            <div class="post-panel-title"><svg class="post-title-icon"
-                                    xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
-                                    fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
-                                    <line x1="18" y1="20" x2="18" y2="10"></line>
-                                    <line x1="12" y1="20" x2="12" y2="4"></line>
-                                    <line x1="6" y1="20" x2="6" y2="14"></line>
-                                </svg>Weekly Attendance</div>
+                            <div class="post-panel-title" style="display: flex; align-items: center; justify-content: space-between; gap: 6px; width: 100%;">
+                                <div style="display: flex; align-items: center; gap: 6px;">
+                                    <svg class="post-title-icon"
+                                        xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                                        fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                                        <line x1="18" y1="20" x2="18" y2="10"></line>
+                                        <line x1="12" y1="20" x2="12" y2="4"></line>
+                                        <line x1="6" y1="20" x2="6" y2="14"></line>
+                                    </svg>Weekly Attendance
+                                </div>
+                                <button class="weekly-expand-btn" type="button" aria-label="Expand" style="background: none; border: none; padding: 4px; cursor: pointer; color: var(--card-subtitle-color, #8a7a70); display: flex; align-items: center; justify-content: center; transition: color 0.2s, transform 0.2s;">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
+                                        fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+                                        stroke-linejoin="round">
+                                        <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" />
+                                    </svg>
+                                </button>
+                            </div>
                             <div class="chart-placeholder" id="chartWeekly">
                                 <canvas id="weeklyChart" style="width:100%;max-height:200px"></canvas>
                             </div>
@@ -1278,8 +1289,24 @@
         </div>
     </div>
 
+    <!-- Zoom Modal for Weekly Attendance -->
+    <div id="weeklyAttendanceModal" class="custom-modal">
+        <div class="custom-modal-overlay"></div>
+        <div class="custom-modal-container" style="max-width: 800px;">
+            <button class="custom-modal-close" aria-label="Close modal">&times;</button>
+            <div class="custom-modal-header">
+                <h2 class="custom-modal-title">Weekly Attendance</h2>
+                <p class="custom-modal-subtitle">Current week statistics</p>
+            </div>
+            <div class="custom-modal-content" style="padding: 20px 0;">
+                <canvas id="weeklyChartZoomed" style="width:100%;max-height:400px"></canvas>
+            </div>
+        </div>
+    </div>
+
     <script>
         let weeklyChartInst = null;
+        let weeklyChartZoomedInst = null;
         /* ── Sidebar / Dark-mode / Particles (unchanged logic) ── */
         const sidebar = document.getElementById('dashSidebar'), toggleBtn = document.getElementById('sidebarToggle'), darkModeBtn = document.getElementById('btnDarkMode'), darkModeText = darkModeBtn ? darkModeBtn.querySelector('.sidebar-text') : null;
         if (toggleBtn) toggleBtn.addEventListener('click', () => sidebar.classList.toggle('collapsed'));
@@ -1302,6 +1329,9 @@
                 if (typeof animateCourseBars === 'function') {
                     animateCourseBars();
                 }
+            }
+            if (weeklyChartZoomedInst && document.getElementById('weeklyAttendanceModal').classList.contains('open')) {
+                initZoomedWeeklyChart();
             }
         });
         function setupPopup(b, p) { const btn = document.getElementById(b), pop = document.getElementById(p); if (!btn || !pop) return; btn.addEventListener('click', e => { e.stopPropagation(); document.querySelectorAll('.header-popup.open').forEach(x => { if (x !== pop) x.classList.remove('open') }); pop.classList.toggle('open') }) }
@@ -1764,14 +1794,18 @@
         }
 
         function showPostEnroll() {
-            document.getElementById('enrollmentSection').style.display = 'none';
+            const section = document.getElementById('enrollmentSection');
+            section.classList.add('hide-enrolled');
+            section.style.display = 'none';
             document.getElementById('postEnrollView').classList.add('visible');
             initCharts();
             animateCourseBars();
         }
 
         function reEnrollFromPost() {
-            document.getElementById('enrollmentSection').style.display = '';
+            const section = document.getElementById('enrollmentSection');
+            section.classList.remove('hide-enrolled');
+            section.style.display = '';
             document.getElementById('postEnrollView').classList.remove('visible');
             resetEnroll();
         }
@@ -1946,6 +1980,50 @@
             }
         }
 
+        function initZoomedWeeklyChart() {
+            if (weeklyChartZoomedInst) weeklyChartZoomedInst.destroy();
+            const isDark = document.body.classList.contains('dark-mode');
+            const txtColor = isDark ? '#c0d0f0' : '#4a3a2a';
+            const gridColor = isDark ? 'rgba(255,255,255,.07)' : 'rgba(0,0,0,.06)';
+            const accent1 = isDark ? '#4fd4ff' : '#ff6b35';
+
+            const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+            weeklyChartZoomedInst = new Chart(document.getElementById('weeklyChartZoomed'), {
+                type: 'bar',
+                data: {
+                    labels: days,
+                    datasets: [{
+                        label: 'Attendance Rate (%)',
+                        data: [80, 75, 80, 60, 0, 80, 0],
+                        backgroundColor: accent1,
+                        borderRadius: 8,
+                        borderSkipped: false,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        title: { display: false }
+                    },
+                    scales: {
+                        x: { ticks: { color: txtColor, font: { size: 13 } }, grid: { display: false } },
+                        y: {
+                            ticks: {
+                                color: txtColor,
+                                font: { size: 13 },
+                                callback: function (value) { return value + '%' }
+                            },
+                            grid: { color: gridColor },
+                            beginAtZero: true,
+                            max: 100
+                        }
+                    }
+                }
+            });
+        }
+
         // Zoom Modal logic for Attendance by Course
         const expandBtn = document.querySelector('.card-expand-btn');
         if (expandBtn) {
@@ -1967,6 +2045,32 @@
             const closeBtn = modal.querySelector('.custom-modal-close');
             const overlay = modal.querySelector('.custom-modal-overlay');
             const closeFn = () => modal.classList.remove('open');
+            if (closeBtn) closeBtn.addEventListener('click', closeFn);
+            if (overlay) overlay.addEventListener('click', closeFn);
+        }
+
+        // Zoom Modal logic for Weekly Attendance
+        const weeklyExpandBtn = document.querySelector('.weekly-expand-btn');
+        if (weeklyExpandBtn) {
+            weeklyExpandBtn.addEventListener('click', () => {
+                const modal = document.getElementById('weeklyAttendanceModal');
+                modal.classList.add('open');
+                // Render zoomed weekly chart
+                initZoomedWeeklyChart();
+            });
+        }
+
+        const weeklyModal = document.getElementById('weeklyAttendanceModal');
+        if (weeklyModal) {
+            const closeBtn = weeklyModal.querySelector('.custom-modal-close');
+            const overlay = weeklyModal.querySelector('.custom-modal-overlay');
+            const closeFn = () => {
+                weeklyModal.classList.remove('open');
+                if (weeklyChartZoomedInst) {
+                    weeklyChartZoomedInst.destroy();
+                    weeklyChartZoomedInst = null;
+                }
+            };
             if (closeBtn) closeBtn.addEventListener('click', closeFn);
             if (overlay) overlay.addEventListener('click', closeFn);
         }

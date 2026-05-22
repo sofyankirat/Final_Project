@@ -470,7 +470,7 @@
                             <div class="course-bar-row">
                                 <span class="course-bar-label">{{ course.name }}</span>
                                 <div class="course-bar-track">
-                                    <div class="course-bar-fill" style="--pct:{{ course.pct }}%; --clr:{{ course.clr }};"></div>
+                                    <div class="course-bar-fill" data-pct="{{ course.pct }}" data-clr="{{ course.clr }}"></div>
                                 </div>
                                 <span class="course-bar-pct">{{ course.pct }}%</span>
                             </div>
@@ -498,6 +498,21 @@
         </div>
     </div>
 
+    <!-- Zoom Modal for Weekly Attendance -->
+    <div id="weeklyAttendanceModal" class="custom-modal">
+        <div class="custom-modal-overlay"></div>
+        <div class="custom-modal-container" style="max-width: 800px;">
+            <button class="custom-modal-close" aria-label="Close modal">&times;</button>
+            <div class="custom-modal-header">
+                <h2 class="custom-modal-title">Weekly Attendance</h2>
+                <p class="custom-modal-subtitle">Current week statistics</p>
+            </div>
+            <div class="custom-modal-content" style="padding: 20px 0;">
+                <canvas id="weeklyChartZoomed" style="width:100%;max-height:400px"></canvas>
+            </div>
+        </div>
+    </div>
+
     <script>
         const dashboardGpa = {{ gpa | tojson }};
         // Check local storage for initial state immediately to avoid chart FOUC
@@ -506,6 +521,7 @@
         }
 
         let weeklyChartInst = null;
+        let weeklyChartZoomedInst = null;
         function initCharts() {
             if (weeklyChartInst) weeklyChartInst.destroy();
             const isDark = document.body.classList.contains('dark-mode');
@@ -537,6 +553,50 @@
                         y: {
                             ticks: {
                                 color: txtColor,
+                                callback: function (value) { return value + '%' }
+                            },
+                            grid: { color: gridColor },
+                            beginAtZero: true,
+                            max: 100
+                        }
+                    }
+                }
+            });
+        }
+
+        function initZoomedWeeklyChart() {
+            if (weeklyChartZoomedInst) weeklyChartZoomedInst.destroy();
+            const isDark = document.body.classList.contains('dark-mode');
+            const txtColor = isDark ? '#c0d0f0' : '#4a3a2a';
+            const gridColor = isDark ? 'rgba(255,255,255,.07)' : 'rgba(0,0,0,.06)';
+            const accent1 = isDark ? '#4fd4ff' : '#ff6b35';
+
+            const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+            weeklyChartZoomedInst = new Chart(document.getElementById('weeklyChartZoomed'), {
+                type: 'bar',
+                data: {
+                    labels: days,
+                    datasets: [{
+                        label: 'Attendance Rate (%)',
+                        data: [80, 75, 80, 60, 0, 80, 0],
+                        backgroundColor: accent1,
+                        borderRadius: 8,
+                        borderSkipped: false,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        title: { display: false }
+                    },
+                    scales: {
+                        x: { ticks: { color: txtColor, font: { size: 13 } }, grid: { display: false } },
+                        y: {
+                            ticks: {
+                                color: txtColor,
+                                font: { size: 13 },
                                 callback: function (value) { return value + '%' }
                             },
                             grid: { color: gridColor },
@@ -630,8 +690,12 @@
         updateGpaWidgets(dashboardGpa, true);
 
         // Animate course attendance horizontal bars
-        function animateCourseBars() {
-            document.querySelectorAll('.course-bar-fill').forEach((fill, i) => {
+        function animateCourseBars(container = document) {
+            container.querySelectorAll('.course-bar-fill').forEach((fill, i) => {
+                const pct = fill.getAttribute('data-pct');
+                const clr = fill.getAttribute('data-clr');
+                if (pct) fill.style.setProperty('--pct', pct + '%');
+                if (clr) fill.style.setProperty('--clr', clr);
                 fill.style.width = '0';
                 requestAnimationFrame(() => {
                     setTimeout(() => { fill.style.width = 'var(--pct)'; }, 100 + i * 120);
@@ -712,6 +776,9 @@
                 }
             }
             initCharts();
+            if (weeklyChartZoomedInst && document.getElementById('weeklyAttendanceModal').classList.contains('open')) {
+                initZoomedWeeklyChart();
+            }
             updateGpaWidgets(dashboardGpa, true);
             animateCourseBars();
         });
@@ -752,12 +819,7 @@
                 }
                 modal.classList.add('open');
                 // Animate bars inside the modal container
-                modal.querySelectorAll('.course-bar-fill').forEach((fill, i) => {
-                    fill.style.width = '0';
-                    requestAnimationFrame(() => {
-                        setTimeout(() => { fill.style.width = 'var(--pct)'; }, 100 + i * 120);
-                    });
-                });
+                animateCourseBars(modal);
             });
         }
 
@@ -766,6 +828,32 @@
             const closeBtn = modal.querySelector('.custom-modal-close');
             const overlay = modal.querySelector('.custom-modal-overlay');
             const closeFn = () => modal.classList.remove('open');
+            if (closeBtn) closeBtn.addEventListener('click', closeFn);
+            if (overlay) overlay.addEventListener('click', closeFn);
+        }
+
+        // Zoom Modal logic for Weekly Attendance
+        const weeklyExpandBtn = document.querySelector('#card-attendance-chart .card-expand-btn');
+        if (weeklyExpandBtn) {
+            weeklyExpandBtn.addEventListener('click', () => {
+                const modal = document.getElementById('weeklyAttendanceModal');
+                modal.classList.add('open');
+                // Render zoomed weekly chart
+                initZoomedWeeklyChart();
+            });
+        }
+
+        const weeklyModal = document.getElementById('weeklyAttendanceModal');
+        if (weeklyModal) {
+            const closeBtn = weeklyModal.querySelector('.custom-modal-close');
+            const overlay = weeklyModal.querySelector('.custom-modal-overlay');
+            const closeFn = () => {
+                weeklyModal.classList.remove('open');
+                if (weeklyChartZoomedInst) {
+                    weeklyChartZoomedInst.destroy();
+                    weeklyChartZoomedInst = null;
+                }
+            };
             if (closeBtn) closeBtn.addEventListener('click', closeFn);
             if (overlay) overlay.addEventListener('click', closeFn);
         }
