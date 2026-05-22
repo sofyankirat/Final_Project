@@ -41,91 +41,83 @@ Follow these steps to download the project, open it in your code editor, and run
 
 ---
 
-### Step 1: Download the Project and Run the Web App (`front-end/`)
+### A. Download the Code to your Local Machine
 
-#### A. Download the Code to your Local Machine
-* **Option A (Via Git Clone)**: Open your computer's terminal, navigate to the folder where you want to store the project, and run:
-  ```bash
-  git clone https://github.com/sofyankirat/Final_Project.git
-  ```
-* **Option B (Direct ZIP Download)**:
-  1. Go to the GitHub repository: https://github.com/sofyankirat/Final_Project.
-  2. Click the green **Code** button at the top right, then select **Download ZIP**.
-  3. Locate the downloaded file on your computer and extract (unzip) it to a folder.
+**Option A (Via Git Clone):** Open your computer's terminal, navigate to the folder where you want to store the project, and run:
+```bash
+git clone https://github.com/sofyankirat/Final_Project.git
+```
 
-#### B. Open the Folder in Your Code Editor
+**Option B (Direct ZIP Download):**
+1. Go to the GitHub repository: https://github.com/sofyankirat/Final_Project.
+2. Click the green **Code** button at the top right, then select **Download ZIP**.
+3. Locate the downloaded file on your computer and extract (unzip) it to a folder.
+
+### B. Open the Folder in Your Code Editor
+
 1. Open your code editor (such as **Visual Studio Code**).
 2. Go to **File** > **Open Folder...** and select the main extracted/cloned project folder (`Final_Project`).
 3. Open a new terminal inside your editor (In VS Code, go to **Terminal** > **New Terminal** or press ``Ctrl + ` ``).
 
-#### C. Configure and Run the Web Server
-1. Navigate to the front-end folder:
-   ```bash
-   cd front-end
-   ```
-2. Create and activate a virtual environment:
-   ```bash
-   # Windows
-   python -m venv venv
-   venv\Scripts\activate
+### C. Configure and Run the Web Server
 
-   # macOS/Linux
-   python3 -m venv venv
-   source venv/bin/activate
-   ```
-3. Install the web dependencies:
-   ```bash
-   pip install -r requirements.txt
-   ```
-4. Launch the Flask web server:
-   ```bash
-   python app.py
-   ```
-   The SQLite database file `student_system.db` and required tables will be created on first run. Open your browser to `http://127.0.0.1:5000`.
+#### 1. In `final_project` folder
+Create and activate a virtual environment:
+
+**Windows**
+```bash
+python -m venv venv
+venv\Scripts\activate
+```
+
+**macOS/Linux**
+```bash
+python3 -m venv venv
+source venv/bin/activate
+```
+
+#### 2. Install all the requirements
+```bash
+pip install -r requirements.txt
+```
+
+#### 3. Navigate to the front-end folder:
+```bash
+cd front-end
+```
+
+#### 4. Launch the Flask web server:
+```bash
+python app.py
+```
 
 ---
 
-### Step 2: Configure and Run (Smart-Attendance-System/)
+### Step 2 Configure and Run (Smart-Attendance-System/)
 
 1. Open a new terminal window in your editor and navigate to the backend folder:
-   ```bash
-   cd Smart-Attendance-System
-   ```
-2. Create and activate a virtual environment:
-   ```bash
-   # Windows
-   python -m venv venv
-   venv\Scripts\activate
+```bash
+cd Smart-Attendance-System
+```
 
-   # macOS/Linux
-   python3 -m venv venv
-   source venv/bin/activate
-   ```
-3. Install the AI dependencies:
-   ```bash
-   pip install -r requirements.txt
-   ```
-   *Note: If `insightface` installation fails, run: `pip install insightface --only-binary=:all:`*
+**Run local scripts:**
 
-4. Download the Model Weights:
-   Download the following model files and place them inside the `Smart-Attendance-System/models/` folder:
-   - **YOLOv8s-Face**: Download `yolov8s-face-lindevs.pt` from the lindevs releases.
-   - **ArcFace**: Download `buffalo_sc.zip` from insightface releases, extract it, and place `w600k_mbf.onnx` inside the models folder.
+2. **Enroll Students:**
+```bash
+python enroll.py
+```
+Enter the student's name and capture multiple head angles (press **SPACE** for each capture).
 
-5. Run local scripts:
-   - **Enroll Students**:
-     ```bash
-     python enroll.py
-     ```
-     Enter the student's name and capture multiple head angles (press SPACE for each capture).
-   - **Start Attendance Monitoring**:
-     ```bash
-     python main.py
-     ```
-     Press `Q` to exit the camera screen and log attendance to `logs/attendance_log.csv`.
+**Start Attendance Monitoring:**
+```bash
+python main.py
+```
+Press **Q** to exit the camera screen and log attendance to `logs/attendance_log.csv`.
 
 ---
 
 ### Live Online Demo
+
 If you would like to try the AI system without running it locally, a live demonstration is hosted on Hugging Face:
-**Live Demo**: https://huggingface.co/spaces/Haneen13/smart-attendance-system
+
+**Live Demo:** https://huggingface.co/spaces/Haneen13/smart-attendance-system
