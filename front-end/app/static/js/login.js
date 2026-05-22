@@ -190,8 +190,8 @@ window.addEventListener('DOMContentLoaded', () => {
     // Auto-calling /resend-verification causes duplicate emails.
     const resendMessage = document.getElementById('resendMessage');
     if (resendMessage) {
-        resendMessage.textContent = 'We sent a verification email. If you do not see it, click “Resend verification email”.';
-        resendMessage.style.display = 'block';
+        // Automatic verification notice removed per UX request.
+        // Do not show the 'We sent a verification email...' message here.
     }
 });
 
