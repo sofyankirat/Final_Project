@@ -58,6 +58,7 @@ EMAIL_PASSWORD = os.getenv('EMAIL_PASSWORD', 'your-email-password')
 SMTP_SERVER = os.getenv('SMTP_SERVER', 'smtp.gmail.com')
 SMTP_PORT = int(os.getenv('SMTP_PORT', 587))
 HELP_RECEIVER_EMAIL = os.getenv('HELP_RECEIVER_EMAIL', 'www.sofyankirat123@gmail.com')
+SKIP_EMAIL_VERIFICATION = os.getenv('SKIP_EMAIL_VERIFICATION', 'False').lower() == 'true'
 
 # Initialize database
 init_db()
@@ -468,18 +469,37 @@ def register():
                 connection.close()
                 return jsonify({'success': False, 'message': 'Email already registered'}), 409
             
-            # Generate verification token
+            # Check if password already exists by comparing against all user passwords
+            cursor.execute("SELECT password FROM users")
+            existing_passwords = cursor.fetchall()
+            
+            for (existing_hash,) in existing_passwords:
+                if check_password_hash(existing_hash, password):
+                    cursor.close()
+                    connection.close()
+                    return jsonify({'success': False, 'message': 'Password already exists'}), 409
+            
+            # Generate verification token and hash password
             verification_token = secrets.token_urlsafe(32)
             hashed_password = generate_password_hash(password)
             
             # Insert new user
+            is_verified_value = 1 if SKIP_EMAIL_VERIFICATION else 0
             cursor.execute(
-                "INSERT INTO users (email, password, verification_token, token_expiry) VALUES (%s, %s, %s, %s)",
-                (email, hashed_password, verification_token, datetime.now() + timedelta(hours=24))
+                "INSERT INTO users (email, password, is_verified, verification_token, token_expiry) VALUES (%s, %s, %s, %s, %s)",
+                (email, hashed_password, is_verified_value, verification_token, datetime.now() + timedelta(hours=24))
             )
             connection.commit()
             cursor.close()
             connection.close()
+            
+            # If skipping verification, return success immediately
+            if SKIP_EMAIL_VERIFICATION:
+                return jsonify({
+                    'success': True,
+                    'message': 'Registration successful! Redirecting to login...',
+                    'email_verification_sent': False
+                })
             
             # Send verification email
             if send_verification_email(email, verification_token):
@@ -779,24 +799,11 @@ def profile_update():
         cursor2 = connection.cursor()
         cursor2.execute(
             """
-            INSERT INTO user_additional_info (
+            INSERT OR REPLACE INTO user_additional_info (
                 user_id, first_name, age, program, gender, level,
                 is_working, failed_subjects, discipline_score,
                 analytical_score, practical_score, gpa, screen_hours
             ) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
-            ON DUPLICATE KEY UPDATE
-                first_name = VALUES(first_name),
-                age = VALUES(age),
-                program = VALUES(program),
-                gender = VALUES(gender),
-                level = VALUES(level),
-                is_working = VALUES(is_working),
-                failed_subjects = VALUES(failed_subjects),
-                discipline_score = VALUES(discipline_score),
-                analytical_score = VALUES(analytical_score),
-                practical_score = VALUES(practical_score),
-                gpa = VALUES(gpa),
-                screen_hours = VALUES(screen_hours)
             """,
             (user_id, first_name, age, program, gender, level,
              is_working, failed_subjects, discipline_score,
@@ -855,43 +862,68 @@ def additional_info():
 
         try:
             cursor = connection.cursor()
-            cursor.execute(
-                """
-                INSERT INTO user_additional_info (
-                    user_id, first_name, age, program, gender, level,
-                    is_working, failed_subjects, discipline_score,
-                    analytical_score, practical_score, gpa, screen_hours
-                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-                ON DUPLICATE KEY UPDATE
-                    first_name = VALUES(first_name),
-                    age = VALUES(age),
-                    program = VALUES(program),
-                    gender = VALUES(gender),
-                    level = VALUES(level),
-                    is_working = VALUES(is_working),
-                    failed_subjects = VALUES(failed_subjects),
-                    discipline_score = VALUES(discipline_score),
-                    analytical_score = VALUES(analytical_score),
-                    practical_score = VALUES(practical_score),
-                    gpa = VALUES(gpa),
-                    screen_hours = VALUES(screen_hours)
-                """,
-                (
-                    user_id,
-                    first_name,
-                    age,
-                    program,
-                    gender,
-                    level,
-                    is_working,
-                    failed_subjects,
-                    discipline_score,
-                    analytical_score,
-                    practical_score,
-                    gpa,
-                    screen_hours,
+            cursor.execute("SELECT 1 FROM user_additional_info WHERE user_id = %s", (user_id,))
+            exists = cursor.fetchone()
+
+            if exists:
+                cursor.execute(
+                    """
+                    UPDATE user_additional_info SET
+                        first_name = %s,
+                        age = %s,
+                        program = %s,
+                        gender = %s,
+                        level = %s,
+                        is_working = %s,
+                        failed_subjects = %s,
+                        discipline_score = %s,
+                        analytical_score = %s,
+                        practical_score = %s,
+                        gpa = %s,
+                        screen_hours = %s
+                    WHERE user_id = %s
+                    """,
+                    (
+                        first_name,
+                        age,
+                        program,
+                        gender,
+                        level,
+                        is_working,
+                        failed_subjects,
+                        discipline_score,
+                        analytical_score,
+                        practical_score,
+                        gpa,
+                        screen_hours,
+                        user_id
+                    )
                 )
-            )
+            else:
+                cursor.execute(
+                    """
+                    INSERT INTO user_additional_info (
+                        user_id, first_name, age, program, gender, level,
+                        is_working, failed_subjects, discipline_score,
+                        analytical_score, practical_score, gpa, screen_hours
+                    ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                    """,
+                    (
+                        user_id,
+                        first_name,
+                        age,
+                        program,
+                        gender,
+                        level,
+                        is_working,
+                        failed_subjects,
+                        discipline_score,
+                        analytical_score,
+                        practical_score,
+                        gpa,
+                        screen_hours
+                    )
+                )
             connection.commit()
             cursor.close()
         except Exception as error:
@@ -1550,12 +1582,8 @@ def save_ai_chat_state():
         cursor = connection.cursor()
         cursor.execute(
             """
-            INSERT INTO user_ai_chat_state (user_id, chat_data, chat_counter, current_chat_id)
+            INSERT OR REPLACE INTO user_ai_chat_state (user_id, chat_data, chat_counter, current_chat_id)
             VALUES (%s, %s, %s, %s)
-            ON DUPLICATE KEY UPDATE
-                chat_data = VALUES(chat_data),
-                chat_counter = VALUES(chat_counter),
-                current_chat_id = VALUES(current_chat_id)
             """,
             (user_id, json.dumps(chats), chat_counter, current_chat_id)
         )

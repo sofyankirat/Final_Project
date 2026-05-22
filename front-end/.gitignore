@@ -36,3 +36,6 @@ Thumbs.db
 app/static/uploads/*
 !app/static/uploads/.gitkeep
 !app/static/uploads/**/.gitkeep
+
+# Local developer email log (do not commit)
+email_logs.txt

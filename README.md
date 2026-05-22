@@ -8,34 +8,34 @@
 
 ---
 
-## 🔍 Project Overview
+## Project Overview
 
 The project is structured into two core components:
-1. **🌐 Front-End Web Application (`front-end/`)**: A Flask-based web application providing a student dashboard, dark/light theme switching, interactive course schedules, recommendations, help pages, and the user interface for face enrollment and recognition logs.
-2. **🧠 Smart Attendance System (`Smart-Attendance-System/`)**: An offline/online AI pipeline leveraging **YOLOv8s-Face** and **ArcFace** models to detect and align classroom faces, compute embedding similarity, and log student presence.
+1. **Front-End Web Application (`front-end/`)**: A Flask-based web application providing a student dashboard, theme switching, interactive course schedules, recommendations, help pages, and the user interface for face enrollment and recognition logs.
+2. **Smart Attendance System (`Smart-Attendance-System/`)**: An offline/online AI pipeline leveraging **YOLOv8s-Face** and **ArcFace** models to detect and align classroom faces, compute embedding similarity, and log student presence.
 
 ---
 
-## ✨ Main Features
+## Main Features
 
 The Student Attendance and Recommendation System offers the following features:
 
-* **🔒 Secure Authentication & Onboarding**: Fully integrated user signup, email verification via token, and secure login, followed by a personalized profile setup collection (First name, program, level, GPA, etc.).
-* **📊 Interactive Analytics Dashboard**: Deep visual metrics representing weekly attendance, course-wise presence, performance analytics, and dynamic theme switching with dark mode optimization.
-* **📷 Smart Face Capture Studio**: Real-time BlazeFace-assisted camera client checking head orientation to capture 5 training positions.
-* **📈 Intelligent Course Advisor & Recommendations**: Customized machine learning-based course suggestions utilizing personal performance, GPA, program, failed subjects, and interest parameters.
-* **💬 Personalized AI Advisor Chat**: Seamless, conversational AI agent with persisted conversation histories, multi-chat controls, and image attachments.
-* **🗓️ Dynamic Course Scheduler**: Time conflict checking scheduler to register and manage weekly class slots.
-* **✉️ Direct Support Contact System**: Standardized messaging contact form directly linked to administrators.
+- **Secure Authentication & Onboarding**: Fully integrated user signup, email verification via token, and secure login, followed by a personalized profile setup collection (first name, program, level, GPA, etc.).
+- **Interactive Analytics Dashboard**: Visual metrics representing weekly attendance, course-wise presence, performance analytics, and theme switching with dark mode optimization.
+- **Smart Face Capture Studio**: Real-time BlazeFace-assisted camera client checking head orientation to capture multiple training positions.
+- **Intelligent Course Advisor & Recommendations**: Customized course suggestions utilizing personal performance, GPA, program, failed subjects, and interest parameters.
+- **Personalized AI Advisor Chat**: Conversational AI agent with persisted conversation histories, multi-chat controls, and image attachments.
+- **Dynamic Course Scheduler**: Time conflict checking scheduler to register and manage weekly class slots.
+- **Direct Support Contact System**: Standardized messaging contact form directly linked to administrators.
 
 ---
 
-## 🚀 Step-by-Step Local Setup Guide
+## Step-by-Step Local Setup Guide
 
-Follow these steps to download the project, open it in your code editor, and run both the web dashboard and the AI backend on your local machine. *Thanks to the integrated SQLite database layer, no complex MySQL or XAMPP setup is required!*
+Follow these steps to download the project, open it in your code editor, and run both the web dashboard and the AI backend on your local machine. The integrated SQLite database layer removes the need for external DB servers.
 
-### 📋 Prerequisites
-- **Python 3.11** (recommended version for machine learning compatibility)
+### Prerequisites
+- **Python 3.11** (recommended for ML compatibility)
 - **Webcam** or WiFi-connected IoT camera
 - **Git** (optional, for cloning)
 
@@ -44,12 +44,12 @@ Follow these steps to download the project, open it in your code editor, and run
 ### Step 1: Download the Project and Run the Web App (`front-end/`)
 
 #### A. Download the Code to your Local Machine
-* **Option A (Via Git Git Clone)**: Open your computer's terminal, navigate to the folder where you want to store the project, and run:
+* **Option A (Via Git Clone)**: Open your computer's terminal, navigate to the folder where you want to store the project, and run:
   ```bash
   git clone https://github.com/sofyankirat/Final_Project.git
   ```
 * **Option B (Direct ZIP Download)**:
-  1. Go to the GitHub repository: [https://github.com/sofyankirat/Final_Project](https://github.com/sofyankirat/Final_Project).
+  1. Go to the GitHub repository: https://github.com/sofyankirat/Final_Project.
   2. Click the green **Code** button at the top right, then select **Download ZIP**.
   3. Locate the downloaded file on your computer and extract (unzip) it to a folder.
 
@@ -79,40 +79,17 @@ Follow these steps to download the project, open it in your code editor, and run
    ```
 4. Create your configuration `.env` file:
    - Copy `.env.example` to `.env`
-   - Open `.env` and fill in the configuration variables. Here is exactly what each variable means and how you should fill it:
-     ```env
-     SECRET_KEY=your_super_secret_key
-     DB_NAME=student_system
-     SMTP_SERVER=smtp.gmail.com
-     SMTP_PORT=587
-     EMAIL_ADDRESS=your_email@gmail.com
-     EMAIL_PASSWORD=your_app_password
-     HELP_RECEIVER_EMAIL=your_email@gmail.com
-     ```
-     * **`SECRET_KEY`**: A long, random cryptographic string used to secure user sessions. You can generate a random string or type any unique password (e.g. `my_super_secret_session_key_123`).
-     * **`DB_NAME`**: The name of the SQLite database. Keep it as `student_system` (the application automatically creates a database file named `student_system.db` inside your workspace folder).
-     * **`SMTP_SERVER`**: The SMTP server host for sending emails. For Google/Gmail accounts, keep this as `smtp.gmail.com`.
-     * **`SMTP_PORT`**: The SMTP server port. For Gmail TLS connection, keep this as `587`.
-     * **`EMAIL_ADDRESS`**: The Gmail address that will send out the activation/verification links to newly registered users (e.g. `mycollegeapp@gmail.com`).
-     * **`EMAIL_PASSWORD`**: A secure **16-character App Password** generated by Google. 
-       > [!IMPORTANT]
-       > **Do NOT use your regular Gmail password here!** Google blocks standard passwords for SMTP security.
-       > To generate a secure App Password:
-       > 1. Go to your [Google Account Console](https://myaccount.google.com/).
-       > 2. Select **Security** from the left-hand menu.
-       > 3. Under *"How you sign in to Google"*, ensure **2-Step Verification** is turned ON.
-       > 4. Go to **2-Step Verification** > scroll down to the bottom to find **App passwords**.
-       > 5. Enter a name for the application (e.g. `HAMAS System`) and click **Create**.
-       > 6. Copy the yellow **16-character code** that appears on your screen and paste it into the `EMAIL_PASSWORD=` field in your `.env` file (without any spaces).
-     * **`HELP_RECEIVER_EMAIL`**: The email address where you want to receive inquiries submitted by students through the Contact Support/Help page.
-   - **💡 Easy Verification Shortcuts (No Inbox Needed)**:
-     * **Auto-Verification Mode**: If you do not configure SMTP settings (or if email sending fails), the system will automatically verify newly registered users in the database so you can log in immediately.
-     * **Developer Email Log**: When you register a user locally, the system writes the verification link directly to the local file `front-end/email_logs.txt`. You can just open this file, copy the verification link, and paste it into your browser to verify manually.
+   - Open `.env` and fill in the configuration variables with values appropriate for your environment. The application runs without SMTP configured; see the note below for local verification options.
+
+**Local verification note:**
+- If you do not configure SMTP settings (or if email sending fails), the system will automatically verify newly registered users in the database so you can log in immediately.
+- When running locally, verification links are also written to `front-end/email_logs.txt` for convenience.
+
 5. Launch the Flask web server:
    ```bash
    python app.py
    ```
-   *The SQLite database file `student_system.db` and all required tables will be automatically created on its first run.* Open your browser to `http://127.0.0.1:5000`.
+   The SQLite database file `student_system.db` and required tables will be created on first run. Open your browser to `http://127.0.0.1:5000`.
 
 ---
 
@@ -140,15 +117,15 @@ Follow these steps to download the project, open it in your code editor, and run
 
 4. Download the Model Weights:
    Download the following model files and place them inside the `Smart-Attendance-System/models/` folder:
-   - **YOLOv8s-Face**: Download `yolov8s-face-lindevs.pt` from [lindevs releases](https://github.com/lindevs/yolov8-face/releases).
-   - **ArcFace**: Download `buffalo_sc.zip` from [insightface releases](https://github.com/deepinsight/insightface/releases/download/v0.7/buffalo_sc.zip), extract it, and place `w600k_mbf.onnx` inside the models folder.
+   - **YOLOv8s-Face**: Download `yolov8s-face-lindevs.pt` from the lindevs releases.
+   - **ArcFace**: Download `buffalo_sc.zip` from insightface releases, extract it, and place `w600k_mbf.onnx` inside the models folder.
 
 5. Run local scripts:
    - **Enroll Students**:
      ```bash
      python enroll.py
      ```
-     Enter the student's name and capture 5 different head angles (press SPACE for each capture).
+     Enter the student's name and capture multiple head angles (press SPACE for each capture).
    - **Start Attendance Monitoring**:
      ```bash
      python main.py
@@ -157,7 +134,6 @@ Follow these steps to download the project, open it in your code editor, and run
 
 ---
 
-### 🌐 Live Online Demo
+### Live Online Demo
 If you would like to try the AI system without running it locally, a live demonstration is hosted on Hugging Face:
-🔗 **Live Demo**: [huggingface.co/spaces/Haneen13/smart-attendance-system](https://huggingface.co/spaces/Haneen13/smart-attendance-system)
-
+**Live Demo**: https://huggingface.co/spaces/Haneen13/smart-attendance-system
