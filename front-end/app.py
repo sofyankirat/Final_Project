@@ -1763,33 +1763,14 @@ def attendance_enroll():
             fh.write(img_bytes)
         saved_paths.append(fpath)
 
-    # Run face pipeline in ONE subprocess (models load once)
-    script_path = os.path.join(_ATTENDANCE_ROOT, 'web_enroll.py')
-    venv_python = os.path.join(_ATTENDANCE_ROOT, 'venv', 'Scripts', 'python.exe')
-    if not os.path.exists(venv_python):
-        venv_python = sys.executable
-
     try:
-        env = os.environ.copy()
-        env['PYTHONIOENCODING'] = 'utf-8'
-        proc = subprocess.run(
-            [venv_python, script_path, student_name] + saved_paths,
-            cwd=_ATTENDANCE_ROOT,
-            capture_output=True, text=True, encoding='utf-8', errors='replace',
-            env=env, timeout=120,
-        )
-        for line in (proc.stdout or '').splitlines():
-            if line.startswith('__RESULT_JSON__'):
-                try:
-                    return jsonify(json.loads(line[len('__RESULT_JSON__'):]))
-                except json.JSONDecodeError:
-                    pass
-        error_detail = (proc.stderr or proc.stdout or 'Unknown error').strip()[-500:]
-        return jsonify({'success': False, 'message': f'Processing error: {error_detail}'}), 500
-    except subprocess.TimeoutExpired:
-        return jsonify({'success': False, 'message': 'Processing timed out.'}), 504
+        import importlib
+        web_enroll = importlib.import_module('web_enroll')
+        result = web_enroll.process_images(student_name, saved_paths)
+        return jsonify(result), 200
     except Exception as err:
-        return jsonify({'success': False, 'message': f'Error: {err}'}), 500
+        print(f"Attendance enrollment error: {err}")
+        return jsonify({'success': False, 'message': f'Enrollment failed: {err}'}), 200
 
 
 @app.route('/api/attendance/test-recognize', methods=['POST'])

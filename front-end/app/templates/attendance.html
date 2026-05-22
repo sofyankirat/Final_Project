@@ -1765,7 +1765,7 @@
                 console.error("Enrollment submission failed:", e);
                 statusEl.style.color = '#e74c3c';
                 statusEl.innerHTML = `<div style="display:flex;flex-direction:column;gap:4px;">
-                <div><strong>Enrollment Error</strong></div>
+                <div><strong>Enrollment issue</strong></div>
                 <div style="font-size:12.5px;">${e.message || 'Could not reach the server. Please check your connection and try again.'}</div>
             </div>`;
                 btnSubmit.textContent = 'Retry'; btnSubmit.disabled = false;
