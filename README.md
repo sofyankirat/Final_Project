@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="front-end/app/static/images/Logo.jpg" alt="HAMAS Logo" width="420px" style="border-radius: 12px; margin-bottom: 20px; box-shadow: 0 8px 24px rgba(0,0,0,0.15);">
+  <img src="front-end/app/static/images/banar.webp" alt="HAMAS Banner" width="100%" style="border-radius: 12px; margin-bottom: 20px; box-shadow: 0 8px 24px rgba(0,0,0,0.15);">
   
   # HAMAS: Student Recommendation & Smart Attendance System
   
@@ -32,17 +32,34 @@ The Student Attendance and Recommendation System offers the following features:
 
 ## Step-by-Step Local Setup Guide
 
-Follow these steps to run both the web dashboard and the AI backend on your local machine. The integrated SQLite database layer removes the need for external DB servers.
+Follow these steps to download the project, open it in your code editor, and run both the web dashboard and the AI backend on your local machine. The integrated SQLite database layer removes the need for external DB servers.
 
 ### Prerequisites
 - **Python 3.11** (recommended for ML compatibility)
 - **Webcam** or WiFi-connected IoT camera
+- **Git** (optional, for cloning)
 
 ---
 
-### Step 1: Configure and Run the Web App (`front-end/`)
+### Step 1: Download the Project and Run the Web App (`front-end/`)
 
-1. Open your terminal and navigate to the front-end folder:
+#### A. Download the Code to your Local Machine
+* **Option A (Via Git Clone)**: Open your computer's terminal, navigate to the folder where you want to store the project, and run:
+  ```bash
+  git clone https://github.com/sofyankirat/Final_Project.git
+  ```
+* **Option B (Direct ZIP Download)**:
+  1. Go to the GitHub repository: https://github.com/sofyankirat/Final_Project.
+  2. Click the green **Code** button at the top right, then select **Download ZIP**.
+  3. Locate the downloaded file on your computer and extract (unzip) it to a folder.
+
+#### B. Open the Folder in Your Code Editor
+1. Open your code editor (such as **Visual Studio Code**).
+2. Go to **File** > **Open Folder...** and select the main extracted/cloned project folder (`Final_Project`).
+3. Open a new terminal inside your editor (In VS Code, go to **Terminal** > **New Terminal** or press ``Ctrl + ` ``).
+
+#### C. Configure and Run the Web Server
+1. Navigate to the front-end folder:
    ```bash
    cd front-end
    ```
@@ -61,8 +78,13 @@ Follow these steps to run both the web dashboard and the AI backend on your loca
    pip install -r requirements.txt
    ```
 4. Create your configuration `.env` file:
-    - Copy `.env.example` to `.env`
-    - Open `.env` and fill in the configuration variables with appropriate values for your environment.
+   - Copy `.env.example` to `.env`
+   - Open `.env` and fill in the configuration variables with values appropriate for your environment. The application runs without SMTP configured; see the note below for local verification options.
+
+**Local verification note:**
+- If you do not configure SMTP settings (or if email sending fails), the system will automatically verify newly registered users in the database so you can log in immediately.
+- When running locally, verification links are also written to `front-end/email_logs.txt` for convenience.
+
 5. Launch the Flask web server:
    ```bash
    python app.py
@@ -71,9 +93,9 @@ Follow these steps to run both the web dashboard and the AI backend on your loca
 
 ---
 
-### Step 2: Configure and Run the AI Backend (`Smart-Attendance-System/`)
+### Step 2: Configure and Run (Smart-Attendance-System/)
 
-1. Open a new terminal and navigate to the backend folder:
+1. Open a new terminal window in your editor and navigate to the backend folder:
    ```bash
    cd Smart-Attendance-System
    ```
@@ -95,17 +117,23 @@ Follow these steps to run both the web dashboard and the AI backend on your loca
 
 4. Download the Model Weights:
    Download the following model files and place them inside the `Smart-Attendance-System/models/` folder:
-   - **YOLOv8s-Face**: Download `yolov8s-face-lindevs.pt` from [lindevs releases](https://github.com/lindevs/yolov8-face/releases).
-   - **ArcFace**: Download `buffalo_sc.zip` from [insightface releases](https://github.com/deepinsight/insightface/releases/download/v0.7/buffalo_sc.zip), extract it, and place `w600k_mbf.onnx` inside the models folder.
+   - **YOLOv8s-Face**: Download `yolov8s-face-lindevs.pt` from the lindevs releases.
+   - **ArcFace**: Download `buffalo_sc.zip` from insightface releases, extract it, and place `w600k_mbf.onnx` inside the models folder.
 
 5. Run local scripts:
    - **Enroll Students**:
      ```bash
      python enroll.py
      ```
-     Enter the student's name and capture 5 different head angles (press SPACE for each capture).
+     Enter the student's name and capture multiple head angles (press SPACE for each capture).
    - **Start Attendance Monitoring**:
      ```bash
      python main.py
      ```
      Press `Q` to exit the camera screen and log attendance to `logs/attendance_log.csv`.
+
+---
+
+### Live Online Demo
+If you would like to try the AI system without running it locally, a live demonstration is hosted on Hugging Face:
+**Live Demo**: https://huggingface.co/spaces/Haneen13/smart-attendance-system
