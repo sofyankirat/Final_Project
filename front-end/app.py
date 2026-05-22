@@ -423,7 +423,7 @@ def resend_verification():
             conn.close()
             return jsonify({
                 'success': True,
-                'message': 'Account auto-verified! (SMTP email could not be sent). You can log in now.'
+                'message': 'Account verified successfully. You can log in now.'
             })
         except Exception as db_err:
             print(f"Auto-verification DB error during resend: {str(db_err)}")
@@ -518,7 +518,7 @@ def register():
                     conn.close()
                     return jsonify({
                         'success': True, 
-                        'message': 'Registration successful! (Auto-verified: email could not be sent). You can log in now.'
+                        'message': 'Registration successful! You can log in now.'
                     })
                 except Exception as db_err:
                     print(f"Auto-verification DB error: {str(db_err)}")
