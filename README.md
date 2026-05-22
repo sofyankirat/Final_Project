@@ -72,6 +72,9 @@ Follow these steps to run both the web dashboard and the AI backend on your loca
      EMAIL_PASSWORD=your_app_password
      HELP_RECEIVER_EMAIL=your_email@gmail.com
      ```
+   - **💡 Easy Verification Shortcuts (No Inbox Needed)**:
+     * **Auto-Verification Mode**: If you do not configure SMTP settings (or if email sending fails), the system will automatically verify newly registered users in the database so you can log in immediately.
+     * **Developer Email Log**: When you register a user locally, the system writes the verification link directly to the local file `front-end/email_logs.txt`. You can just open this file, copy the verification link, and paste it into your browser to verify manually.
 5. Launch the Flask web server:
    ```bash
    python app.py

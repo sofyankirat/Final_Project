@@ -412,10 +412,24 @@ def resend_verification():
         if send_verification_email(email, verification_token):
             return jsonify({'success': True, 'message': 'Verification email sent. Please check your inbox.'})
 
-        return jsonify({
-            'success': False,
-            'message': 'Email could not be sent. Check SMTP settings or email_logs.txt.'
-        }), 500
+        # If email failed to send (e.g. no SMTP config), auto-verify the user immediately!
+        try:
+            conn = get_db_connection()
+            cur = conn.cursor()
+            cur.execute("UPDATE users SET is_verified = 1 WHERE email = %s", (email,))
+            conn.commit()
+            cur.close()
+            conn.close()
+            return jsonify({
+                'success': True,
+                'message': 'Account auto-verified! (SMTP email could not be sent). You can log in now.'
+            })
+        except Exception as db_err:
+            print(f"Auto-verification DB error during resend: {str(db_err)}")
+            return jsonify({
+                'success': False,
+                'message': 'Verification email failed and auto-verification encountered a DB error.'
+            }), 500
     except Exception as error:
         print(f"Resend verification error: {str(error)}")
         return jsonify({'success': False, 'message': 'An error occurred. Please try again.'}), 500
@@ -474,10 +488,24 @@ def register():
                     'message': 'Registration successful! Please check your email to verify your account.'
                 })
             else:
-                return jsonify({
-                    'success': False, 
-                    'message': 'Registration successful but email could not be sent. Please try again later.'
-                }), 500
+                # If email failed to send (e.g. no SMTP config), auto-verify the user immediately!
+                try:
+                    conn = get_db_connection()
+                    cur = conn.cursor()
+                    cur.execute("UPDATE users SET is_verified = 1 WHERE email = %s", (email,))
+                    conn.commit()
+                    cur.close()
+                    conn.close()
+                    return jsonify({
+                        'success': True, 
+                        'message': 'Registration successful! (Auto-verified: email could not be sent). You can log in now.'
+                    })
+                except Exception as db_err:
+                    print(f"Auto-verification DB error: {str(db_err)}")
+                    return jsonify({
+                        'success': False, 
+                        'message': 'Registration succeeded but auto-verification failed.'
+                    }), 500
         
         except Exception as e:
             print(f"Registration error: {str(e)}")
