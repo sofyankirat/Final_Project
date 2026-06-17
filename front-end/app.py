@@ -217,8 +217,8 @@ def send_verification_email(email, verification_token):
         part = MIMEText(body, "html")
         message.attach(part)
         
-        # Send email
-        with smtplib.SMTP(SMTP_SERVER, SMTP_PORT) as server:
+        # Send email with a 5-second timeout to prevent hanging when SMTP is blocked/unreachable
+        with smtplib.SMTP(SMTP_SERVER, SMTP_PORT, timeout=5.0) as server:
             server.set_debuglevel(1)
             server.starttls()
             server.login(EMAIL_ADDRESS, EMAIL_PASSWORD)
