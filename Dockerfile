@@ -28,4 +28,4 @@ ENV FLASK_APP=app.py
 WORKDIR /app/front-end
 
 # Run the Flask application using Gunicorn, binding to the port assigned by Railway
-CMD gunicorn --bind 0.0.0.0:$PORT app:app
+CMD gunicorn --bind 0.0.0.0:$PORT --timeout 120 app:app

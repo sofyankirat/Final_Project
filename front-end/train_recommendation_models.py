@@ -20,6 +20,10 @@ def train_and_save_models():
     # Load data
     df = pd.read_csv(data_path)
     
+    # Subsample data to prevent CPU starvation and timeouts on shared cloud resources
+    if len(df) > 10000:
+        df = df.sample(n=10000, random_state=42)
+    
     # Create classification target (Recommended = 1 if subject_score >= 75 else 0)
     df['recommended'] = (df['subject_score'] >= 75).astype(int)
     
