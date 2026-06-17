@@ -3,9 +3,11 @@ FROM python:3.10-slim
 # Set working directory in container
 WORKDIR /app
 
-# Install system dependencies
+# Install system dependencies (including OpenGL and GLib needed by OpenCV/Ultralytics)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
+    libgl1-mesa-glx \
+    libglib2.0-0 \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy front-end requirements first to leverage Docker cache
