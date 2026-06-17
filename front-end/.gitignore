@@ -39,5 +39,3 @@ app/static/uploads/*
 
 # Local developer email log (do not commit)
 email_logs.txt
-*.joblib
-models/

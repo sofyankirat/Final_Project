@@ -32,21 +32,6 @@ if _ATTENDANCE_ROOT not in sys.path:
 load_dotenv()
 
 import recommendation_model
-import threading
-
-# Ensure ML models are trained and saved in a background thread so the server starts instantly
-def run_background_training():
-    try:
-        _reg_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "models", "recommendation_regressor.joblib")
-        _clf_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "models", "recommendation_classifier.joblib")
-        if not os.path.exists(_reg_path) or not os.path.exists(_clf_path):
-            print("ML models missing. Starting training in the background...")
-            from train_recommendation_models import train_and_save_models
-            train_and_save_models()
-    except Exception as startup_err:
-        print(f"Background recommendation model training failed: {startup_err}")
-
-threading.Thread(target=run_background_training, daemon=True).start()
 
 # Get base directory
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))

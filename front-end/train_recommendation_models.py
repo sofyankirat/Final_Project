@@ -60,13 +60,13 @@ def train_and_save_models():
     # Regressor Pipeline
     reg_pipeline = Pipeline(steps=[
         ('preprocessor', preprocessor),
-        ('regressor', RandomForestRegressor(n_estimators=50, random_state=42, n_jobs=-1))
+        ('regressor', RandomForestRegressor(n_estimators=15, max_depth=8, random_state=42, n_jobs=-1))
     ])
 
     # Classifier Pipeline
     clf_pipeline = Pipeline(steps=[
         ('preprocessor', preprocessor),
-        ('classifier', RandomForestClassifier(n_estimators=50, random_state=42, n_jobs=-1))
+        ('classifier', RandomForestClassifier(n_estimators=15, max_depth=8, random_state=42, n_jobs=-1))
     ])
     
     print("Fitting Regressor model...")
