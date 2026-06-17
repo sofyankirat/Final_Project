@@ -1,0 +1,9 @@
+**/venv
+**/.venv
+**/.git
+**/*.db
+**/*.pyc
+**/__pycache__
+.vscode
+front-end/student_system.db
+front-end/email_logs.txt

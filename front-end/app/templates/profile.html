@@ -286,6 +286,29 @@
                                 </button>
                             </div>
 
+                            <div class="profile-info-card" data-field="student_id" data-type="text">
+                                <div class="info-card-label">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24"
+                                        fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+                                        stroke-linejoin="round">
+                                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                                        <circle cx="9" cy="10" r="2" />
+                                        <path d="M15 13a3 3 0 0 0-6 0" />
+                                    </svg>
+                                    Student ID
+                                </div>
+                                <div class="info-card-value" id="display-student_id">{{ info.student_id if info and info.student_id else '—' }}</div>
+                                <button type="button" class="info-card-edit-btn" onclick="editCard(this)"
+                                    aria-label="Edit">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24"
+                                        fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+                                        stroke-linejoin="round">
+                                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                                    </svg>
+                                </button>
+                            </div>
+
                             <div class="profile-info-card" data-field="age" data-type="number">
                                 <div class="info-card-label">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24"
@@ -320,7 +343,7 @@
                                     </svg>
                                     Gender
                                 </div>
-                                <div class="info-card-value secondary" id="display-gender">{{ info.gender if info else
+                                <div class="info-card-value" id="display-gender">{{ info.gender if info else
                                     '—' }}</div>
                                 <button type="button" class="info-card-edit-btn" onclick="editCard(this)"
                                     aria-label="Edit">
@@ -542,7 +565,7 @@
                                     </svg>
                                     Currently Working
                                 </div>
-                                <div class="info-card-value secondary" id="display-is_working">
+                                <div class="info-card-value" id="display-is_working">
                                     {% if info %}{{ 'Yes' if info.is_working else 'No' }}{% else %}—{% endif %}
                                 </div>
                                 <button type="button" class="info-card-edit-btn" onclick="editCard(this)"
@@ -713,6 +736,7 @@
         //  Field constraints (mirrors additional_info page)
         // ======================================================
         const FIELD_RULES = {
+            student_id: { required: true },
             first_name: { required: true },
             age: { required: true, min: 0 },
             gender: { required: true },
@@ -757,6 +781,9 @@
             const v = String(value).trim();
 
             if (rules.required && (!v || v === '—')) return 'This field is required.';
+            if (field === 'student_id' && v && v !== '—') {
+                if (!/^\d{9}$/.test(v)) return 'Student ID must be exactly 9 digits.';
+            }
             if (v && v !== '—') {
                 const num = Number(v);
                 if (rules.min !== undefined && num < rules.min) return `Minimum value is ${rules.min}.`;
@@ -799,10 +826,11 @@
                     blank.value = ''; blank.textContent = '— Select —';
                     input.appendChild(blank);
                 }
+                const rawCurrentText = currentText.replace(/^Level\s*/i, '').trim();
                 options.forEach(opt => {
                     const o = document.createElement('option');
                     o.value = opt; o.textContent = opt;
-                    if (opt.toLowerCase() === currentText.toLowerCase()) o.selected = true;
+                    if (opt.toLowerCase() === rawCurrentText.toLowerCase()) o.selected = true;
                     input.appendChild(o);
                 });
             } else {
@@ -833,41 +861,57 @@
             });
 
             input.addEventListener('blur', () => {
-                const chosen = input.value;
-                const orig = originalValues[field] || '—';
+                // Delay replacement slightly so that if the save button is clicked,
+                // the form's submit listener fires first.
+                setTimeout(() => {
+                    if (!document.body.contains(input)) return;
 
-                // If nothing was chosen (blank placeholder) or value is same as DB value,
-                // silently revert — no error, no pending change
-                const isCancelled = !chosen || chosen === orig ||
-                    chosen.toLowerCase() === orig.toLowerCase();
+                    const chosen = input.value;
+                    const orig = originalValues[field] || '—';
 
-                if (isCancelled) {
-                    // Restore original display and clear any lingering error
+                    // If nothing was chosen (blank placeholder) or value is same as DB value,
+                    // silently revert
+                    const isCancelled = !chosen || chosen === orig ||
+                        chosen.toLowerCase() === orig.toLowerCase();
+
+                    if (isCancelled) {
+                        const span = document.createElement('div');
+                        span.className = displayEl.className;
+                        span.id = displayEl.id;
+                        span.textContent = orig;
+                        input.replaceWith(span);
+                        btn.style.display = '';
+                        const errEl2 = document.getElementById('err-' + field);
+                        if (errEl2) errEl2.textContent = '';
+                        
+                        delete pendingInputs[field];
+                        delete originalValues[field];
+                        if (Object.keys(pendingInputs).length === 0) {
+                            document.getElementById('saveBar').classList.remove('visible');
+                        }
+                        return;
+                    }
+
+                    const err = validateField(field, chosen);
+                    errEl.textContent = err;
                     const span = document.createElement('div');
                     span.className = displayEl.className;
                     span.id = displayEl.id;
-                    span.textContent = orig;
+
+                    let displayText = chosen || orig;
+                    if (field === 'level' && displayText && !displayText.startsWith('Level')) {
+                        displayText = 'Level ' + displayText;
+                    }
+                    span.textContent = displayText;
+
+                    // Store for submit only if valid
+                    if (!err) {
+                        pendingInputs[field] = chosen;
+                        showSaveBar();
+                    }
                     input.replaceWith(span);
                     btn.style.display = '';
-                    const errEl2 = document.getElementById('err-' + field);
-                    if (errEl2) errEl2.textContent = '';
-                    // Remove from originalValues if it was just added with no real change
-                    return;
-                }
-
-                const err = validateField(field, chosen);
-                errEl.textContent = err;
-                const span = document.createElement('div');
-                span.className = displayEl.className;
-                span.id = displayEl.id;
-                span.textContent = chosen || orig;
-                // Store for submit only if valid
-                if (!err) {
-                    pendingInputs[field] = chosen;
-                    showSaveBar();
-                }
-                input.replaceWith(span);
-                btn.style.display = '';
+                }, 100);
             });
 
             input.addEventListener('keydown', (e) => {
@@ -890,8 +934,23 @@
             document.getElementById('saveBar').classList.remove('visible');
         }
 
-        // ---- Form submit: inject hidden inputs + validate ----
+        // ---- Form submit: use fetch to ensure all pending values are sent ----
         document.getElementById('profileForm').addEventListener('submit', function (e) {
+            e.preventDefault();  // Always prevent native submit
+
+            // If there's an active input being edited, make sure its value is captured
+            const activeInput = document.querySelector('.info-card-input, .info-card-select');
+            if (activeInput) {
+                const field = activeInput.name;
+                const val = activeInput.value;
+                const err = validateField(field, val);
+                const errEl = document.getElementById('err-' + field);
+                if (errEl) errEl.textContent = err;
+                if (!err) {
+                    pendingInputs[field] = val;
+                }
+            }
+
             let valid = true;
 
             // Validate all currently pending fields
@@ -902,18 +961,34 @@
                 if (err) valid = false;
             });
 
-            if (!valid) { e.preventDefault(); return; }
+            if (!valid) return;
 
-            // Inject hidden inputs for pending values into the form
+            // Build FormData with pending values + photo
+            const fd = new FormData();
+            const photoData = document.getElementById('profilePhotoData').value || '';
+            fd.append('profile_photo_data', photoData);
+
             Object.keys(pendingInputs).forEach(field => {
-                let existing = this.querySelector(`input[name="${field}"]`);
-                if (!existing) {
-                    existing = document.createElement('input');
-                    existing.type = 'hidden';
-                    existing.name = field;
-                    this.appendChild(existing);
+                fd.append(field, pendingInputs[field]);
+            });
+
+            // Submit via fetch
+            fetch(this.action, {
+                method: 'POST',
+                body: fd,
+                redirect: 'follow'
+            }).then(resp => {
+                // Check if the server indicated failure via the redirect URL
+                const url = new URL(resp.url);
+                if (url.searchParams.get('saved') === '0') {
+                    showToast('Error saving profile. Please try again.');
+                } else {
+                    // Reload page to show updated data from DB
+                    window.location.href = resp.url;
                 }
-                existing.value = pendingInputs[field];
+            }).catch(err => {
+                console.error('Profile save error:', err);
+                showToast('Error saving profile. Please try again.');
             });
         });
 

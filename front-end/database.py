@@ -78,8 +78,15 @@ def get_db_connection():
     try:
         db_name = DB_CONFIG['database']
         db_file = f"{db_name}.db"
-        base_dir = os.path.dirname(os.path.abspath(__file__))
-        db_path = os.path.join(base_dir, db_file)
+        
+        # Support SQLITE_DB_DIR env var for persistent storage (e.g. Railway volume mounts)
+        db_dir = os.getenv('SQLITE_DB_DIR')
+        if db_dir:
+            os.makedirs(db_dir, exist_ok=True)
+            db_path = os.path.join(db_dir, db_file)
+        else:
+            base_dir = os.path.dirname(os.path.abspath(__file__))
+            db_path = os.path.join(base_dir, db_file)
         
         connection = sqlite3.connect(db_path)
         connection.execute("PRAGMA foreign_keys = ON;")
@@ -162,6 +169,7 @@ def init_db():
         CREATE TABLE IF NOT EXISTS user_additional_info (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             user_id INTEGER NOT NULL UNIQUE,
+            student_id VARCHAR(100),
             first_name VARCHAR(100) NOT NULL,
             age INTEGER NOT NULL,
             program VARCHAR(255) NOT NULL,
@@ -180,6 +188,15 @@ def init_db():
         )
         """
         cursor.execute(create_user_additional_info_table)
+
+        # Check if student_id column exists, if not, add it (for existing databases)
+        try:
+            cursor.execute("SELECT student_id FROM user_additional_info LIMIT 1")
+        except Error:
+            try:
+                cursor.execute("ALTER TABLE user_additional_info ADD COLUMN student_id VARCHAR(100)")
+            except Error as ae:
+                print(f"Error migrating student_id: {ae}")
 
         # Create AI chat state table (persisted conversation history per user)
         create_ai_chat_state_table = """

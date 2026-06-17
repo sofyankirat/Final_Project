@@ -1228,12 +1228,12 @@
                                                     <line x1="8" y1="2" x2="8" y2="6" />
                                                     <line x1="3" y1="10" x2="21" y2="10" />
                                                 </svg>
-                                                Course Attendance Count
+                                                Course Attendance percentage
                                             </label>
                                             <div class="input-wrapper number-input-wrapper">
                                                 <input type="number" id="attendance_count" name="attendance_count"
-                                                    class="rec-input" required min="0" max="10" step="1"
-                                                    placeholder="Sessions (0-10)"
+                                                    class="rec-input" required min="0" max="100" step="1"
+                                                    placeholder="Percentage (0-100)"
                                                     value="{{ form_data.get('attendance_count', '') }}">
                                                 <div class="stepper-controls">
                                                     <button type="button" class="stepper-btn step-up"
@@ -1243,7 +1243,7 @@
                                                 </div>
                                             </div>
                                             <div id="attendance-error" class="error-msg">Please enter a whole number
-                                                between 0 and 10.</div>
+                                                between 0 and 100.</div>
                                         </div>
                                     </div>
                                     <div style="margin-top: 72px;">
@@ -1466,8 +1466,8 @@
             const aVal = attendanceInput.value;
             const aNum = Number(aVal);
             const isInt = Number.isInteger(aNum);
-            if (aVal === '' || !isInt || aNum < 0 || aNum > 10) {
-                showError(attendanceInput, attendanceError, 'Please enter a whole number between 0 and 10.');
+            if (aVal === '' || !isInt || aNum < 0 || aNum > 100) {
+                showError(attendanceInput, attendanceError, 'Please enter a whole number between 0 and 100.');
                 valid = false;
             } else {
                 clearError(attendanceInput, attendanceError);
@@ -1494,12 +1494,12 @@
             const val = attendanceInput.value;
             const numVal = Number(val);
             const isInt = Number.isInteger(numVal);
-            const inRange = numVal >= 0 && numVal <= 10;
+            const inRange = numVal >= 0 && numVal <= 100;
             attendanceInput.setCustomValidity('');
             if (val !== '' && isInt && inRange) {
                 clearError(attendanceInput, attendanceError);
             } else if (val !== '') {
-                showError(attendanceInput, attendanceError, 'Please enter a whole number between 0 and 10.');
+                showError(attendanceInput, attendanceError, 'Please enter a whole number between 0 and 100.');
             }
         });
 
@@ -1513,7 +1513,7 @@
             const courseValue = courseSelect.value ? courseSelect.options[courseSelect.selectedIndex]?.text || courseSelect.value : '';
             const professorValue = profSelect.value ? profSelect.options[profSelect.selectedIndex]?.text || profSelect.value : '';
             const hoursValue = hoursInput.value ? `${hoursInput.value} hours` : '';
-            const attendanceValue = attendanceInput.value ? `${attendanceInput.value} sessions` : '';
+            const attendanceValue = attendanceInput.value ? `${attendanceInput.value}%` : '';
 
             recDraftCourse.textContent = formatDraftValue('Course', courseValue);
             recDraftProfessor.textContent = formatDraftValue('Professor', professorValue);

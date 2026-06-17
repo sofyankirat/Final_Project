@@ -936,6 +936,15 @@
                     </div>
 
                     <div class="form-group">
+                        <label for="student_id">Student ID</label>
+                        <div class="input-wrapper">
+                            <input type="text" id="student_id" name="student_id" placeholder="Enter student ID"
+                                required>
+                        </div>
+                        <span class="input-error" id="studentIdError"></span>
+                    </div>
+
+                    <div class="form-group">
                         <label for="age">Age</label>
                         <div class="input-wrapper number-input-wrapper">
                             <input type="number" id="age" name="age" min="1" max="120" placeholder="Enter age" required>
@@ -1171,6 +1180,7 @@
             window.addEventListener('resize', syncMobileStripLoopDistance);
 
             const firstNameInput = document.getElementById('first_name');
+            const studentIdInput = document.getElementById('student_id');
             const programInput = document.getElementById('program');
             const genderInput = document.getElementById('gender');
             const levelInput = document.getElementById('level');
@@ -1184,6 +1194,7 @@
             const screenHoursInput = document.getElementById('screen_hours');
 
             const firstNameError = document.getElementById('firstNameError');
+            const studentIdError = document.getElementById('studentIdError');
             const programError = document.getElementById('programError');
             const genderError = document.getElementById('genderError');
             const levelError = document.getElementById('levelError');
@@ -1223,6 +1234,21 @@
                 }
 
                 firstNameError.textContent = '';
+                return true;
+            }
+
+            function validateStudentId() {
+                const val = studentIdInput.value.trim();
+                if (!val) {
+                    studentIdError.textContent = 'Student ID is required.';
+                    return false;
+                }
+                if (!/^\d{9}$/.test(val)) {
+                    studentIdError.textContent = 'Student ID must be exactly 9 digits.';
+                    return false;
+                }
+
+                studentIdError.textContent = '';
                 return true;
             }
 
@@ -1414,6 +1440,7 @@
             }
 
             firstNameInput.addEventListener('input', validateFirstName);
+            studentIdInput.addEventListener('input', validateStudentId);
             programInput.addEventListener('change', validateProgram);
             genderInput.addEventListener('change', validateGender);
             levelInput.addEventListener('change', function () {
@@ -1456,6 +1483,7 @@
             updateFailedSubjectsConstraint();
             additionalInfoForm.addEventListener('submit', function (event) {
                 const isValid = validateFirstName()
+                    && validateStudentId()
                     && validateProgram()
                     && validateGender()
                     && validateLevel()

@@ -31,6 +31,17 @@ if _ATTENDANCE_ROOT not in sys.path:
 # Load environment variables
 load_dotenv()
 
+import recommendation_model
+# Ensure ML models are trained and saved on startup
+try:
+    _reg_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "models", "recommendation_regressor.joblib")
+    _clf_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "models", "recommendation_classifier.joblib")
+    if not os.path.exists(_reg_path) or not os.path.exists(_clf_path):
+        from train_recommendation_models import train_and_save_models
+        train_and_save_models()
+except Exception as startup_err:
+    print(f"Startup recommendation model check/train failed: {startup_err}")
+
 # Get base directory
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -625,9 +636,54 @@ def dashboard():
         print(f"Error fetching user name: {e}")
         
     courses = get_user_courses_data(to_int_value(user_id))
+
+    # Fetch recommendation history for dashboard cards
+    recommendation_history: list[dict[str, Any]] = []
+
+    try:
+        rec_conn = get_db_connection()
+        if rec_conn:
+            rec_cursor = rec_conn.cursor()
+            rec_cursor.execute(
+                """
+                SELECT id, title, course_name, professor_name, study_hours,
+                       attendance_count, score, recommended, reason, created_at
+                FROM user_recommendation_history
+                WHERE user_id = %s
+                ORDER BY created_at DESC
+                LIMIT 50
+                """,
+                (user_id,)
+            )
+            rec_rows = rec_cursor.fetchall()
+            rec_cursor.close()
+            rec_conn.close()
+
+            for row in rec_rows:
+                created_at_value = row[9]
+                if isinstance(created_at_value, datetime):
+                    created_at_text = created_at_value.strftime('%Y-%m-%d %I:%M %p')
+                else:
+                    created_at_text = to_clean_string(created_at_value)
+
+                recommendation_history.append({
+                    'id': to_int_value(row[0]),
+                    'title': to_clean_string(row[1]),
+                    'course_name': to_clean_string(row[2]),
+                    'professor_name': to_clean_string(row[3]),
+                    'study_hours': to_float_value(row[4]),
+                    'attendance_count': to_int_value(row[5]),
+                    'score': to_float_value(row[6]),
+                    'recommended': bool(row[7]),
+                    'reason': to_clean_string(row[8]),
+                    'created_at': created_at_text,
+                })
+    except Exception as rec_err:
+        print(f"Error fetching recommendation history for dashboard: {rec_err}")
+
     return render_template('dashboard.html', username=username, email=email,
                            profile_photo=_get_profile_photo(user_id), gpa=gpa_value,
-                           courses=courses)
+                           courses=courses, recommendation_history=recommendation_history)
 
 
 def get_static_root() -> str:
@@ -729,7 +785,7 @@ def profile_update():
         cursor.execute(
             """
             SELECT
-                first_name, age, program, gender, level,
+                student_id, first_name, age, program, gender, level,
                 is_working, failed_subjects, discipline_score,
                 analytical_score, practical_score, gpa, screen_hours
             FROM user_additional_info
@@ -742,6 +798,7 @@ def profile_update():
         existing: dict[str, Any] = {}
         if existing_row:
             (
+                existing['student_id'],
                 existing['first_name'],
                 existing['age'],
                 existing['program'],
@@ -781,13 +838,18 @@ def profile_update():
             return existing.get(field) if existing.get(field) is not None else fallback
 
         # ── Step 3: resolve each field ─────────────────────────────────────────
+        student_id       = pick_str('student_id')
+        if student_id and (not student_id.isdigit() or len(student_id) != 9):
+            student_id = existing.get('student_id') or ''
         first_name       = pick_str('first_name')
         age              = pick_int('age')
         program          = pick_str('program')
         gender           = pick_str('gender')
         level            = pick_int('level')
         is_working_raw   = pick_str('is_working', 'No')
-        is_working       = is_working_raw.lower() == 'yes'
+        # DB stores is_working as 0/1 int; ensure we compare as a string
+        is_working_str   = str(is_working_raw).strip()
+        is_working       = is_working_str.lower() in ('yes', '1', 'true')
         failed_subjects  = pick_int('failed_subjects')
         discipline_score = pick_int('discipline_score')
         analytical_score = pick_int('analytical_score')
@@ -797,26 +859,54 @@ def profile_update():
 
         # ── Step 4: upsert with the merged values ───────────────────────────────
         cursor2 = connection.cursor()
-        cursor2.execute(
-            """
-            INSERT OR REPLACE INTO user_additional_info (
-                user_id, first_name, age, program, gender, level,
-                is_working, failed_subjects, discipline_score,
-                analytical_score, practical_score, gpa, screen_hours
-            ) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
-            """,
-            (user_id, first_name, age, program, gender, level,
-             is_working, failed_subjects, discipline_score,
-             analytical_score, practical_score, gpa, screen_hours)
-        )
+        if existing_row:
+            print(f"[PROFILE_UPDATE] Updating existing row for user_id={user_id}")
+            params = (student_id, first_name, age, program, gender, level,
+                      is_working, failed_subjects, discipline_score,
+                      analytical_score, practical_score, gpa, screen_hours,
+                      user_id)
+            print(f"[PROFILE_UPDATE] Params: {params}")
+            cursor2.execute(
+                """
+                UPDATE user_additional_info SET
+                    student_id = %s, first_name = %s, age = %s, program = %s,
+                    gender = %s, level = %s, is_working = %s,
+                    failed_subjects = %s, discipline_score = %s,
+                    analytical_score = %s, practical_score = %s,
+                    gpa = %s, screen_hours = %s
+                WHERE user_id = %s
+                """,
+                params
+            )
+            print(f"[PROFILE_UPDATE] Update rowcount: {cursor2.rowcount}")
+        else:
+            print(f"[PROFILE_UPDATE] Inserting new row for user_id={user_id}")
+            params = (user_id, student_id, first_name, age, program, gender, level,
+                      is_working, failed_subjects, discipline_score,
+                      analytical_score, practical_score, gpa, screen_hours)
+            print(f"[PROFILE_UPDATE] Params: {params}")
+            cursor2.execute(
+                """
+                INSERT INTO user_additional_info (
+                    user_id, student_id, first_name, age, program, gender, level,
+                    is_working, failed_subjects, discipline_score,
+                    analytical_score, practical_score, gpa, screen_hours
+                ) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+                """,
+                params
+            )
+            print(f"[PROFILE_UPDATE] Insert rowcount: {cursor2.rowcount}")
         connection.commit()
+        print("[PROFILE_UPDATE] Committed successfully.")
         cursor2.close()
         connection.close()
 
+        return redirect(url_for('profile', saved=1))
+
     except Exception as e:
         print(f"Profile update error: {e}")
-
-    return redirect(url_for('profile', saved=1))
+        import traceback; traceback.print_exc()
+        return redirect(url_for('profile', saved=0))
 
 
 @app.route('/logout')
@@ -840,6 +930,7 @@ def additional_info():
         return redirect(url_for('dashboard'))
 
     if request.method == 'POST':
+        student_id = to_clean_string(request.form.get('student_id'))
         first_name = to_clean_string(request.form.get('first_name'))
         age = to_int_value(request.form.get('age'))
         program = to_clean_string(request.form.get('program'))
@@ -853,7 +944,7 @@ def additional_info():
         gpa = to_float_value(request.form.get('gpa'))
         screen_hours = to_float_value(request.form.get('screen_hours'))
 
-        if not first_name or age <= 0 or not program or not gender or level <= 0:
+        if not student_id or not student_id.isdigit() or len(student_id) != 9 or not first_name or age <= 0 or not program or not gender or level <= 0:
             return render_template('additional_info.html')
 
         connection = get_db_connection()
@@ -869,6 +960,7 @@ def additional_info():
                 cursor.execute(
                     """
                     UPDATE user_additional_info SET
+                        student_id = %s,
                         first_name = %s,
                         age = %s,
                         program = %s,
@@ -884,6 +976,7 @@ def additional_info():
                     WHERE user_id = %s
                     """,
                     (
+                        student_id,
                         first_name,
                         age,
                         program,
@@ -903,13 +996,14 @@ def additional_info():
                 cursor.execute(
                     """
                     INSERT INTO user_additional_info (
-                        user_id, first_name, age, program, gender, level,
+                        user_id, student_id, first_name, age, program, gender, level,
                         is_working, failed_subjects, discipline_score,
                         analytical_score, practical_score, gpa, screen_hours
-                    ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                    ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                     """,
                     (
                         user_id,
+                        student_id,
                         first_name,
                         age,
                         program,
@@ -1136,10 +1230,75 @@ def recommendations():
         course_name = to_clean_string(request.form.get('Course_name'))
         professors = to_clean_string(request.form.get('professors'))
 
-        # Placeholder logic for AI prediction model
-        score = 85 
-        recommended = True
-        reason = f"Based on your high attendance ({attendance_count}) and {weekly_avg_study_hours} weekly study hours with {professors}, {course_name} is considered a perfect match for your profile."
+        # Fetch student's profile info for ML prediction
+        student_info = None
+        try:
+            db_conn = get_db_connection()
+            if db_conn:
+                db_curr = db_conn.cursor()
+                db_curr.execute(
+                    """
+                    SELECT age, program, gender, level, is_working, failed_subjects, 
+                           discipline_score, analytical_score, practical_score, gpa, screen_hours
+                    FROM user_additional_info 
+                    WHERE user_id = %s
+                    LIMIT 1
+                    """,
+                    (user_id,)
+                )
+                db_row = db_curr.fetchone()
+                db_curr.close()
+                db_conn.close()
+                if db_row:
+                    student_info = {
+                        'age': int(db_row[0]),
+                        'program': db_row[1],
+                        'gender': db_row[2],
+                        'level': int(db_row[3]),
+                        'is_working': int(db_row[4]),
+                        'failed_subjects': int(db_row[5]),
+                        'discipline_score': int(db_row[6]),
+                        'analytical_score': int(db_row[7]),
+                        'practical_score': int(db_row[8]),
+                        'gpa': float(db_row[9]),
+                        'screen_hours': float(db_row[10])
+                    }
+        except Exception as e:
+            print(f"Error retrieving student additional info: {e}")
+
+        if not student_info:
+            student_info = {
+                'age': 20,
+                'program': 'Statistics and Computer Science',
+                'gender': 'Male',
+                'level': 1,
+                'is_working': 0,
+                'failed_subjects': 0,
+                'discipline_score': 7,
+                'analytical_score': 7,
+                'practical_score': 7,
+                'gpa': 3.0,
+                'screen_hours': 4.0
+            }
+
+        # Call prediction model and LLM reasoning
+        try:
+            prediction = recommendation_model.predict_recommendation(
+                student_info=student_info,
+                course_name=course_name,
+                professor_name=professors,
+                study_hours=weekly_avg_study_hours,
+                attendance_percentage=attendance_count
+            )
+            score = prediction['score']
+            recommended = prediction['recommended']
+            reason = recommendation_model.generate_llm_reasoning(prediction)
+        except Exception as pred_err:
+            print(f"Prediction error: {pred_err}")
+            # Fallback values
+            score = 75.0
+            recommended = True
+            reason = f"Based on your attendance ({attendance_count}%) and weekly study hours ({weekly_avg_study_hours} hrs), {course_name} is recommended."
 
         # Sticky form data
         form_data = {
@@ -1149,7 +1308,7 @@ def recommendations():
             'attendance_count': attendance_count
         }
 
-        default_history_title = f"{course_name} - {professors} - {weekly_avg_study_hours:g} - {attendance_count}"
+        default_history_title = f"{course_name} - {professors} - {weekly_avg_study_hours:g} hrs - {attendance_count}%"
         new_history_id = None
         try:
             history_connection = get_db_connection()
@@ -1652,13 +1811,15 @@ def is_user_enrolled(student_name: str, user_id: int = 0) -> bool:
         if not os.path.exists(upload_dir) or not os.listdir(upload_dir):
             return False
 
+    key_to_check = f"user_{user_id}" if user_id > 0 else student_name
+
     import pickle
     db_path = os.path.join(_ATTENDANCE_ROOT, 'database', 'database.pkl')
     if os.path.exists(db_path):
         try:
             with open(db_path, 'rb') as f:
                 db = pickle.load(f)
-                return student_name in db
+                return key_to_check in db
         except Exception as e:
             print(f"Error reading database.pkl: {e}. Trying backup...")
             backup = db_path + ".bak"
@@ -1666,7 +1827,7 @@ def is_user_enrolled(student_name: str, user_id: int = 0) -> bool:
                 try:
                     with open(backup, 'rb') as f:
                         bdb = pickle.load(f)
-                        return student_name in bdb
+                        return key_to_check in bdb
                 except Exception:
                     pass
     return False
@@ -1712,22 +1873,8 @@ def attendance_enroll():
         return jsonify({'success': False, 'message': 'Please capture all 5 positions.'}), 400
 
     user_id = to_int_value(session.get('user_id'))
-    email = session.get('email', '')
-
-    # Resolve student name
-    student_name = email.split('@')[0].capitalize() if email else f'user_{user_id}'
-    try:
-        conn = get_db_connection()
-        if conn:
-            cur = conn.cursor()
-            cur.execute("SELECT first_name FROM user_additional_info WHERE user_id = %s", (user_id,))
-            row = cur.fetchone()
-            if row and row[0]:
-                student_name = to_clean_string(row[0])
-            cur.close()
-            conn.close()
-    except Exception:
-        pass
+    # Enroll the user under their unique database ID key to prevent name collisions
+    student_name = f"user_{user_id}"
 
     # Save captured images to disk
     static_root = get_static_root()
@@ -1764,10 +1911,29 @@ def attendance_enroll():
         saved_paths.append(fpath)
 
     try:
-        import importlib
-        web_enroll = importlib.import_module('web_enroll')
-        result = web_enroll.process_images(student_name, saved_paths)
-        return jsonify(result), 200
+        script_path = os.path.join(_ATTENDANCE_ROOT, 'web_enroll.py')
+        venv_python = os.path.join(_ATTENDANCE_ROOT, 'venv', 'Scripts', 'python.exe')
+        if not os.path.exists(venv_python):
+            venv_python = sys.executable
+
+        env = os.environ.copy()
+        env['PYTHONIOENCODING'] = 'utf-8'
+        proc = subprocess.run(
+            [venv_python, script_path, student_name] + saved_paths,
+            cwd=_ATTENDANCE_ROOT,
+            capture_output=True, text=True, encoding='utf-8', errors='replace',
+            env=env, timeout=120,
+        )
+        for line in (proc.stdout or '').splitlines():
+            if line.startswith('__RESULT_JSON__'):
+                try:
+                    return jsonify(json.loads(line[len('__RESULT_JSON__'):])), 200
+                except json.JSONDecodeError:
+                    pass
+        error_detail = (proc.stderr or proc.stdout or 'Unknown error').strip()[-500:]
+        return jsonify({'success': False, 'message': f'Enrollment error: {error_detail}'}), 200
+    except subprocess.TimeoutExpired:
+        return jsonify({'success': False, 'message': 'Enrollment timed out. Please try again.'}), 504
     except Exception as err:
         print(f"Attendance enrollment error: {err}")
         return jsonify({'success': False, 'message': f'Enrollment failed: {err}'}), 200
@@ -1826,6 +1992,79 @@ def attendance_test_recognize():
     except Exception as err:
         return jsonify({'success': False, 'message': f'Error: {err}'}), 500
 
+@app.route('/api/attendance/session', methods=['POST'])
+def receive_session_attendance():
+    """Receive student IDs from the AI stream server and mark them as present."""
+    data = request.get_json() or {}
+    student_keys = data.get('student_ids', [])
+    course_id = to_int_value(data.get('course_id')) or None
+
+    if not isinstance(student_keys, list):
+        return jsonify({'success': False, 'message': 'Invalid data format'}), 400
+
+    try:
+        connection = get_db_connection()
+        if connection is None:
+            return jsonify({'success': False, 'message': 'Database connection error'}), 500
+
+        cursor = connection.cursor()
+        today = datetime.now().strftime("%Y-%m-%d")
+
+        logged_count = 0
+        for key in student_keys:
+            # Parse user_id
+            user_id = None
+            if isinstance(key, int):
+                user_id = key
+            elif isinstance(key, str):
+                if key.startswith("user_"):
+                    try:
+                        user_id = int(key.split("_")[1])
+                    except (IndexError, ValueError):
+                        continue
+                else:
+                    try:
+                        user_id = int(key)
+                    except ValueError:
+                        continue
+
+            if user_id is None:
+                continue
+
+            # Verify user exists in SQLite
+            cursor.execute("SELECT 1 FROM users WHERE id = %s LIMIT 1", (user_id,))
+            if cursor.fetchone() is None:
+                continue
+
+            # Check if already present today for this course to prevent duplicates
+            if course_id:
+                cursor.execute(
+                    "SELECT 1 FROM attendance WHERE user_id = %s AND date(attendance_date) = %s AND course_id = %s LIMIT 1",
+                    (user_id, today, course_id)
+                )
+            else:
+                cursor.execute(
+                    "SELECT 1 FROM attendance WHERE user_id = %s AND date(attendance_date) = %s AND course_id IS NULL LIMIT 1",
+                    (user_id, today)
+                )
+
+            if cursor.fetchone() is None:
+                today_datetime = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                cursor.execute(
+                    "INSERT INTO attendance (user_id, course_id, attendance_date, status) VALUES (%s, %s, %s, TRUE)",
+                    (user_id, course_id, today_datetime)
+                )
+                logged_count += 1
+
+        connection.commit()
+        cursor.close()
+        connection.close()
+        return jsonify({'success': True, 'message': f'Logged {logged_count} students successfully'}), 200
+
+    except Exception as e:
+        print(f"Error logging session attendance: {e}")
+        return jsonify({'success': False, 'message': str(e)}), 500
+
 
 # ================== ERROR HANDLERS ==================
 
@@ -1838,4 +2077,4 @@ def internal_error(error):
     return jsonify({'error': 'Internal server error'}), 500
 
 if __name__ == '__main__':
-    app.run(debug=True, host='localhost', port=5000)
+    app.run(debug=True, host='localhost', port=5000, use_reloader=False)

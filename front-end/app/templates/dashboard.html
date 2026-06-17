@@ -325,10 +325,14 @@
                             </svg>
                         </div>
                         <div class="stat-info">
-                            <span class="stat-value" id="val-recs">—</span>
+                            <span class="stat-value" id="val-recs">{% if recommendation_history %}{{ recommendation_history | length }}{% else %}—{% endif %}</span>
                             <span class="stat-label">Recommendations</span>
                         </div>
+                        {% if recommendation_history %}
+                        <span class="stat-badge" style="background: rgba(34, 197, 94, 0.12); color: #16a34a;">Active</span>
+                        {% else %}
                         <span class="stat-badge stat-badge-pending">Pending</span>
+                        {% endif %}
                     </div>
 
                     <div class="dash-stat-card" id="stat-assessment">
@@ -412,11 +416,65 @@
                                 </svg>
                             </button>
                         </div>
+                        {% if recommendation_history %}
+                        <table class="placeholder-table" aria-label="Recommendations data">
+                            <thead>
+                                <tr>
+                                    <th>Course</th>
+                                    <th>Professor</th>
+                                    <th>Score</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in recommendation_history[:10] %}
+                                <tr>
+                                    <td>{{ item.course_name }}</td>
+                                    <td>{{ item.professor_name }}</td>
+                                    <td>{{ "%.1f" | format(item.score) }}%</td>
+                                    <td>
+                                        <span class="rec-status-pill {{ 'rec-pill-good' if item.recommended else 'rec-pill-bad' }}">
+                                            {{ 'Recommended' if item.recommended else 'Not Recommended' }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+
+                        <!-- Hidden container for the full list of 50 records (used by the zoom modal) -->
+                        <div id="full-recommendations-table-container" style="display: none;">
+                            <table class="placeholder-table" aria-label="Full Recommendations data">
+                                <thead>
+                                    <tr>
+                                        <th>Course</th>
+                                        <th>Professor</th>
+                                        <th>Score</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for item in recommendation_history %}
+                                    <tr>
+                                        <td>{{ item.course_name }}</td>
+                                        <td>{{ item.professor_name }}</td>
+                                        <td>{{ "%.1f" | format(item.score) }}%</td>
+                                        <td>
+                                            <span class="rec-status-pill {{ 'rec-pill-good' if item.recommended else 'rec-pill-bad' }}">
+                                                {{ 'Recommended' if item.recommended else 'Not Recommended' }}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        {% else %}
                         <table class="placeholder-table" aria-label="Recommendations placeholder">
                             <thead>
                                 <tr>
                                     <th>Course</th>
-                                    <th>Category</th>
+                                    <th>Professor</th>
                                     <th>Score</th>
                                     <th>Status</th>
                                 </tr>
@@ -424,7 +482,7 @@
                             <tbody>
                                 <tr class="placeholder-row">
                                     <td><span class="skeleton-line" style="width:130px"></span></td>
-                                    <td><span class="skeleton-line" style="width:80px"></span></td>
+                                    <td><span class="skeleton-line" style="width:100px"></span></td>
                                     <td><span class="skeleton-line" style="width:40px"></span></td>
                                     <td><span class="skeleton-pill"></span></td>
                                 </tr>
@@ -436,19 +494,48 @@
                                 </tr>
                                 <tr class="placeholder-row">
                                     <td><span class="skeleton-line" style="width:140px"></span></td>
-                                    <td><span class="skeleton-line" style="width:70px"></span></td>
+                                    <td><span class="skeleton-line" style="width:80px"></span></td>
                                     <td><span class="skeleton-line" style="width:40px"></span></td>
                                     <td><span class="skeleton-pill"></span></td>
                                 </tr>
                                 <tr class="placeholder-row">
                                     <td><span class="skeleton-line" style="width:120px"></span></td>
-                                    <td><span class="skeleton-line" style="width:85px"></span></td>
+                                    <td><span class="skeleton-line" style="width:95px"></span></td>
                                     <td><span class="skeleton-line" style="width:40px"></span></td>
                                     <td><span class="skeleton-pill"></span></td>
                                 </tr>
                             </tbody>
                         </table>
-                        <p class="chart-coming-soon">Recommendations will populate once the AI Agent is connected</p>
+                        <p class="chart-coming-soon">Recommendations will appear here after you use the Recommendation page</p>
+                        {% endif %}
+                    </div>
+
+                    <!-- Recommendation Scores Chart -->
+                    <div class="dash-card" id="card-recommendation-chart">
+                        <div class="card-header">
+                            <div class="card-title-wrap">
+                                <h2 class="card-title">Recommendation Scores</h2>
+                                <span class="card-subtitle">Score per course &amp; professor</span>
+                            </div>
+                            <button class="card-expand-btn" type="button" aria-label="Expand">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
+                                    fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+                                    stroke-linejoin="round">
+                                    <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" />
+                                </svg>
+                            </button>
+                        </div>
+                        <div class="card-chart-area" style="padding: 10px 0;">
+                            {% if recommendation_history %}
+                            <div class="rec-chart-scroll-container">
+                                <div class="rec-chart-inner">
+                                    <canvas id="recScoresChart"></canvas>
+                                </div>
+                            </div>
+                            {% else %}
+                            <p class="chart-coming-soon" style="padding: 40px 20px;">No recommendation data yet. Visit the <a href="{{ url_for('recommendations') }}" style="color: inherit; text-decoration: underline;">Recommendations</a> page to generate scores.</p>
+                            {% endif %}
+                        </div>
                     </div>
 
                     <!-- Attendance by Course (wide right column) -->
@@ -511,6 +598,36 @@
             </div>
             <div class="custom-modal-content" style="padding: 20px 0;">
                 <canvas id="weeklyChartZoomed" style="width:100%;max-height:400px"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Zoom Modal for Recommendations Table -->
+    <div id="recommendationsTableModal" class="custom-modal">
+        <div class="custom-modal-overlay"></div>
+        <div class="custom-modal-container" style="max-width: 850px;">
+            <button class="custom-modal-close" aria-label="Close modal">&times;</button>
+            <div class="custom-modal-header">
+                <h2 class="custom-modal-title">Recommendations</h2>
+                <p class="custom-modal-subtitle">Recommendation system course suggestions</p>
+            </div>
+            <div class="custom-modal-content" style="max-height: 480px; overflow-y: auto; padding-right: 6px;">
+                <!-- Dynamic content cloned from card -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Zoom Modal for Recommendation Scores Chart -->
+    <div id="recScoresModal" class="custom-modal">
+        <div class="custom-modal-overlay"></div>
+        <div class="custom-modal-container" style="max-width: 800px;">
+            <button class="custom-modal-close" aria-label="Close modal">&times;</button>
+            <div class="custom-modal-header">
+                <h2 class="custom-modal-title">Recommendation Scores</h2>
+                <p class="custom-modal-subtitle">Score per course &amp; professor</p>
+            </div>
+            <div class="custom-modal-content" style="padding: 20px 0;">
+                <canvas id="recScoresChartZoomed" style="width:100%;max-height:400px"></canvas>
             </div>
         </div>
     </div>
@@ -622,6 +739,151 @@
         setInterval(updateClock, 30000);
 
         initCharts();
+
+        // Recommendation Scores Chart
+        const recHistoryData = {{ recommendation_history | default([]) | tojson }};
+        let recChartInst = null;
+        let recChartZoomedInst = null;
+        function initRecChart() {
+            const canvas = document.getElementById('recScoresChart');
+            if (!canvas || !recHistoryData || recHistoryData.length === 0) return;
+            if (recChartInst) recChartInst.destroy();
+            
+            // Limit to last 10 records for the chart
+            const chartData = recHistoryData.slice(0, 10);
+            
+            // Set dynamic container height: 4 records fits in 220px, more will scroll
+            const container = canvas.closest('.rec-chart-inner');
+            if (container) {
+                const recordCount = chartData.length;
+                if (recordCount > 4) {
+                    container.style.height = (recordCount * 45 + 30) + 'px';
+                } else {
+                    container.style.height = '220px';
+                }
+            }
+
+            const isDark = document.body.classList.contains('dark-mode');
+            const txtColor = isDark ? '#c0d0f0' : '#4a3a2a';
+            const gridColor = isDark ? 'rgba(255,255,255,.07)' : 'rgba(0,0,0,.06)';
+            const reversed = [...chartData].reverse();
+            const labels = reversed.map(r => r.course_name.length > 18 ? r.course_name.slice(0,16) + '…' : r.course_name);
+            const scores = reversed.map(r => r.score);
+            const bgColors = reversed.map(r => r.recommended
+                ? (isDark ? 'rgba(20,184,166,0.75)' : 'rgba(34,197,94,0.75)')
+                : (isDark ? 'rgba(248,113,113,0.75)' : 'rgba(239,68,68,0.75)'));
+            const borderColors = reversed.map(r => r.recommended
+                ? (isDark ? '#14b8a6' : '#22c55e')
+                : (isDark ? '#f87171' : '#ef4444'));
+            recChartInst = new Chart(canvas, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Score (%)',
+                        data: scores,
+                        backgroundColor: bgColors,
+                        borderColor: borderColors,
+                        borderWidth: 1.5,
+                        borderRadius: 6,
+                        borderSkipped: false,
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                afterLabel: function(ctx) {
+                                    const item = reversed[ctx.dataIndex];
+                                    return 'Prof: ' + item.professor_name + '\n' + (item.recommended ? '✓ Recommended' : '✗ Not Recommended');
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            ticks: { color: txtColor, callback: v => v + '%' },
+                            grid: { color: gridColor },
+                            beginAtZero: true,
+                            max: 100
+                        },
+                        y: {
+                            ticks: { color: txtColor, font: { size: 11 } },
+                            grid: { display: false }
+                        }
+                    }
+                }
+            });
+        }
+        function initRecChartZoomed() {
+            const canvas = document.getElementById('recScoresChartZoomed');
+            if (!canvas || !recHistoryData || recHistoryData.length === 0) return;
+            if (recChartZoomedInst) recChartZoomedInst.destroy();
+            
+            // Limit to last 10 records for the chart
+            const chartData = recHistoryData.slice(0, 10);
+            
+            const isDark = document.body.classList.contains('dark-mode');
+            const txtColor = isDark ? '#c0d0f0' : '#4a3a2a';
+            const gridColor = isDark ? 'rgba(255,255,255,.07)' : 'rgba(0,0,0,.06)';
+            const reversed = [...chartData].reverse();
+            const labels = reversed.map(r => r.course_name + ' (' + r.professor_name + ')');
+            const scores = reversed.map(r => r.score);
+            const bgColors = reversed.map(r => r.recommended
+                ? (isDark ? 'rgba(20,184,166,0.75)' : 'rgba(34,197,94,0.75)')
+                : (isDark ? 'rgba(248,113,113,0.75)' : 'rgba(239,68,68,0.75)'));
+            const borderColors = reversed.map(r => r.recommended
+                ? (isDark ? '#14b8a6' : '#22c55e')
+                : (isDark ? '#f87171' : '#ef4444'));
+            recChartZoomedInst = new Chart(canvas, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Score (%)',
+                        data: scores,
+                        backgroundColor: bgColors,
+                        borderColor: borderColors,
+                        borderWidth: 1.5,
+                        borderRadius: 8,
+                        borderSkipped: false,
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                afterLabel: function(ctx) {
+                                    const item = reversed[ctx.dataIndex];
+                                    return (item.recommended ? '✓ Recommended' : '✗ Not Recommended');
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            ticks: { color: txtColor, font: { size: 13 }, callback: v => v + '%' },
+                            grid: { color: gridColor },
+                            beginAtZero: true,
+                            max: 100
+                        },
+                        y: {
+                            ticks: { color: txtColor, font: { size: 12 } },
+                            grid: { display: false }
+                        }
+                    }
+                }
+            });
+        }
+        initRecChart();
 
         function clampGpa(value) {
             if (typeof value !== 'number' || Number.isNaN(value)) {
@@ -778,8 +1040,12 @@
                 }
             }
             initCharts();
+            initRecChart();
             if (weeklyChartZoomedInst && document.getElementById('weeklyAttendanceModal').classList.contains('open')) {
                 initZoomedWeeklyChart();
+            }
+            if (recChartZoomedInst && document.getElementById('recScoresModal').classList.contains('open')) {
+                initRecChartZoomed();
             }
             updateGpaWidgets(dashboardGpa, true);
             animateCourseBars();
@@ -854,6 +1120,57 @@
                 if (weeklyChartZoomedInst) {
                     weeklyChartZoomedInst.destroy();
                     weeklyChartZoomedInst = null;
+                }
+            };
+            if (closeBtn) closeBtn.addEventListener('click', closeFn);
+            if (overlay) overlay.addEventListener('click', closeFn);
+        }
+
+        // Zoom Modal logic for Recommendations Table
+        const recTableExpandBtn = document.querySelector('#card-recommendations-table .card-expand-btn');
+        if (recTableExpandBtn) {
+            recTableExpandBtn.addEventListener('click', () => {
+                const modal = document.getElementById('recommendationsTableModal');
+                const contentArea = modal.querySelector('.custom-modal-content');
+                const fullTable = document.querySelector('#full-recommendations-table-container table');
+                const comingSoon = document.querySelector('#card-recommendations-table .chart-coming-soon');
+                if (contentArea) {
+                    if (fullTable) {
+                        contentArea.innerHTML = fullTable.outerHTML;
+                    } else if (comingSoon) {
+                        contentArea.innerHTML = comingSoon.outerHTML;
+                    }
+                }
+                modal.classList.add('open');
+            });
+        }
+        const recTableModal = document.getElementById('recommendationsTableModal');
+        if (recTableModal) {
+            const closeBtn = recTableModal.querySelector('.custom-modal-close');
+            const overlay = recTableModal.querySelector('.custom-modal-overlay');
+            const closeFn = () => recTableModal.classList.remove('open');
+            if (closeBtn) closeBtn.addEventListener('click', closeFn);
+            if (overlay) overlay.addEventListener('click', closeFn);
+        }
+
+        // Zoom Modal logic for Recommendation Scores Chart
+        const recChartExpandBtn = document.querySelector('#card-recommendation-chart .card-expand-btn');
+        if (recChartExpandBtn) {
+            recChartExpandBtn.addEventListener('click', () => {
+                const modal = document.getElementById('recScoresModal');
+                modal.classList.add('open');
+                initRecChartZoomed();
+            });
+        }
+        const recScoresModal = document.getElementById('recScoresModal');
+        if (recScoresModal) {
+            const closeBtn = recScoresModal.querySelector('.custom-modal-close');
+            const overlay = recScoresModal.querySelector('.custom-modal-overlay');
+            const closeFn = () => {
+                recScoresModal.classList.remove('open');
+                if (recChartZoomedInst) {
+                    recChartZoomedInst.destroy();
+                    recChartZoomedInst = null;
                 }
             };
             if (closeBtn) closeBtn.addEventListener('click', closeFn);

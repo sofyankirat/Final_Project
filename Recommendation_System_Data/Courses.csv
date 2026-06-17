@@ -1,0 +1,86 @@
+﻿course_id,course_name,course_category,course_level,course_difficulty,course_credit_hours,is_required
+M111,Calculus 1,Pure Mathematics,1,1,3,Required
+M121,Mechanics 1,Applied Mathematics,1,2,3,Required
+P101,Properties of Heat and Matter,Physics,1,2,3,Required
+P102,"Electricity, Magnetism and Light",Physics,1,2,3,Required
+C102,General Chemistry 2,Chemistry,1,1,3,Required
+G101,Human Rights and Anti-Corruption,General Science,1,1,2,Required
+M112,Algebra and Geometry,Pure Mathematics,1,2,3,Required
+M113,Calculus 2,Pure Mathematics,1,2,3,Required
+M122,Mechanics 2,Applied Mathematics,1,2,3,Required
+P103,Electrical Circuits,Physics,1,2,3,Required
+C101,General Chemistry 1,Chemistry,1,1,3,Required
+G102,Introduction to Computer Science,Computer Science,1,1,2,Required
+M212,Abstract Algebra 1,Pure Mathematics,2,4,3,Required
+M214,Differential Equations 1,Pure Mathematics,2,3,3,Required
+M216,Advanced Calculus,Pure Mathematics,2,3,3,Required
+M221,Mechanics 3,Applied Mathematics,2,3,3,Required
+M231,Introduction to Statistics and Probability,Statistics,2,2,3,Required
+G201,Scientific Terminology in English,General Science,2,1,2,Required
+M211,Real Analysis,Pure Mathematics,2,4,3,Required
+M215,Linear Algebra 1,Pure Mathematics,2,2,3,Required
+M218,Analytical Geometry,Pure Mathematics,2,2,3,Required
+M223,Mechanics 4,Applied Mathematics,2,3,3,Required
+P222,Fundamentals of Electromagnetic Theory,Physics,2,4,2,Required
+M217,Introduction to Logic,Pure Mathematics,2,2,2,Optional
+G202,Cultural Studies,General Science,2,1,2,Optional
+M311,Measure Theory,Pure Mathematics,3,4,2,Required
+M312,Complex Analysis 1,Pure Mathematics,3,3,3,Required
+M313,Numerical Analysis 1,Pure Mathematics,3,2,3,Required
+M316,Topology 1,Pure Mathematics,3,4,2,Required
+M326,Analytical Mechanics,Applied Mathematics,3,3,3,Required
+M335,Differential Equations 2,Pure Mathematics,3,3,2,Required
+M319,Number Theory,Pure Mathematics,3,3,2,Optional
+M315,Abstract Algebra 2,Pure Mathematics,3,3,3,Required
+M318,Integral Equations,Pure Mathematics,3,3,2,Required
+M321,Electrodynamics,Applied Mathematics,3,3,2,Required
+M322,Theory of Elasticity 1,Applied Mathematics,3,3,2,Required
+M317,Special Functions,Pure Mathematics,3,2,3,Required
+M333,Statistical Theory,Statistics,3,3,3,Required
+M310,Linear Algebra 2,Pure Mathematics,3,3,2,Optional
+M328,Statistical Mechanics,Applied Mathematics,3,3,2,Optional
+M411,Theory of Differential Equations,Pure Mathematics,4,4,2,Required
+M413,Numerical Analysis 2,Pure Mathematics,4,2,3,Required
+M415,Lie Algebra,Pure Mathematics,4,3,2,Required
+M416,Differential Geometry,Pure Mathematics,4,3,3,Required
+M421,Operations Research,Pure Mathematics,4,2,3,Required
+M423,Quantum Mechanics,Applied Mathematics,4,4,2,Required
+M418,Network Theory,Pure Mathematics,4,3,2,Optional
+M419,Topology 2,Pure Mathematics,4,4,2,Optional
+M414,Functional Analysis,Pure Mathematics,4,4,3,Required
+M422,General Relativity,Applied Mathematics,4,4,2,Required
+M424,Advanced Mechanics,Applied Mathematics,4,4,2,Required
+M425,Hydrodynamics,Applied Mathematics,4,4,3,Required
+M429,Partial Differential Equations,Pure Mathematics,4,3,2,Required
+M412,Graph Theory,Pure Mathematics,4,3,2,Optional
+M426,Modeling and Simulation,Pure Mathematics,4,2,2,Optional
+M241,Computer Organization and Assembly Language,Computer Science,2,2,3,Required
+M219,Discrete Mathematics,Pure Mathematics,2,2,2,Required
+M232,Probability Theory 1,Statistics,2,2,3,Required
+M242,Computer Algebra Systems,Computer Science,2,2,2,Optional
+M243,Computer Network Theory,Computer Science,2,2,2,Optional
+M331,Probability Theory 2,Statistics,3,3,3,Required
+M334,Sampling Distributions and Methods,Statistics,3,3,2,Required
+M341,Data Structures,Computer Science,3,3,3,Required
+M342,Database Systems,Computer Science,3,2,2,Required
+M338,Order Statistics,Statistics,3,2,2,Optional
+M346,Systems Analysis and Design,Computer Science,3,2,2,Optional
+M332,Estimation Theory,Statistics,3,3,2,Required
+M337,Hypothesis Testing,Statistics,3,3,2,Required
+M345,Operating Systems,Computer Science,3,3,3,Required
+M343,Artificial Intelligence,Computer Science,3,3,2,Required
+M344,Structured Programming,Computer Science,3,2,3,Required
+M336,Data Analysis Using Statistical Software,Computer Science,3,2,2,Optional
+M348,Selected Topics in Computing,Computer Science,3,2,2,Optional
+M431,Analysis of Variance,Statistics,4,3,3,Required
+M432,Stochastic Processes,Statistics,4,3,3,Required
+M441,Software Engineering,Computer Science,4,3,2,Required
+M442,Neural Networks,Computer Science,4,3,2,Required
+M433,Non-Parametric Statistics,Statistics,4,3,2,Optional
+M443,Expert Systems,Computer Science,4,3,2,Optional
+M434,Regression Analysis,Statistics,4,3,3,Required
+M435,Reliability Theory,Statistics,4,3,2,Required
+M444,Computer Graphics Systems,Computer Science,4,1,3,Required
+M445,Algorithm Design and Analysis,Computer Science,4,3,3,Required
+M436,Time Series and Forecasting,Statistics,4,3,2,Optional
+M446,Image Processing,Computer Science,4,2,2,Optional

@@ -1,0 +1,501 @@
+﻿student_id,student_name,student_age,student_gender,student_level,student_program,GPA,is_employed,total_failed_subjects,discipline_score,analytical_score,practical_score,avg_screen_hours
+1,Abdelrahman Ahmed,21,Male,4,Statistics and Computer Science,3.9,0,0,7,9,7,3
+2,Hossam Hamdy,20,Male,2,Mathematics,2.4,0,2,5,7,8,6
+3,Salma Elmongy,19,Female,2,Statistics and Computer Science,3.1,0,0,9,5,6,5
+4,Farouk Ahmed,21,Male,3,Statistics and Computer Science,1.7,1,5,2,5,5,7
+5,Hend Magdy,22,Female,4,Mathematics,1.1,0,9,1,3,4,8
+6,Maher Mohamed,18,Male,1,Mathematics,3.5,0,0,8,8,7,4
+7,Abdelrahmen Kewan,22,Male,4,Statistics and Computer Science,2,0,3,3,8,5,7
+8,Mohamed Mostafa,21,Male,4,Statistics and Computer Science,4,0,0,9,8,8,1.5
+9,Laila Ismail,20,Female,3,Statistics and Computer Science,4.5,0,0,10,8,7,1
+10,Ali Ibrahim,19,Male,2,Mathematics,0.5,1,10,1,2,3,6
+11,Ahmed Mohamed,20,Male,3,Mathematics,3.7,0,0,8,9,8,3
+12,Rahma Osama,18,Female,1,Mathematics,2.1,0,0,8,5,8,5
+13,Farah Adel,22,Female,4,Statistics and Computer Science,3.4,0,0,9,7,7,2
+14,Mohamed Hekaya,19,Male,1,Mathematics,0.7,0,6,3,4,5,7
+15,Khaled Mousa,20,Male,2,Statistics and Computer Science,2.7,1,1,5,6,6,6
+16,Zeinab Ahmed,20,Female,3,Statistics and Computer Science,3,1,0,7,6,8,5
+17,Adel Naser,21,Male,4,Mathematics,1.9,0,2,6,7,9,4
+18,Menna Fayez,20,Female,3,Statistics and Computer Science,0.8,0,7,4,2,5,6
+19,Shahd Sameh,19,Female,2,Statistics and Computer Science,1.8,0,2,5,3,5,6
+20,Ahmed Badawy,18,Male,1,Statistics and Computer Science,0.9,0,5,3,5,9,6.5
+21,Ahmed Mekawy,22,Male,4,Mathematics,2.8,1,0,5,7,8,5
+22,Nour Taha,19,Female,2,Statistics and Computer Science,2.02,0,2,7,4,6,5.7
+23,Maher Sameh,19,Male,2,Statistics and Computer Science,1.26,1,4,4,4,6,5
+24,Karim Soliman,21,Male,3,Statistics and Computer Science,3.29,0,0,9,5,6,4
+25,Reem Fayez,20,Female,3,Mathematics,1.84,0,3,6,6,4,5.6
+26,Sherif Ibrahim,22,Male,4,Statistics and Computer Science,2.15,0,3,5,7,5,8.1
+27,Mohamed Osman,19,Male,2,Statistics and Computer Science,3.01,0,0,5,8,6,5.2
+28,Rania Taha,21,Female,3,Statistics and Computer Science,1.2,0,2,4,5,5,9.3
+29,Omar Farouk,23,Male,4,Statistics and Computer Science,1.27,1,5,5,6,9,4
+30,Mona Mansour,17,Female,1,Statistics and Computer Science,3.01,1,1,10,7,4,6.5
+31,Rahma Soliman,19,Female,2,Mathematics,2.42,0,1,6,7,7,3.3
+32,Tarek Nasser,18,Male,1,Statistics and Computer Science,0.1,1,10,3,6,5,5
+33,Wael Osman,17,Male,1,Statistics and Computer Science,0.7,0,7,2,2,7,8
+34,Amira Ahmed,18,Female,1,Statistics and Computer Science,3.5,0,0,9,7,3,3
+35,Mostafa Omran,21,Male,3,Statistics and Computer Science,2.83,1,0,6,5,2,5.1
+36,Fatma Abdelfattah,19,Female,1,Statistics and Computer Science,4.2,0,0,7,7,6,2
+37,Mostafa Fouad,22,Male,4,Mathematics,2.39,0,1,5,8,7,4
+38,Shahd Hamdy,18,Female,1,Statistics and Computer Science,2.1,1,2,4,7,5,3
+39,Mahmoud Hamdy,18,Male,1,Mathematics,1.3,0,1,4,8,4,5.5
+40,Farouk Gohary,19,Male,1,Statistics and Computer Science,1.6,0,0,5,7,4,6.8
+41,Farouk Saber,21,Male,3,Statistics and Computer Science,3.36,0,1,8,6,7,5
+42,Abdelrahmen Abdallah,22,Male,4,Statistics and Computer Science,1.42,1,2,2,6,7,4
+43,Marwan Abdallah,18,Male,1,Mathematics,2.68,0,3,6,6,7,7.1
+44,Heba Elgohary,19,Female,1,Mathematics,3.8,0,0,8,7,7,5.1
+45,Ali Selim,22,Male,4,Statistics and Computer Science,2.89,0,0,6,7,6,5
+46,Fatma Adel,20,Female,4,Statistics and Computer Science,1.29,0,5,6,6,9,5.3
+47,Hassan Magdy,22,Male,4,Statistics and Computer Science,3.1,0,0,8,6,6,5.5
+48,Mostafa Younes,18,Male,1,Statistics and Computer Science,1.8,0,2,5,5,3,6
+49,Sherif Sami,19,Male,2,Mathematics,2.35,0,0,6,9,5,7
+50,Tarek Osman,22,Male,4,Statistics and Computer Science,2.1,0,0,3,7,7,3
+51,Rana Magdy,21,Female,4,Statistics and Computer Science,2.76,0,0,7,7,5,6.6
+52,Salma Adel,19,Female,1,Mathematics,1.3,1,3,5,3,6,8.5
+53,Dalia Amr,20,Female,3,Statistics and Computer Science,2,1,1,4,6,5,6
+54,Farouk Omar,20,Male,3,Statistics and Computer Science,2.1,0,1,4,5,3,4.9
+55,Kareem Fahmy,20,Male,3,Statistics and Computer Science,2.35,0,1,4,5,1,4
+56,Walid Mousa,21,Male,4,Mathematics,2.47,0,1,2,5,6,4.2
+57,Kareem Maged,18,Male,1,Statistics and Computer Science,0.89,0,7,2,7,7,6.9
+58,Ghada Ragab,20,Female,4,Statistics and Computer Science,4.3,1,0,7,8,4,2.2
+59,Adel Nagy,19,Male,2,Statistics and Computer Science,1.8,0,1,3,6,6,1.5
+60,Shimaa Omar,18,Female,1,Statistics and Computer Science,0.93,1,6,4,3,5,5.3
+61,Sara Zaher,20,Female,4,Mathematics,2.83,0,0,3,4,3,6
+62,Rana Salem,18,Female,1,Statistics and Computer Science,1.01,0,2,1,3,7,7.1
+63,Sherif Ali,19,Male,2,Statistics and Computer Science,2.05,1,1,6,7,1,5.2
+64,Ahmed Badr,21,Male,4,Statistics and Computer Science,2.54,0,1,4,6,5,6
+65,Asmaa Salem,18,Female,1,Statistics and Computer Science,0.72,0,6,3,3,6,6.1
+66,Nour Fouad,21,Male,3,Statistics and Computer Science,2.17,0,0,5,5,3,5.1
+67,Asmaa Zaher,20,Female,3,Statistics and Computer Science,3.79,0,0,7,7,8,3.3
+68,Yasmin Mohamed,20,Female,3,Statistics and Computer Science,3.3,1,0,5,6,4,1
+69,Heba Helmy,18,Female,1,Statistics and Computer Science,2.71,0,0,7,4,7,1.6
+70,Bilal Hamdy,20,Male,3,Statistics and Computer Science,3.66,0,0,8,7,5,4.8
+71,Reem Tawfik,21,Female,4,Statistics and Computer Science,3.21,1,0,6,6,6,5
+72,Rami Gamal,18,Male,1,Mathematics,1.45,0,1,4,5,5,5.3
+73,Nour Hamdy,20,Male,4,Statistics and Computer Science,4.84,0,0,10,6,10,2.6
+74,Omar Ahmed,22,Male,4,Mathematics,3.09,1,0,3,9,6,5.5
+75,Rana Ragab,19,Female,2,Mathematics,2.09,0,1,5,3,7,5
+76,Rami Ibrahim,21,Male,4,Mathematics,2.95,0,0,3,8,6,5.5
+77,Sherif Mohamed,21,Male,4,Statistics and Computer Science,2.43,1,1,1,6,5,4.5
+78,Mohamed Helal,18,Male,1,Statistics and Computer Science,1.86,0,0,3,7,4,3.8
+79,Bilal Nagy,20,Male,3,Mathematics,3.17,0,0,6,7,6,3.2
+80,Omar Hassan,21,Male,4,Mathematics,2.45,1,0,2,6,7,5.3
+81,Samer Salem,21,Male,4,Statistics and Computer Science,3.28,0,0,5,6,7,7.4
+82,Farouk Nagy,18,Male,1,Statistics and Computer Science,1.59,0,1,4,6,6,7.9
+83,Amr Ragab,19,Male,2,Statistics and Computer Science,3.89,0,0,10,7,5,3.5
+84,Amira Mansour,19,Female,2,Statistics and Computer Science,1.77,0,1,2,6,6,6.4
+85,Noha Maged,19,Female,2,Statistics and Computer Science,2.53,0,1,7,2,3,4.4
+86,Hassan Maged,19,Male,2,Statistics and Computer Science,1.75,0,2,4,7,5,5.5
+87,Hossam Fouad,19,Male,1,Statistics and Computer Science,0.7,0,8,3,8,1,6.1
+88,Sara Wahba,18,Female,1,Statistics and Computer Science,1.81,0,0,5,7,4,6.4
+89,Hana Khalil,19,Female,2,Mathematics,2.33,0,0,4,5,5,3.6
+90,Mariam Kamal,19,Female,2,Statistics and Computer Science,0.2,1,13,1,2,2,7.7
+91,Dalia Amr,20,Female,3,Mathematics,1.93,0,0,1,6,3,5.8
+92,Dina Ismail,21,Female,4,Statistics and Computer Science,3.51,0,0,4,6,7,3.8
+93,Mahmoud Ahmed,18,Male,1,Statistics and Computer Science,2.25,0,1,7,9,6,8
+94,Mona Mansour,19,Female,2,Statistics and Computer Science,2.3,0,0,5,3,7,3.7
+95,Mohamed Badr,21,Male,4,Statistics and Computer Science,4.43,0,0,9,6,7,4
+96,Ahmed Nasser,21,Male,4,Mathematics,2.65,0,0,3,5,6,4.4
+97,Dalia Hassan,17,Female,1,Mathematics,1.39,0,3,4,5,7,7
+98,Dalia Mansour,20,Female,3,Mathematics,2.94,0,0,5,2,6,1
+99,Mostafa Ragab,18,Male,1,Statistics and Computer Science,2.2,1,1,7,5,8,4
+100,Asmaa Ragab,20,Female,4,Statistics and Computer Science,2.9,0,0,4,4,2,2.9
+101,Mostafa Zaher,18,Male,1,Statistics and Computer Science,0.93,0,6,2,5,5,8.1
+102,Mohamed Fahmy,20,Male,3,Statistics and Computer Science,2.39,0,0,2,9,7,8.9
+103,Fatima Tawfik,19,Female,2,Mathematics,1.58,0,3,3,4,7,6.8
+104,Faris Fahmy,19,Male,2,Statistics and Computer Science,1.65,0,2,3,5,5,4.4
+105,Zeinab Khalil,18,Female,1,Mathematics,1.58,1,0,5,7,4,5.8
+106,Rania Helmy,19,Female,2,Statistics and Computer Science,1.64,0,0,3,4,7,8.8
+107,Mariam Zaher,18,Female,1,Statistics and Computer Science,2.09,0,0,5,7,5,5.4
+108,Amira Helmy,20,Female,3,Statistics and Computer Science,3.62,0,0,6,6,3,4.2
+109,Walid Tawfik,20,Male,2,Mathematics,1.69,0,3,7,5,7,6.7
+110,Samer Ibrahim,20,Male,3,Mathematics,1.45,0,2,1,5,4,4
+111,Nour Zaher,19,Male,2,Mathematics,1.84,0,0,4,6,5,4.8
+112,Mohamed Fouad,20,Male,3,Mathematics,3.29,1,0,9,6,2,2.9
+113,Abdelrahman Zaher,21,Male,4,Statistics and Computer Science,3.51,0,0,8,6,1,4.5
+114,Reem Nagy,19,Female,2,Statistics and Computer Science,2.08,0,0,6,4,6,6.4
+115,Mariam Mansour,19,Female,2,Statistics and Computer Science,2.72,0,0,5,6,8,4.8
+116,Shimaa Hamdy,20,Female,3,Statistics and Computer Science,2.29,0,1,4,4,1,3.6
+117,Tarek Hamdy,19,Male,2,Statistics and Computer Science,2.22,0,0,5,5,4,2.9
+118,Omar Amr,18,Male,2,Statistics and Computer Science,1.54,0,2,1,6,6,5.8
+119,Wafaa Wahba,18,Female,1,Statistics and Computer Science,2.02,1,1,7,3,5,4.2
+120,Rami Helmy,19,Male,2,Statistics and Computer Science,1.17,1,1,4,5,5,5.7
+121,Farouk Ramadan,19,Male,1,Mathematics,0.91,1,7,3,6,5,5.4
+122,Yasmin Khalil,20,Female,3,Statistics and Computer Science,3.02,0,0,7,2,3,2.4
+123,Khaled Fahmy,21,Male,4,Statistics and Computer Science,1.88,1,0,2,3,7,5.6
+124,Wafaa Ahmed,20,Female,3,Statistics and Computer Science,4.01,0,0,9,7,7,3
+125,Zeinab Helal,20,Female,3,Mathematics,3.1,0,0,7,4,6,6.5
+126,Tarek Abdallah,18,Male,1,Statistics and Computer Science,1.51,0,2,5,6,1,4.6
+127,Rami Omar,18,Male,1,Mathematics,1.35,0,3,3,5,8,5.1
+128,Zeinab Nasser,18,Female,1,Statistics and Computer Science,2,1,0,3,8,5,3.7
+129,Nour Hamdy,20,Female,3,Statistics and Computer Science,2.23,1,0,4,5,6,5.7
+130,Amr Hassan,18,Male,1,Statistics and Computer Science,1.21,0,1,3,3,9,5.4
+131,Ibrahim Mohamed,18,Male,1,Mathematics,1.36,0,0,4,7,8,9.4
+132,Fatima Ragab,21,Female,4,Statistics and Computer Science,2.9,1,0,6,3,5,5.5
+133,Hana Mohamed,20,Female,2,Statistics and Computer Science,3.42,0,0,7,6,7,2.8
+134,Rami Fouad,18,Male,1,Mathematics,0.86,0,6,3,6,6,5.5
+135,Bilal Mansour,19,Male,2,Statistics and Computer Science,0.94,0,8,1,8,4,7.6
+136,Dina Ramadan,20,Female,3,Mathematics,2.96,1,0,8,6,5,4.5
+137,Ghada Khalil,19,Female,2,Mathematics,1.62,1,1,3,4,2,5.4
+138,Ahmed Ibrahim,18,Male,1,Mathematics,2.02,0,1,6,8,2,5.1
+139,Wafaa Ibrahim,19,Female,2,Mathematics,3.31,1,0,7,10,5,1.2
+140,Dalia Mousa,18,Female,1,Statistics and Computer Science,2,0,1,6,4,8,2.5
+141,Youssef Amr,20,Male,3,Mathematics,1.87,0,1,3,8,3,6.7
+142,Nour Kamal,22,Male,4,Statistics and Computer Science,3.11,0,0,3,7,7,4.6
+143,Ziad Mohamed,18,Male,1,Mathematics,1.79,0,3,5,7,5,5.1
+144,Ahmed Wahba,20,Male,3,Mathematics,1.79,1,2,2,4,9,5.7
+145,Sara Maged,21,Female,4,Mathematics,3.78,1,0,8,3,4,1
+146,Faris Wahba,20,Male,3,Mathematics,2.65,0,1,1,8,10,3.2
+147,Omar Othman,18,Male,1,Statistics and Computer Science,1.5,0,0,3,6,6,6.3
+148,Khaled Omar,18,Male,1,Mathematics,2.61,0,0,10,5,5,2.9
+149,Omar Nasser,19,Male,2,Statistics and Computer Science,2.39,0,1,2,9,6,5.3
+150,Nour Abdallah,18,Male,1,Statistics and Computer Science,2.02,1,1,7,8,1,5.2
+151,Rami Salem,21,Male,4,Mathematics,2.58,0,1,2,7,6,5.4
+152,Hossam Maged,19,Male,2,Statistics and Computer Science,1.86,0,0,5,4,4,4.9
+153,Heba Khalil,19,Female,2,Statistics and Computer Science,2.38,0,0,3,5,6,6
+154,Faris Ahmed,20,Male,3,Statistics and Computer Science,3.22,0,0,6,9,4,2.2
+155,Hassan Helmy,18,Male,1,Statistics and Computer Science,0.2,0,11,1,2,1,8.6
+156,Farouk Maged,19,Male,2,Statistics and Computer Science,0.88,1,10,3,3,1,5.1
+157,Fatima Maged,19,Female,2,Statistics and Computer Science,2.22,0,0,5,4,4,4.2
+158,Mona Ahmed,18,Female,1,Statistics and Computer Science,1.8,0,0,5,7,2,6.7
+159,Nadia Wahba,19,Female,3,Statistics and Computer Science,2.82,0,0,2,5,7,4.4
+160,Faris Mousa,19,Male,3,Mathematics,2.3,0,0,3,7,3,4.5
+161,Samer Mousa,18,Male,1,Mathematics,1.14,0,1,1,6,6,4.2
+162,Zeinab Othman,19,Female,2,Mathematics,1.76,0,1,3,5,5,5.2
+163,Fatima Abdelrahman,19,Female,2,Statistics and Computer Science,2.59,0,1,5,7,8,3.9
+164,Nour Badr,21,Male,4,Mathematics,3.59,1,0,6,10,5,4.2
+165,Zeinab Mohamed,20,Female,3,Statistics and Computer Science,2.76,0,0,4,6,5,4.3
+166,Mona Hassan,20,Female,4,Mathematics,3.62,0,0,5,7,3,5.4
+167,Reem Helmy,20,Female,3,Mathematics,2.95,0,0,5,4,6,5.7
+168,Shimaa Helmy,19,Female,3,Statistics and Computer Science,3.91,1,0,10,8,6,3.3
+169,Youssef Ibrahim,19,Male,2,Statistics and Computer Science,2.14,0,1,4,6,5,5.8
+170,Nour Amr,21,Male,4,Statistics and Computer Science,2.94,0,0,5,6,6,5.1
+171,Ahmed Khalil,19,Male,2,Statistics and Computer Science,2.45,0,1,5,5,3,3.8
+172,Adel Ragab,21,Male,4,Statistics and Computer Science,2.04,0,0,1,5,5,3
+173,Zeinab Fouad,20,Female,3,Statistics and Computer Science,2.07,0,0,3,4,6,6
+174,Hossam Mohamed,19,Male,2,Statistics and Computer Science,1.62,0,2,3,4,4,3.4
+175,Wafaa Fouad,18,Female,1,Statistics and Computer Science,1.23,0,0,4,3,7,5.8
+176,Nour Helmy,20,Male,3,Mathematics,2.65,0,0,4,9,6,5.2
+177,Amr Khalil,20,Male,3,Statistics and Computer Science,2.54,1,0,4,7,4,4.2
+178,Mohamed Nasser,20,Male,3,Mathematics,2.61,1,0,6,8,3,3.8
+179,Ziad Helmy,18,Male,1,Statistics and Computer Science,1.86,1,1,5,7,5,4.9
+180,Nour Othman,18,Male,1,Statistics and Computer Science,0.9,1,6,5,3,4,2.5
+181,Farouk Wahba,19,Male,2,Mathematics,2.59,1,0,7,6,4,4
+182,Bilal Abdelrahman,21,Male,4,Statistics and Computer Science,2.79,0,0,5,4,3,6.6
+183,Zeinab Nagy,18,Female,1,Statistics and Computer Science,2.43,0,0,8,4,7,5.4
+184,Youssef Salem,21,Male,4,Mathematics,2.78,0,0,3,6,5,7.2
+185,Omar Hamdy,21,Male,4,Statistics and Computer Science,3.19,0,0,5,6,6,4.6
+186,Walid Ramadan,18,Male,1,Statistics and Computer Science,1.46,1,1,4,6,7,4.1
+187,Ibrahim Ragab,21,Male,3,Statistics and Computer Science,2,0,1,3,6,1,8.3
+188,Hossam Tawfik,19,Male,2,Mathematics,1.29,1,2,3,6,5,5.3
+189,Wafaa Nasser,18,Female,1,Mathematics,2.14,0,0,7,5,5,4.9
+190,Layla Ragab,18,Female,1,Mathematics,1.63,1,2,4,7,6,5.8
+191,Tarek Khalil,19,Male,2,Mathematics,2.06,1,1,2,10,6,3.4
+192,Khaled Tawfik,18,Male,1,Statistics and Computer Science,1.72,0,0,4,8,6,5.1
+193,Mostafa Helmy,20,Male,3,Statistics and Computer Science,1.75,1,2,4,6,8,4.9
+194,Faris Fouad,19,Male,2,Statistics and Computer Science,2.32,0,1,6,7,1,4.7
+195,Ahmed Gamal,19,Male,2,Statistics and Computer Science,1.51,0,2,2,8,3,8
+196,Adel Amr,21,Male,4,Statistics and Computer Science,3.52,1,0,5,8,7,4.7
+197,Dalia Omar,21,Female,4,Mathematics,4.25,0,0,7,7,8,5.8
+198,Mohamed Mansour,19,Male,2,Statistics and Computer Science,1.65,0,1,2,8,3,4.5
+199,Salma Helmy,19,Female,2,Statistics and Computer Science,2.92,1,0,8,6,7,3.2
+200,Zeinab Zaher,20,Female,3,Statistics and Computer Science,2.44,0,1,4,5,7,5.2
+201,Ghada Wahba,19,Female,2,Statistics and Computer Science,1.52,0,1,5,2,2,5.8
+202,Youssef Amr,21,Male,4,Mathematics,3.17,0,0,5,8,4,5.7
+203,Hana Helal,18,Female,1,Mathematics,2.26,0,0,5,6,6,5
+204,Rana Ramadan,18,Female,1,Statistics and Computer Science,1.72,0,2,6,3,5,5.6
+205,Ghada Fouad,18,Female,1,Statistics and Computer Science,1.54,1,2,4,5,9,7.4
+206,Khaled Kamal,17,Male,1,Statistics and Computer Science,0.54,0,8,1,5,6,6.1
+207,Eman Hassan,17,Female,1,Mathematics,1.5,1,0,4,4,7,3.3
+208,Layla Nagy,21,Female,4,Mathematics,3.57,1,0,6,8,4,5.6
+209,Salma Fahmy,20,Female,3,Statistics and Computer Science,2.18,1,1,6,4,3,6
+210,Bilal Ramadan,20,Male,3,Mathematics,2.39,0,1,1,10,4,6.3
+211,Dina Ismail,21,Female,4,Statistics and Computer Science,3.28,0,0,4,5,8,6.7
+212,Heba Ismail,20,Female,3,Mathematics,2.78,0,0,4,4,9,2.2
+213,Kareem Ismail,20,Male,3,Statistics and Computer Science,1.91,1,1,3,6,3,5.2
+214,Fatima Salem,18,Female,1,Mathematics,2.06,1,0,5,9,5,3.7
+215,Sherif Hassan,18,Male,1,Statistics and Computer Science,0.83,0,7,2,6,1,9.1
+216,Nadia Maged,20,Female,3,Statistics and Computer Science,2.49,0,0,2,6,8,6.1
+217,Fatima Zaher,21,Female,4,Mathematics,2.01,0,0,2,2,2,8.5
+218,Hana Nasser,18,Female,1,Statistics and Computer Science,2.02,0,1,5,6,7,4.7
+219,Mona Ragab,19,Female,2,Mathematics,1.74,0,0,4,3,8,4.9
+220,Amr Ali,17,Male,1,Statistics and Computer Science,2,0,1,7,6,2,3.7
+221,Kareem Nasser,19,Male,1,Statistics and Computer Science,1.83,1,0,3,8,3,2.8
+222,Sherif Abdelrahman,20,Male,3,Statistics and Computer Science,2.95,0,0,4,6,6,4.4
+223,Fatima Nagy,21,Female,4,Mathematics,3.4,0,0,4,6,8,6.9
+224,Youssef Fahmy,21,Male,4,Statistics and Computer Science,3.54,0,0,6,6,4,2.5
+225,Heba Kamal,19,Female,2,Statistics and Computer Science,2.13,0,0,5,4,3,5.2
+226,Kareem Mansour,18,Male,1,Mathematics,1.12,0,0,2,6,6,7.4
+227,Mohamed Youssef,18,Male,1,Statistics and Computer Science,1.58,0,1,4,8,8,5.7
+228,Kareem Badr,20,Male,3,Statistics and Computer Science,2.93,1,0,7,6,3,4.3
+229,Noha Mohamed,21,Female,4,Statistics and Computer Science,2.92,1,0,6,5,3,4.3
+230,Yasmin Ragab,18,Female,1,Mathematics,1.13,0,0,3,3,7,6.3
+231,Nadia Ragab,21,Female,4,Mathematics,2.86,0,0,3,2,5,2.7
+232,Rami Nasser,21,Male,4,Statistics and Computer Science,2.1,1,0,2,6,3,7
+233,Dina Salem,18,Female,1,Statistics and Computer Science,1.32,0,1,3,5,5,6.1
+234,Mostafa Mansour,21,Male,4,Mathematics,3.15,0,0,3,6,6,4.7
+235,Wafaa Zaher,19,Female,3,Statistics and Computer Science,2.51,1,0,3,7,7,4.1
+236,Reem Ahmed,21,Female,4,Mathematics,2.77,1,0,3,6,6,4.3
+237,Mazen Kamal,20,Male,3,Statistics and Computer Science,1.58,0,1,3,4,5,6.5
+238,Hassan Gamal,20,Male,3,Statistics and Computer Science,2.5,0,0,4,6,2,3.5
+239,Asmaa Tawfik,20,Female,4,Mathematics,3.45,1,0,5,5,6,2.2
+240,Nour Ahmed,20,Male,3,Statistics and Computer Science,3.1,0,0,6,6,6,2.8
+241,Yasmin Zaher,19,Female,2,Statistics and Computer Science,1.7,0,0,7,2,5,5.9
+242,Kareem Maged,19,Male,2,Statistics and Computer Science,1.79,0,2,3,5,5,4.2
+243,Heba Nasser,21,Female,4,Statistics and Computer Science,3.21,0,0,4,5,5,5.5
+244,Hana Omar,18,Female,1,Statistics and Computer Science,2.92,0,0,9,6,7,2.3
+245,Walid Tawfik,19,Male,2,Statistics and Computer Science,3.03,0,0,10,5,4,3.7
+246,Rana Fahmy,18,Female,1,Statistics and Computer Science,1.1,0,3,4,2,3,4.6
+247,Abdelrahman Fouad,19,Male,2,Statistics and Computer Science,2.25,0,0,4,8,7,4.2
+248,Nadia Ismail,20,Female,3,Statistics and Computer Science,2.65,0,0,5,5,4,6.7
+249,Rami Nasser,18,Male,1,Statistics and Computer Science,0.78,0,7,2,5,4,5.9
+250,Rami Ali,19,Male,2,Statistics and Computer Science,1.53,0,3,2,7,6,4.4
+251,Rania Ismail,20,Female,3,Statistics and Computer Science,1.65,0,2,4,6,4,8.9
+252,Adel Ragab,18,Male,2,Mathematics,1.62,0,0,3,6,5,4.1
+253,Dina Zaher,20,Female,3,Statistics and Computer Science,3.51,0,0,7,4,3,2.8
+254,Nour Mousa,18,Male,2,Statistics and Computer Science,2.01,0,0,2,5,8,3.3
+255,Ibrahim Othman,19,Male,2,Mathematics,1.6,0,2,4,7,2,7.7
+256,Ghada Maged,20,Female,3,Mathematics,2.2,0,0,3,5,8,5.9
+257,Asmaa Ragab,19,Female,2,Statistics and Computer Science,2.14,0,1,3,6,2,6.1
+258,Dalia Hamdy,19,Female,2,Statistics and Computer Science,1.32,1,3,3,2,4,6.2
+259,Sara Hassan,18,Female,1,Statistics and Computer Science,1.65,0,3,4,4,4,5.5
+260,Rami Ahmed,21,Male,4,Statistics and Computer Science,3.21,0,0,4,5,7,6.4
+261,Amira Mansour,18,Female,1,Statistics and Computer Science,1.73,0,1,6,4,5,7.3
+262,Tarek Omar,19,Male,2,Statistics and Computer Science,1.03,0,0,3,2,4,5.9
+263,Adel Salem,20,Male,3,Statistics and Computer Science,1.5,1,2,3,5,2,5.8
+264,Mona Khalil,21,Female,4,Statistics and Computer Science,4.75,0,0,9,8,7,4.4
+265,Samer Fouad,19,Male,2,Statistics and Computer Science,1.21,0,1,2,6,5,6
+266,Mohamed Badr,18,Male,1,Statistics and Computer Science,0.92,0,6,2,5,6,7.9
+267,Nour Mohamed,20,Female,3,Mathematics,2.28,0,1,4,4,5,6.2
+268,Bilal Zaher,21,Male,4,Mathematics,3.81,0,0,8,4,4,4.7
+269,Shimaa Mousa,19,Female,2,Mathematics,2.09,0,1,3,5,6,2.8
+270,Yasmin Abdallah,21,Female,4,Statistics and Computer Science,2.99,0,0,3,4,6,4.2
+271,Khaled Ali,19,Male,2,Mathematics,1.78,0,0,4,5,7,4.3
+272,Faris Fouad,21,Male,4,Statistics and Computer Science,3.43,0,0,4,8,5,5.3
+273,Mazen Omar,18,Male,1,Statistics and Computer Science,1.99,0,1,7,8,2,5.1
+274,Ghada Kamal,20,Female,3,Statistics and Computer Science,2.72,1,0,3,6,7,4.8
+275,Mahmoud Youssef,21,Male,4,Statistics and Computer Science,1.86,1,1,1,3,5,4.8
+276,Mohamed Youssef,18,Male,1,Statistics and Computer Science,0.77,0,8,4,5,5,5.8
+277,Hossam Badr,21,Male,4,Statistics and Computer Science,2.17,0,0,2,8,1,6.4
+278,Zeinab Hamdy,20,Female,3,Statistics and Computer Science,2.09,0,1,4,3,3,6.7
+279,Walid Maged,19,Male,2,Statistics and Computer Science,2.47,0,1,4,8,5,2.7
+280,Samar Ahmed,18,Female,1,Statistics and Computer Science,1.81,1,0,4,5,4,5.8
+281,Hassan Gamal,19,Male,3,Mathematics,1.77,0,1,2,8,5,8.7
+282,Samar Othman,19,Female,2,Statistics and Computer Science,1.75,0,1,4,4,6,7
+283,Hassan Gamal,19,Male,2,Statistics and Computer Science,1.23,0,0,2,4,5,5.2
+284,Mostafa Badr,18,Male,1,Statistics and Computer Science,1.66,0,2,6,4,3,3.5
+285,Eman Nagy,18,Female,1,Statistics and Computer Science,2.5,0,0,4,8,6,5.2
+286,Tarek Hassan,18,Male,1,Statistics and Computer Science,0.87,0,7,3,5,6,7.6
+287,Ghada Salem,20,Female,3,Statistics and Computer Science,1.56,0,2,3,3,4,6
+288,Farouk Mohamed,19,Male,1,Mathematics,2.06,0,1,4,7,1,2.3
+289,Tarek Ismail,18,Male,1,Statistics and Computer Science,1.01,0,1,2,3,3,1
+290,Youssef Helal,20,Male,3,Mathematics,1.68,0,0,2,6,7,6.1
+291,Omar Mousa,18,Male,1,Statistics and Computer Science,0.33,0,10,1,7,4,9.6
+292,Mohamed Abdallah,19,Male,2,Statistics and Computer Science,2.56,0,0,7,6,1,2.2
+293,Amr Nasser,19,Male,2,Statistics and Computer Science,1.97,0,1,3,7,5,4.6
+294,Mostafa Zaher,20,Male,3,Mathematics,2.84,0,0,5,6,5,5.1
+295,Amira Amr,19,Female,2,Statistics and Computer Science,1.79,0,1,5,2,6,5.5
+296,Ziad Fahmy,18,Male,1,Mathematics,1.21,0,3,4,6,6,6.6
+297,Amr Nagy,21,Male,4,Statistics and Computer Science,3.15,1,0,6,6,6,1.4
+298,Faris Wahba,18,Male,1,Mathematics,1.27,0,1,4,6,3,5.4
+299,Mostafa Zaher,20,Male,3,Statistics and Computer Science,3.22,0,0,7,7,2,3.5
+300,Yasmin Ibrahim,20,Female,3,Mathematics,2.89,0,0,5,6,4,6.3
+301,Amira Othman,19,Female,2,Statistics and Computer Science,1.86,0,0,5,5,8,5.6
+302,Kareem Zaher,20,Male,3,Mathematics,1.77,1,0,2,9,2,6.4
+303,Farouk Ramadan,20,Male,3,Statistics and Computer Science,3.65,0,0,5,10,7,3.2
+304,Layla Maged,20,Female,2,Statistics and Computer Science,2.73,0,0,5,5,2,3.3
+305,Faris Helal,19,Male,2,Statistics and Computer Science,1.73,0,2,3,5,2,4.4
+306,Hassan Hassan,18,Male,1,Statistics and Computer Science,1.54,0,1,8,4,5,3.5
+307,Faris Nasser,21,Male,4,Mathematics,3,1,0,7,7,3,2.4
+308,Zeinab Mansour,21,Female,4,Statistics and Computer Science,3.13,0,0,5,2,4,3.1
+309,Asmaa Maged,18,Female,1,Statistics and Computer Science,1.8,0,1,3,8,3,4.6
+310,Eman Mousa,19,Female,2,Mathematics,3.09,0,0,6,7,5,2.3
+311,Hassan Othman,20,Male,3,Statistics and Computer Science,2.37,1,1,3,5,7,6
+312,Fatima Ibrahim,20,Female,3,Statistics and Computer Science,2.39,0,1,4,6,2,4.5
+313,Nadia Zaher,21,Female,4,Statistics and Computer Science,3.54,0,0,5,3,6,3.1
+314,Fatima Abdallah,20,Female,3,Statistics and Computer Science,1.66,0,0,1,3,6,6.2
+315,Dalia Fouad,20,Female,3,Mathematics,3.6,0,0,7,6,7,2.1
+316,Omar Othman,20,Male,3,Mathematics,1.59,0,1,5,4,1,5.5
+317,Adel Wahba,18,Male,1,Mathematics,1.52,0,2,5,6,7,4.4
+318,Hassan Zaher,19,Male,2,Statistics and Computer Science,2.61,0,0,7,6,3,7.1
+319,Bilal Nasser,20,Male,3,Statistics and Computer Science,3.4,1,0,8,9,4,4
+320,Rana Fahmy,19,Female,2,Statistics and Computer Science,3.24,0,0,8,5,4,3.1
+321,Hossam Nagy,18,Male,1,Statistics and Computer Science,2.11,1,0,6,9,3,5.1
+322,Nour Ali,19,Female,2,Mathematics,2.29,0,1,5,6,3,5.2
+323,Mahmoud Ali,19,Male,2,Mathematics,1.79,0,3,4,5,3,6.2
+324,Rana Othman,18,Female,1,Mathematics,2.38,0,1,7,3,5,1
+325,Ziad Badr,20,Male,3,Statistics and Computer Science,1.91,0,0,4,2,6,4.5
+326,Ziad Hassan,20,Male,3,Mathematics,2.22,1,0,4,6,4,3.5
+327,Bilal Abdelrahman,18,Male,1,Mathematics,0.96,0,6,6,2,6,6.6
+328,Bilal Helal,18,Male,1,Statistics and Computer Science,0.91,0,6,2,4,5,4.1
+329,Dalia Badr,17,Female,1,Statistics and Computer Science,1.51,1,2,6,2,7,4.2
+330,Farouk Ahmed,19,Male,2,Statistics and Computer Science,1.47,0,3,2,5,2,5.5
+331,Mona Ali,21,Female,4,Statistics and Computer Science,3.14,0,0,3,6,5,3.4
+332,Mahmoud Badr,19,Male,2,Mathematics,1.27,0,3,3,4,5,4.6
+333,Faris Salem,21,Male,4,Statistics and Computer Science,2.02,0,0,3,5,5,6.3
+334,Mariam Mousa,18,Female,1,Statistics and Computer Science,1.92,0,0,5,4,6,4.7
+335,Hossam Wahba,17,Male,1,Statistics and Computer Science,1.49,0,1,1,6,7,5.7
+336,Ghada Omar,19,Female,2,Mathematics,2.98,0,0,10,2,5,3.6
+337,Sherif Othman,18,Male,1,Statistics and Computer Science,0.48,0,8,2,6,6,5.8
+338,Dina Kamal,19,Female,1,Statistics and Computer Science,2.16,0,1,6,5,4,5.2
+339,Nour Ahmed,20,Male,3,Statistics and Computer Science,1.66,1,1,3,4,5,4.3
+340,Khaled Hassan,19,Male,2,Statistics and Computer Science,2.42,0,0,6,4,4,2.5
+341,Fatima Hamdy,20,Female,3,Statistics and Computer Science,4,0,0,8,7,7,3.9
+342,Khaled Khalil,18,Male,1,Statistics and Computer Science,2.13,1,1,6,7,6,3.8
+343,Wafaa Gamal,18,Female,1,Statistics and Computer Science,1.39,0,3,3,6,7,7.9
+344,Sara Salem,21,Female,4,Statistics and Computer Science,2.59,0,1,3,3,4,3.9
+345,Farouk Abdallah,20,Male,3,Statistics and Computer Science,1.59,1,3,1,5,5,7.3
+346,Dina Salem,18,Female,1,Statistics and Computer Science,1.99,0,1,6,3,10,3.9
+347,Hana Hamdy,19,Female,2,Mathematics,1.52,1,1,3,2,7,6.8
+348,Sherif Abdallah,18,Male,1,Statistics and Computer Science,2.19,0,0,8,5,2,1.1
+349,Kareem Youssef,18,Male,1,Statistics and Computer Science,0.96,0,6,2,5,6,5.3
+350,Youssef Ahmed,19,Male,2,Mathematics,2.52,0,1,7,4,6,1
+351,Nadia Gamal,19,Female,1,Statistics and Computer Science,1.45,0,2,3,3,4,3.3
+352,Mostafa Nagy,18,Male,1,Statistics and Computer Science,0.99,0,5,2,7,4,5
+353,Hassan Ahmed,18,Male,1,Mathematics,1.36,0,2,6,5,3,5.4
+354,Heba Nasser,18,Female,1,Statistics and Computer Science,1.65,0,1,5,2,4,3.8
+355,Mariam Tawfik,19,Female,2,Statistics and Computer Science,2.67,1,0,5,9,3,4.3
+356,Kareem Nasser,18,Male,1,Statistics and Computer Science,0.99,0,7,4,3,3,3.9
+357,Amira Helmy,18,Female,2,Mathematics,1.55,0,1,4,5,4,7.6
+358,Hossam Mansour,19,Male,2,Statistics and Computer Science,1.54,1,1,4,4,3,3.3
+359,Sara Abdelrahman,18,Female,1,Statistics and Computer Science,1.59,0,0,4,6,6,8.1
+360,Omar Helal,18,Male,1,Statistics and Computer Science,1.2,0,2,3,6,7,8.1
+361,Mostafa Tawfik,18,Male,1,Mathematics,1.92,0,0,5,8,5,3.6
+362,Shimaa Mohamed,21,Female,4,Statistics and Computer Science,2.85,0,0,3,5,4,6.2
+363,Dina Abdelrahman,19,Female,2,Statistics and Computer Science,1.37,0,2,3,4,6,4.7
+364,Asmaa Zaher,19,Female,2,Statistics and Computer Science,2.17,0,0,4,7,5,7.4
+365,Salma Ragab,20,Female,3,Statistics and Computer Science,2.74,0,0,5,5,9,5.4
+366,Mahmoud Salem,20,Male,3,Statistics and Computer Science,2.43,0,1,6,5,1,7.4
+367,Walid Mansour,20,Male,3,Statistics and Computer Science,1.7,0,2,2,6,1,5.4
+368,Mahmoud Omar,21,Male,4,Statistics and Computer Science,3.51,0,0,5,5,3,4.5
+369,Sherif Helmy,19,Male,2,Mathematics,1.94,1,1,3,7,6,3.3
+370,Mostafa Ismail,18,Male,1,Statistics and Computer Science,1.54,0,2,2,9,6,5.9
+371,Ibrahim Ramadan,20,Male,3,Statistics and Computer Science,1.54,0,3,1,9,4,6.5
+372,Adel Fouad,19,Male,2,Mathematics,1.36,0,2,3,6,5,5.5
+373,Nour Gamal,22,Male,4,Statistics and Computer Science,2.79,0,0,2,7,4,6.1
+374,Faris Helmy,18,Male,1,Statistics and Computer Science,1.12,0,0,3,7,6,6.6
+375,Ziad Nagy,20,Male,3,Statistics and Computer Science,2.99,0,0,5,5,9,4.8
+376,Mohamed Fahmy,18,Male,1,Statistics and Computer Science,1.15,0,1,2,9,1,4.7
+377,Kareem Kamal,19,Male,2,Statistics and Computer Science,2.43,0,1,4,6,9,3.7
+378,Nour Wahba,19,Female,2,Statistics and Computer Science,1.17,0,1,2,2,7,4.8
+379,Walid Ismail,18,Male,1,Statistics and Computer Science,1.46,0,1,3,7,4,4.9
+380,Sara Ali,20,Female,4,Statistics and Computer Science,3.29,0,0,6,3,6,6.2
+381,Hana Mansour,22,Female,4,Mathematics,3.17,0,0,4,5,5,6.5
+382,Bilal Abdallah,19,Male,1,Statistics and Computer Science,1.11,0,0,2,7,6,4.6
+383,Mazen Badr,20,Male,3,Statistics and Computer Science,1.92,0,1,4,5,6,6.1
+384,Samar Ahmed,20,Female,4,Statistics and Computer Science,3.16,1,0,4,5,6,2.8
+385,Amr Youssef,20,Male,3,Statistics and Computer Science,2.11,0,1,2,8,3,6.9
+386,Shimaa Salem,19,Female,2,Mathematics,1.86,0,0,3,2,6,3
+387,Shimaa Salem,20,Female,3,Statistics and Computer Science,1.41,0,2,3,2,4,6.9
+388,Adel Mousa,19,Male,2,Mathematics,2.19,1,1,5,6,4,3.7
+389,Wafaa Nasser,20,Female,3,Statistics and Computer Science,2.69,1,0,6,4,7,4.1
+390,Asmaa Badr,19,Female,3,Statistics and Computer Science,3.78,0,0,8,9,4,4
+391,Mahmoud Kamal,18,Male,1,Statistics and Computer Science,1.32,1,1,2,8,6,3.1
+392,Shimaa Mohamed,20,Female,3,Statistics and Computer Science,3,1,0,5,6,6,4.1
+393,Faris Ramadan,19,Male,2,Statistics and Computer Science,2.19,0,0,5,6,5,5
+394,Nour Wahba,20,Female,3,Statistics and Computer Science,2.4,0,0,6,2,3,5.8
+395,Youssef Tawfik,18,Male,1,Statistics and Computer Science,0.73,0,6,3,3,6,6.4
+396,Mona Zaher,20,Female,3,Mathematics,2.82,0,0,7,4,5,6.3
+397,Samer Kamal,18,Male,1,Statistics and Computer Science,2.07,0,0,5,6,9,5.8
+398,Ahmed Gamal,19,Male,2,Statistics and Computer Science,1.85,0,1,4,5,3,3.5
+399,Farouk Kamal,19,Male,2,Statistics and Computer Science,2,0,1,6,6,7,5.9
+400,Amira Mohamed,18,Female,1,Mathematics,1.73,0,2,5,6,4,3.2
+401,Nadia Youssef,20,Female,3,Statistics and Computer Science,1.9,0,0,2,4,4,4.6
+402,Hassan Tawfik,19,Male,2,Statistics and Computer Science,1.72,1,2,4,5,8,4.3
+403,Farouk Tawfik,18,Male,1,Mathematics,1.43,0,3,4,4,5,4
+404,Farouk Maged,21,Male,4,Statistics and Computer Science,2.52,0,0,3,8,7,4.9
+405,Nour Hamdy,20,Female,3,Mathematics,2.39,0,1,5,2,5,6.5
+406,Amr Fouad,21,Male,4,Statistics and Computer Science,3.14,1,0,4,7,3,3.3
+407,Fatima Tawfik,20,Female,3,Mathematics,2.52,0,1,3,6,5,4.1
+408,Hana Abdelrahman,18,Female,2,Statistics and Computer Science,1.79,1,2,3,2,4,2.5
+409,Rami Youssef,20,Male,3,Mathematics,1.24,0,3,2,5,5,9.9
+410,Ahmed Othman,19,Male,2,Statistics and Computer Science,2.46,0,1,4,8,9,4.5
+411,Nadia Salem,19,Female,2,Mathematics,3.05,0,0,10,3,6,3.8
+412,Dalia Salem,19,Female,2,Statistics and Computer Science,2.16,0,0,4,4,2,5.3
+413,Rania Ibrahim,18,Female,2,Statistics and Computer Science,2.39,0,1,4,5,9,6.9
+414,Salma Wahba,21,Female,4,Mathematics,3.73,1,0,5,7,6,3.1
+415,Samer Salem,19,Male,2,Statistics and Computer Science,2.48,0,1,6,7,7,3.4
+416,Nour Mousa,19,Male,2,Statistics and Computer Science,1.78,0,3,3,5,8,4.9
+417,Hossam Kamal,20,Male,2,Statistics and Computer Science,0.76,0,10,2,3,3,4.6
+418,Heba Kamal,19,Female,2,Mathematics,2.04,1,0,5,2,6,1.8
+419,Dina Mansour,18,Female,1,Statistics and Computer Science,2.22,0,0,5,5,5,2.2
+420,Walid Abdallah,21,Male,4,Statistics and Computer Science,2.61,0,1,4,2,4,5.3
+421,Wafaa Hassan,20,Female,3,Statistics and Computer Science,3.54,0,0,9,4,4,3.3
+422,Rania Fouad,19,Female,2,Mathematics,2.75,0,0,7,6,5,6.6
+423,Shimaa Amr,20,Female,3,Statistics and Computer Science,2.2,0,1,3,3,7,4.7
+424,Mariam Tawfik,21,Female,4,Statistics and Computer Science,3.95,0,0,9,4,7,3.4
+425,Amira Hassan,18,Female,2,Mathematics,3.03,0,0,7,5,6,6.3
+426,Rania Abdallah,18,Female,1,Statistics and Computer Science,2.06,1,1,4,6,7,1.7
+427,Faris Ali,19,Male,2,Statistics and Computer Science,1.52,0,1,4,3,1,6.4
+428,Dina Othman,19,Female,2,Statistics and Computer Science,2.28,1,0,4,5,5,3
+429,Farouk Ibrahim,21,Male,4,Statistics and Computer Science,3.29,0,0,6,6,6,3
+430,Youssef Mousa,21,Male,4,Statistics and Computer Science,2.55,0,1,3,6,6,6
+431,Hossam Ibrahim,21,Male,4,Statistics and Computer Science,2.55,0,1,3,3,8,5.7
+432,Zeinab Fahmy,20,Female,3,Statistics and Computer Science,3.11,0,0,4,6,5,3.5
+433,Dina Helal,19,Female,2,Mathematics,2.37,1,0,6,3,8,4.1
+434,Hossam Ismail,18,Male,1,Statistics and Computer Science,0.97,1,5,3,6,5,6.8
+435,Amr Ahmed,21,Male,4,Statistics and Computer Science,2.4,1,0,3,4,6,5.7
+436,Dina Ali,21,Female,4,Mathematics,3.04,0,0,3,8,5,5.7
+437,Eman Helal,19,Female,2,Statistics and Computer Science,3.45,0,0,10,5,5,2.9
+438,Khaled Omar,20,Male,3,Mathematics,3.48,0,0,7,10,6,4.3
+439,Ziad Badr,21,Male,4,Statistics and Computer Science,2.56,0,1,2,5,6,6.4
+440,Mahmoud Maged,19,Male,2,Statistics and Computer Science,2.25,0,1,6,5,3,4.4
+441,Ziad Maged,20,Male,3,Mathematics,3.16,0,0,5,8,7,5.7
+442,Fatima Ramadan,21,Female,4,Statistics and Computer Science,2.72,0,0,4,4,5,6.7
+443,Nour Hamdy,19,Male,1,Mathematics,0.49,0,10,1,7,5,3.8
+444,Salma Amr,18,Female,1,Statistics and Computer Science,1.23,0,0,3,7,1,5.7
+445,Hana Badr,21,Female,4,Statistics and Computer Science,3.79,0,0,8,4,5,5
+446,Rana Amr,21,Female,4,Statistics and Computer Science,3.23,0,0,6,4,1,4.3
+447,Ibrahim Ibrahim,18,Male,1,Mathematics,1.85,1,0,5,5,7,3
+448,Mazen Fouad,20,Male,3,Statistics and Computer Science,1.93,1,1,1,8,3,7.2
+449,Mohamed Hamdy,20,Male,3,Statistics and Computer Science,2.85,0,0,6,7,4,4.6
+450,Dalia Abdelrahman,20,Female,3,Mathematics,2.89,1,0,4,7,5,4.1
+451,Hossam Hamdy,20,Male,3,Statistics and Computer Science,1.1,0,2,1,5,2,5.2
+452,Farouk Abdelrahman,19,Male,2,Statistics and Computer Science,2.67,0,1,7,5,5,4
+453,Sherif Salem,20,Male,3,Mathematics,1.32,0,0,3,4,3,5
+454,Bilal Hassan,20,Male,3,Statistics and Computer Science,2.42,0,1,4,5,5,5.1
+455,Nadia Salem,18,Female,1,Statistics and Computer Science,0.96,0,6,3,4,7,3.2
+456,Mariam Hassan,18,Female,1,Statistics and Computer Science,1.78,1,1,3,5,8,2.1
+457,Mostafa Hamdy,18,Male,1,Mathematics,2.45,0,1,7,4,8,3.5
+458,Zeinab Ramadan,21,Female,4,Statistics and Computer Science,3.16,0,0,5,4,5,4.5
+459,Khaled Nasser,19,Male,2,Statistics and Computer Science,1.49,0,3,2,5,3,4.9
+460,Mohamed Maged,20,Male,3,Statistics and Computer Science,3.18,0,0,5,8,6,6
+461,Abdelrahman Gamal,21,Male,4,Statistics and Computer Science,2.04,0,0,3,5,8,5.4
+462,Tarek Ragab,18,Male,1,Mathematics,0.2,0,11,2,5,3,6.8
+463,Mona Hassan,18,Female,1,Mathematics,2.89,0,0,8,7,8,4.6
+464,Nadia Amr,18,Female,1,Statistics and Computer Science,1.72,0,3,3,7,5,2.1
+465,Mona Mohamed,21,Female,4,Mathematics,2.56,0,0,4,4,1,5.9
+466,Adel Ali,20,Male,3,Statistics and Computer Science,2.52,0,1,3,5,5,7.6
+467,Amr Ramadan,18,Male,1,Statistics and Computer Science,1.18,0,0,2,3,9,5.9
+468,Mohamed Youssef,18,Male,1,Statistics and Computer Science,0.52,0,8,1,3,6,5.9
+469,Mohamed Kamal,18,Male,1,Statistics and Computer Science,1.98,0,0,6,6,7,3
+470,Abdelrahman Mohamed,21,Male,4,Statistics and Computer Science,2.74,1,0,2,8,6,5.1
+471,Khaled Wahba,19,Male,2,Statistics and Computer Science,2.47,0,0,4,9,2,3.7
+472,Farouk Fahmy,21,Male,4,Statistics and Computer Science,2.42,0,0,1,7,1,3.4
+473,Nour Helal,21,Female,4,Mathematics,3.21,0,0,4,4,3,5.6
+474,Mariam Badr,21,Female,4,Statistics and Computer Science,3.02,0,0,6,6,4,6
+475,Ghada Mohamed,19,Female,2,Statistics and Computer Science,1.75,0,3,3,2,3,5
+476,Hossam Fahmy,18,Male,1,Statistics and Computer Science,0.58,0,8,1,6,3,5.7
+477,Walid Tawfik,20,Male,2,Statistics and Computer Science,2.39,0,1,5,4,7,4
+478,Faris Ali,21,Male,4,Mathematics,3.23,1,0,7,6,8,5.8
+479,Rami Gamal,21,Male,4,Mathematics,2.88,0,0,4,8,2,5.8
+480,Nour Omar,19,Male,2,Mathematics,2.54,0,1,5,10,3,4.5
+481,Fatima Nasser,19,Female,2,Statistics and Computer Science,2.07,1,1,4,5,5,3.8
+482,Hana Hassan,20,Female,3,Statistics and Computer Science,2.81,0,0,4,6,5,5.4
+483,Ahmed Hassan,19,Male,2,Statistics and Computer Science,2.28,1,0,6,3,1,5.3
+484,Khaled Nasser,18,Male,1,Statistics and Computer Science,1.57,0,0,2,5,10,4.9
+485,Dalia Helmy,18,Female,1,Statistics and Computer Science,2.66,0,1,6,8,6,3.4
+486,Nour Ismail,19,Female,2,Mathematics,2.08,0,1,4,7,6,5.7
+487,Hossam Badr,18,Male,1,Mathematics,1.65,0,0,5,7,1,4.8
+488,Bilal Zaher,20,Male,3,Statistics and Computer Science,2.2,1,1,1,7,6,2.8
+489,Mohamed Omar,20,Male,3,Statistics and Computer Science,1.93,0,0,2,9,3,5.5
+490,Nadia Ismail,21,Female,4,Statistics and Computer Science,3.04,0,0,4,4,6,4.7
+491,Rana Mansour,20,Female,3,Mathematics,3.73,1,0,9,4,6,2.3
+492,Mohamed Othman,19,Male,2,Statistics and Computer Science,1.83,1,0,2,10,5,4.9
+493,Layla Omar,18,Female,1,Statistics and Computer Science,1.57,0,3,7,3,6,4.8
+494,Ahmed Hassan,18,Male,1,Statistics and Computer Science,2.25,1,0,8,7,4,5.7
+495,Wafaa Ragab,21,Female,4,Statistics and Computer Science,3.93,0,0,7,4,5,5.4
+496,Fatima Fahmy,20,Female,3,Mathematics,2.44,0,0,3,8,1,6.7
+497,Ibrahim Ragab,18,Male,1,Statistics and Computer Science,1.6,1,3,5,5,6,3.3
+498,Ziad Maged,19,Male,2,Statistics and Computer Science,3.21,0,0,9,5,5,4
+499,Layla Ibrahim,21,Female,3,Statistics and Computer Science,3.38,0,0,6,4,10,3.7
+500,Tarek Wahba,20,Male,3,Mathematics,3.65,0,0,9,7,5,2.9

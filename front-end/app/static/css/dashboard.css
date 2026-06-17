@@ -647,7 +647,7 @@ body.dark-mode .course-bar-pct {
 
 #card-course-attendance {
     grid-column: 2;
-    grid-row: 2 / 4;
+    grid-row: 3;
 }
 
 .gpa-progress-layout {
@@ -1139,6 +1139,52 @@ body.dark-mode #donut-gpa-progress {
     100% {
         background-position: -200% 0;
     }
+}
+
+/* ==================== RECOMMENDATION STATUS PILLS ==================== */
+.rec-status-pill {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+}
+
+.rec-pill-good {
+    background: rgba(34, 197, 94, 0.14);
+    color: #15803d;
+    border: 1px solid rgba(34, 197, 94, 0.3);
+}
+
+.rec-pill-bad {
+    background: rgba(239, 68, 68, 0.12);
+    color: #b91c1c;
+    border: 1px solid rgba(239, 68, 68, 0.25);
+}
+
+/* Real data table rows styling */
+.placeholder-table tbody tr:not(.placeholder-row) td {
+    font-size: 13px;
+    font-weight: 500;
+    color: #2a1a0a;
+}
+
+body.dark-mode .placeholder-table tbody tr:not(.placeholder-row) td {
+    color: #cdd5f0;
+}
+
+body.dark-mode .rec-pill-good {
+    background: rgba(20, 184, 166, 0.16);
+    color: #5eead4;
+    border-color: rgba(94, 234, 212, 0.25);
+}
+
+body.dark-mode .rec-pill-bad {
+    background: rgba(248, 113, 113, 0.14);
+    color: #fca5a5;
+    border-color: rgba(248, 113, 113, 0.22);
 }
 
 /* ==================== TASK LIST ==================== */
@@ -1663,4 +1709,104 @@ body.dark-mode .custom-modal-subtitle {
     font-size: 16px;
     font-weight: 800;
     width: 50px;
+}
+
+/* ==================== RECOMMENDATION CHART SCROLLING ==================== */
+.rec-chart-scroll-container {
+    max-height: 220px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    position: relative;
+    padding-right: 6px;
+}
+
+.rec-chart-inner {
+    width: 100%;
+    position: relative;
+}
+
+/* Custom premium scrollbar for chart container */
+.rec-chart-scroll-container::-webkit-scrollbar {
+    width: 6px;
+}
+
+.rec-chart-scroll-container::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.rec-chart-scroll-container::-webkit-scrollbar-thumb {
+    background: rgba(42, 20, 6, 0.12);
+    border-radius: 999px;
+}
+
+.rec-chart-scroll-container::-webkit-scrollbar-thumb:hover {
+    background: rgba(42, 20, 6, 0.25);
+}
+
+body.dark-mode .rec-chart-scroll-container::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.08);
+}
+
+body.dark-mode .rec-chart-scroll-container::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.18);
+}
+
+/* ==================== RECOMMENDATION TABLE SCROLLING ==================== */
+.rec-table-scroll-container {
+    max-height: 400px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    position: relative;
+    padding-right: 6px;
+}
+
+.rec-table-scroll-container::-webkit-scrollbar {
+    width: 6px;
+}
+
+.rec-table-scroll-container::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.rec-table-scroll-container::-webkit-scrollbar-thumb {
+    background: rgba(42, 20, 6, 0.12);
+    border-radius: 999px;
+}
+
+.rec-table-scroll-container::-webkit-scrollbar-thumb:hover {
+    background: rgba(42, 20, 6, 0.25);
+}
+
+body.dark-mode .rec-table-scroll-container::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.08);
+}
+
+body.dark-mode .rec-table-scroll-container::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.18);
+}
+
+/* Scrollbar styles for the custom modal content areas */
+.custom-modal-content::-webkit-scrollbar {
+    width: 6px;
+}
+
+.custom-modal-content::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.custom-modal-content::-webkit-scrollbar-thumb {
+    background: rgba(42, 20, 6, 0.12);
+    border-radius: 999px;
+}
+
+.custom-modal-content::-webkit-scrollbar-thumb:hover {
+    background: rgba(42, 20, 6, 0.25);
+}
+
+body.dark-mode .custom-modal-content::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.08);
+}
+
+body.dark-mode .custom-modal-content::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.18);
 }
