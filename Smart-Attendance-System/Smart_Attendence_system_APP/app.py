@@ -18,6 +18,9 @@ from datetime import datetime
 import config
 import httpx
 from typing import Optional, List
+from dotenv import load_dotenv
+
+load_dotenv()
 
 def _resolve_model_path(path):
     if os.path.exists(path):
