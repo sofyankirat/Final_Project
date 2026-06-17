@@ -470,43 +470,18 @@
                             </table>
                         </div>
                         {% else %}
-                        <table class="placeholder-table" aria-label="Recommendations placeholder">
-                            <thead>
-                                <tr>
-                                    <th>Course</th>
-                                    <th>Professor</th>
-                                    <th>Score</th>
-                                    <th>Status</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr class="placeholder-row">
-                                    <td><span class="skeleton-line" style="width:130px"></span></td>
-                                    <td><span class="skeleton-line" style="width:100px"></span></td>
-                                    <td><span class="skeleton-line" style="width:40px"></span></td>
-                                    <td><span class="skeleton-pill"></span></td>
-                                </tr>
-                                <tr class="placeholder-row">
-                                    <td><span class="skeleton-line" style="width:110px"></span></td>
-                                    <td><span class="skeleton-line" style="width:90px"></span></td>
-                                    <td><span class="skeleton-line" style="width:40px"></span></td>
-                                    <td><span class="skeleton-pill"></span></td>
-                                </tr>
-                                <tr class="placeholder-row">
-                                    <td><span class="skeleton-line" style="width:140px"></span></td>
-                                    <td><span class="skeleton-line" style="width:80px"></span></td>
-                                    <td><span class="skeleton-line" style="width:40px"></span></td>
-                                    <td><span class="skeleton-pill"></span></td>
-                                </tr>
-                                <tr class="placeholder-row">
-                                    <td><span class="skeleton-line" style="width:120px"></span></td>
-                                    <td><span class="skeleton-line" style="width:95px"></span></td>
-                                    <td><span class="skeleton-line" style="width:40px"></span></td>
-                                    <td><span class="skeleton-pill"></span></td>
-                                </tr>
-                            </tbody>
-                        </table>
-                        <p class="chart-coming-soon">Recommendations will appear here after you use the Recommendation page</p>
+                        <div class="rec-empty-state">
+                            <div class="empty-icon-pulse">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M21.42 10.922a1 1 0 0 0-.019-1.838L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.832l8.57 3.908a2 2 0 0 0 1.66 0z"/>
+                                    <path d="M6 18.8v-4L2 13v6a1 1 0 0 0 1 1h3Z"/>
+                                    <path d="M21.5 12v6a1 1 0 0 1-1 1h-3v-4.5"/>
+                                </svg>
+                            </div>
+                            <h3 class="empty-title">Discover Your Perfect Academic Path</h3>
+                            <p class="empty-desc">Our AI-driven recommendation engine analyzes your academic profile to suggest the best courses and professors. Get tailored matching scores to optimize your semester!</p>
+                            <a href="{{ url_for('recommendations') }}" class="empty-cta-btn">Run Recommendation Engine</a>
+                        </div>
                         {% endif %}
                     </div>
 
@@ -533,7 +508,28 @@
                                 </div>
                             </div>
                             {% else %}
-                            <p class="chart-coming-soon" style="padding: 40px 20px;">No recommendation data yet. Visit the <a href="{{ url_for('recommendations') }}" style="color: inherit; text-decoration: underline;">Recommendations</a> page to generate scores.</p>
+                            <div class="rec-empty-state rec-empty-chart-state">
+                                <div class="empty-chart-visual">
+                                    <div class="mock-bar-row">
+                                        <div class="mock-bar-label">Course A</div>
+                                        <div class="mock-bar-track"><div class="mock-bar-fill" style="width: 85%"></div></div>
+                                        <div class="mock-bar-value">85%</div>
+                                    </div>
+                                    <div class="mock-bar-row">
+                                        <div class="mock-bar-label">Course B</div>
+                                        <div class="mock-bar-track"><div class="mock-bar-fill" style="width: 72%"></div></div>
+                                        <div class="mock-bar-value">72%</div>
+                                    </div>
+                                    <div class="mock-bar-row">
+                                        <div class="mock-bar-label">Course C</div>
+                                        <div class="mock-bar-track"><div class="mock-bar-fill" style="width: 58%"></div></div>
+                                        <div class="mock-bar-value">58%</div>
+                                    </div>
+                                </div>
+                                <h3 class="empty-title">Visual Match Analysis</h3>
+                                <p class="empty-desc">Once you select your preferences, a horizontal bar chart will display the matching scores for all courses and professors here.</p>
+                                <a href="{{ url_for('recommendations') }}" class="empty-cta-link-btn">Generate Match Scores</a>
+                            </div>
                             {% endif %}
                         </div>
                     </div>
