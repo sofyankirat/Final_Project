@@ -1805,7 +1805,11 @@ def is_user_enrolled(student_name: str, user_id: int = 0) -> bool:
     key_to_check = f"user_{user_id}" if user_id > 0 else student_name
 
     import pickle
-    db_path = os.path.join(_ATTENDANCE_ROOT, 'database', 'database.pkl')
+    db_dir = os.getenv('SQLITE_DB_DIR')
+    if db_dir:
+        db_path = os.path.join(db_dir, 'database.pkl')
+    else:
+        db_path = os.path.join(_ATTENDANCE_ROOT, 'database', 'database.pkl')
     if os.path.exists(db_path):
         try:
             with open(db_path, 'rb') as f:

@@ -13,7 +13,12 @@ CAMERA_SOURCE = 0
 
 YOLO_PATH = os.path.join(BASE_DIR, "models", "yolov8s-face-lindevs.pt")
 ARCFACE_PATH = os.path.join(BASE_DIR, "models", "w600k_mbf.onnx")
-DATABASE_PATH = os.path.join(BASE_DIR, "database", "database.pkl")
+# Support persistent storage directory (e.g. Railway volume mounts)
+db_dir = os.getenv('SQLITE_DB_DIR')
+if db_dir:
+    DATABASE_PATH = os.path.join(db_dir, "database.pkl")
+else:
+    DATABASE_PATH = os.path.join(BASE_DIR, "database", "database.pkl")
 LOG_PATH = os.path.join(BASE_DIR, "logs", "attendance_log.csv") # Output path
 
 # RECOGNETION
