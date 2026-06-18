@@ -2098,6 +2098,179 @@ def receive_session_attendance():
         return jsonify({'success': False, 'message': str(e)}), 500
 
 
+# ================== TASKS ROUTE ==================
+
+@app.route('/tasks')
+@login_required
+def tasks():
+    """Tasks management page"""
+    user_id = session.get('user_id')
+    email = session.get('email', '')
+    username = email.split('@')[0].capitalize() if email else 'User'
+
+    # Get profile photo if exists
+    profile_photo = None
+    try:
+        connection = get_db_connection()
+        if connection:
+            cursor = connection.cursor()
+            cursor.execute("SELECT student_id, gender FROM user_additional_info WHERE user_id = %s", (user_id,))
+            info = cursor.fetchone()
+            if info:
+                student_id = info[0]
+                gender = info[1].lower() if info[1] else 'male'
+                
+                # Check for uploaded custom photo
+                upload_dir = os.path.join(app.static_folder, 'uploads', 'profiles')
+                photo_filename = None
+                if student_id:
+                    for ext in ['jpg', 'jpeg', 'png', 'webp']:
+                        test_file = f"{student_id}.{ext}"
+                        if os.path.exists(os.path.join(upload_dir, test_file)):
+                            photo_filename = test_file
+                            break
+                if photo_filename:
+                    profile_photo = url_for('static', filename=f'uploads/profiles/{photo_filename}')
+                else:
+                    # Fallback default avatar
+                    profile_photo = url_for('static', filename=f'images/{"avatar_female.png" if gender == "female" else "avatar_male.png"}')
+            cursor.close()
+            connection.close()
+    except Exception as e:
+        print(f"Error loading tasks profile photo: {e}")
+
+    # Fetch user tasks
+    tasks_list = []
+    try:
+        connection = get_db_connection()
+        if connection:
+            cursor = connection.cursor()
+            cursor.execute(
+                "SELECT id, task_text, is_completed FROM user_tasks WHERE user_id = %s ORDER BY created_at DESC",
+                (user_id,)
+            )
+            rows = cursor.fetchall()
+            for r in rows:
+                tasks_list.append({
+                    'id': r[0],
+                    'text': r[1],
+                    'completed': bool(r[2])
+                })
+            cursor.close()
+            connection.close()
+    except Exception as e:
+        print(f"Error fetching tasks: {e}")
+
+    return render_template(
+        'tasks.html',
+        tasks=tasks_list,
+        username=username,
+        email=email,
+        profile_photo=profile_photo
+    )
+
+@app.route('/tasks/add', methods=['POST'])
+@login_required
+def add_task():
+    """Add a new task"""
+    try:
+        user_id = session.get('user_id')
+        data = request.get_json() or {}
+        task_text = to_clean_string(data.get('task_text', ''))
+        
+        if not task_text:
+            return jsonify({'success': False, 'message': 'Task content cannot be empty'}), 400
+            
+        connection = get_db_connection()
+        if connection is None:
+            return jsonify({'success': False, 'message': 'Database connection error'}), 500
+            
+        cursor = connection.cursor()
+        cursor.execute(
+            "INSERT INTO user_tasks (user_id, task_text, is_completed) VALUES (%s, %s, FALSE)",
+            (user_id, task_text)
+        )
+        task_id = cursor.lastrowid
+        connection.commit()
+        cursor.close()
+        connection.close()
+        
+        return jsonify({
+            'success': True,
+            'task': {
+                'id': task_id,
+                'text': task_text,
+                'completed': False
+            }
+        }), 201
+    except Exception as e:
+        print(f"Error adding task: {e}")
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+@app.route('/tasks/toggle/<int:task_id>', methods=['POST'])
+@login_required
+def toggle_task(task_id):
+    """Toggle a task's completion status"""
+    try:
+        user_id = session.get('user_id')
+        
+        connection = get_db_connection()
+        if connection is None:
+            return jsonify({'success': False, 'message': 'Database connection error'}), 500
+            
+        cursor = connection.cursor()
+        
+        # Verify the task belongs to the user
+        cursor.execute("SELECT is_completed FROM user_tasks WHERE id = %s AND user_id = %s", (task_id, user_id))
+        row = cursor.fetchone()
+        if not row:
+            cursor.close()
+            connection.close()
+            return jsonify({'success': False, 'message': 'Task not found'}), 404
+            
+        new_status = not bool(row[0])
+        cursor.execute(
+            "UPDATE user_tasks SET is_completed = %s WHERE id = %s AND user_id = %s",
+            (new_status, task_id, user_id)
+        )
+        connection.commit()
+        cursor.close()
+        connection.close()
+        
+        return jsonify({
+            'success': True,
+            'completed': new_status
+        })
+    except Exception as e:
+        print(f"Error toggling task: {e}")
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+@app.route('/tasks/delete/<int:task_id>', methods=['POST'])
+@login_required
+def delete_task(task_id):
+    """Delete a task"""
+    try:
+        user_id = session.get('user_id')
+        
+        connection = get_db_connection()
+        if connection is None:
+            return jsonify({'success': False, 'message': 'Database connection error'}), 500
+            
+        cursor = connection.cursor()
+        cursor.execute(
+            "DELETE FROM user_tasks WHERE id = %s AND user_id = %s",
+            (task_id, user_id)
+        )
+        connection.commit()
+        cursor.close()
+        connection.close()
+        
+        return jsonify({'success': True})
+    except Exception as e:
+        print(f"Error deleting task: {e}")
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+
 # ================== ERROR HANDLERS ==================
 
 @app.errorhandler(404)

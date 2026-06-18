@@ -271,6 +271,22 @@ def init_db():
         
         # Create separate index for course schedule
         cursor.execute("CREATE INDEX IF NOT EXISTS idx_course_sched_user ON user_course_schedule (user_id)")
+
+        # Create user tasks table
+        create_user_tasks_table = """
+        CREATE TABLE IF NOT EXISTS user_tasks (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            task_text TEXT NOT NULL,
+            is_completed BOOLEAN NOT NULL DEFAULT FALSE,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+        )
+        """
+        cursor.execute(create_user_tasks_table)
+        
+        # Create separate index for user tasks
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_user_tasks_user ON user_tasks (user_id)")
         
         connection.commit()
         cursor.close()
