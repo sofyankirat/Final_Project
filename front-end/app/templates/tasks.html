@@ -145,6 +145,7 @@
         /* Task Form */
         .tasks-form {
             display: flex;
+            align-items: flex-start;
             gap: 12px;
             margin-bottom: 24px;
         }
@@ -152,6 +153,8 @@
         .tasks-input-wrapper {
             position: relative;
             flex: 1;
+            display: flex;
+            flex-direction: column;
         }
 
         .tasks-input {
@@ -289,6 +292,7 @@
             gap: 16px;
             flex: 1;
             cursor: pointer;
+            min-width: 0;
         }
 
         .task-checkbox-container {
@@ -371,6 +375,9 @@
             line-height: 1.5;
             transition: all 0.25s ease;
             user-select: none;
+            word-break: break-word;
+            overflow-wrap: break-word;
+            word-wrap: break-word;
         }
 
         body.dark-mode .task-text {
@@ -445,15 +452,14 @@
 
         /* Custom Input Validation Warnings */
         .tasks-input-error {
-            position: absolute;
-            top: calc(100% + 5px);
-            left: 12px;
             color: #ef4444;
             font-size: 12.5px;
             font-weight: 600;
             display: flex;
             align-items: center;
             gap: 5px;
+            margin-top: 6px;
+            margin-left: 12px;
             animation: slideInError 0.25s ease-out forwards;
             z-index: 10;
         }
@@ -820,9 +826,13 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 24px;
-            font-weight: 700;
             transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .add-day-icon svg {
+            width: 20px;
+            height: 20px;
+            stroke-width: 3px;
         }
 
         body.dark-mode .add-day-icon {
@@ -1340,13 +1350,18 @@
 
                     <!-- Add Day Card -->
                     <div class="add-day-card" onclick="openDatePicker()">
-                        <div class="add-day-icon">+</div>
+                        <div class="add-day-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="12" y1="5" x2="12" y2="19"></line>
+                                <line x1="5" y1="12" x2="19" y2="12"></line>
+                            </svg>
+                        </div>
                         <span class="add-day-text">Add Day</span>
                     </div>
                 </div>
 
                 <!-- ===== TASK EDITING OVERLAY MODAL ===== -->
-                <div class="tasks-modal-overlay" id="tasksModalOverlay" onclick="closeTasksModalOnBackdrop(event)">
+                <div class="tasks-modal-overlay" id="tasksModalOverlay">
                     <div class="tasks-modal">
                         <div class="tasks-modal-header">
                             <h3 class="tasks-modal-title" id="tasksModalTitle">Tasks for Date</h3>
@@ -1404,7 +1419,7 @@
                 </div>
 
                 <!-- ===== DATE PICKER OVERLAY MODAL ===== -->
-                <div class="tasks-modal-overlay" id="datePickerOverlay" onclick="closeDatePickerOnBackdrop(event)">
+                <div class="tasks-modal-overlay" id="datePickerOverlay">
                     <div class="tasks-modal" style="max-width: 400px;">
                         <div class="tasks-modal-header">
                             <h3 class="tasks-modal-title">Select Date</h3>
@@ -1593,11 +1608,34 @@
             if (errorMsg) errorMsg.style.display = 'none';
         }
 
-        function closeTasksModalOnBackdrop(e) {
-            if (e.target === document.getElementById('tasksModalOverlay')) {
-                closeTasksModal();
+        // Programmatic backdrop close logic with mousedown tracking to prevent closing during text selection
+        (function() {
+            const tasksOverlay = document.getElementById('tasksModalOverlay');
+            let tasksMouseDownOnOverlay = false;
+            if (tasksOverlay) {
+                tasksOverlay.addEventListener('mousedown', (e) => {
+                    tasksMouseDownOnOverlay = (e.target === tasksOverlay);
+                });
+                tasksOverlay.addEventListener('click', (e) => {
+                    if (e.target === tasksOverlay && tasksMouseDownOnOverlay) {
+                        closeTasksModal();
+                    }
+                });
             }
-        }
+
+            const dateOverlay = document.getElementById('datePickerOverlay');
+            let dateMouseDownOnOverlay = false;
+            if (dateOverlay) {
+                dateOverlay.addEventListener('mousedown', (e) => {
+                    dateMouseDownOnOverlay = (e.target === dateOverlay);
+                });
+                dateOverlay.addEventListener('click', (e) => {
+                    if (e.target === dateOverlay && dateMouseDownOnOverlay) {
+                        closeDatePicker();
+                    }
+                });
+            }
+        })();
 
         // Open/Close Date Picker
         function openDatePicker() {
@@ -1615,11 +1653,7 @@
             document.getElementById('datePickerOverlay').classList.remove('open');
         }
 
-        function closeDatePickerOnBackdrop(e) {
-            if (e.target === document.getElementById('datePickerOverlay')) {
-                closeDatePicker();
-            }
-        }
+
 
         // Confirm Add Day Card
         function confirmAddDayCard() {
@@ -1898,7 +1932,10 @@
                         taskEl.addEventListener('animationend', () => {
                             taskEl.remove();
                             tasks.splice(taskIndex, 1);
-                            renderModalTasks();
+                            if (tasks.length === 0) {
+                                tasksEmptyState.style.display = 'flex';
+                            }
+                            updateModalProgress();
                         });
                     } else {
                         tasks.splice(taskIndex, 1);
