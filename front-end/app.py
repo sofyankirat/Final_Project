@@ -2028,9 +2028,105 @@ def attendance_test_recognize():
         return jsonify({'success': False, 'message': f'Error: {err}'}), 500
 
 
+import threading
+
+is_processing_frame = False
+
+def process_frame_async(fpath):
+    global is_processing_frame
+    
+    script_path = os.path.join(_ATTENDANCE_ROOT, 'web_recognize.py')
+    venv_python = os.path.join(_ATTENDANCE_ROOT, 'venv', 'Scripts', 'python.exe')
+    if not os.path.exists(venv_python):
+        venv_python = sys.executable
+
+    try:
+        env = os.environ.copy()
+        env['PYTHONIOENCODING'] = 'utf-8'
+        proc = subprocess.run(
+            [venv_python, script_path, fpath],
+            cwd=_ATTENDANCE_ROOT,
+            capture_output=True, text=True, encoding='utf-8', errors='replace',
+            env=env, timeout=15,
+        )
+        
+        result = None
+        for line in (proc.stdout or '').splitlines():
+            if line.startswith('__RESULT_JSON__'):
+                try:
+                    result = json.loads(line[len('__RESULT_JSON__'):])
+                    break
+                except json.JSONDecodeError:
+                    pass
+
+        if result and result.get('success'):
+            faces = result.get('faces', [])
+            recognized_names = []
+            for face in faces:
+                name = face.get('name')
+                if name and name != "Unknown":
+                    recognized_names.append(name)
+            
+            if recognized_names:
+                connection = get_db_connection()
+                if connection is not None:
+                    cursor = connection.cursor()
+                    today = datetime.now().strftime("%Y-%m-%d")
+                    logged_count = 0
+                    
+                    for key in recognized_names:
+                        user_id = None
+                        if key.startswith("user_"):
+                            try:
+                                user_id = int(key.split("_")[1])
+                            except (IndexError, ValueError):
+                                continue
+                        else:
+                            try:
+                                user_id = int(key)
+                            except ValueError:
+                                continue
+
+                        if user_id is None:
+                            continue
+
+                        cursor.execute("SELECT 1 FROM users WHERE id = %s LIMIT 1", (user_id,))
+                        if cursor.fetchone() is None:
+                            continue
+
+                        cursor.execute(
+                            "SELECT 1 FROM attendance WHERE user_id = %s AND date(attendance_date) = %s AND course_id IS NULL LIMIT 1",
+                            (user_id, today)
+                        )
+
+                        if cursor.fetchone() is None:
+                            today_datetime = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                            cursor.execute(
+                                "INSERT INTO attendance (user_id, course_id, attendance_date, status) VALUES (%s, %s, %s, TRUE)",
+                                (user_id, None, today_datetime)
+                            )
+                            logged_count += 1
+                            print(f"[WS] Automatically logged attendance for student user_{user_id}")
+                    
+                    if logged_count > 0:
+                        connection.commit()
+                    cursor.close()
+                    connection.close()
+    except Exception as ex:
+        print(f"[WS] Subprocess error during background frame processing: {ex}")
+    finally:
+        try:
+            if os.path.exists(fpath):
+                os.remove(fpath)
+        except Exception:
+            pass
+        is_processing_frame = False
+
+
 @sock.route('/ws/camera-stream')
 def ws_camera_stream(ws):
     """WebSocket stream endpoint for ESP32-CAM to stream binary JPEG frames."""
+    global is_processing_frame
     print("[WS] ESP32-CAM connected via WebSocket!")
     
     try:
@@ -2043,11 +2139,6 @@ def ws_camera_stream(ws):
     static_root = get_static_root()
     test_dir = os.path.join(static_root, 'uploads', 'attendance', 'test')
     os.makedirs(test_dir, exist_ok=True)
-    
-    script_path = os.path.join(_ATTENDANCE_ROOT, 'web_recognize.py')
-    venv_python = os.path.join(_ATTENDANCE_ROOT, 'venv', 'Scripts', 'python.exe')
-    if not os.path.exists(venv_python):
-        venv_python = sys.executable
 
     try:
         while True:
@@ -2056,90 +2147,18 @@ def ws_camera_stream(ws):
                 break
                 
             if isinstance(data, bytes):
+                if is_processing_frame:
+                    continue
+                
+                is_processing_frame = True
                 timestamp = datetime.now().strftime('%Y%m%d_%H%M%S_%f')
                 fpath = os.path.join(test_dir, f"ws_esp32_{timestamp}.jpg")
                 with open(fpath, 'wb') as fh:
                     fh.write(data)
 
-                try:
-                    env = os.environ.copy()
-                    env['PYTHONIOENCODING'] = 'utf-8'
-                    proc = subprocess.run(
-                        [venv_python, script_path, fpath],
-                        cwd=_ATTENDANCE_ROOT,
-                        capture_output=True, text=True, encoding='utf-8', errors='replace',
-                        env=env, timeout=10,
-                    )
-                    
-                    result = None
-                    for line in (proc.stdout or '').splitlines():
-                        if line.startswith('__RESULT_JSON__'):
-                            try:
-                                result = json.loads(line[len('__RESULT_JSON__'):])
-                                break
-                            except json.JSONDecodeError:
-                                pass
-
-                    try:
-                        if os.path.exists(fpath):
-                            os.remove(fpath)
-                    except Exception:
-                        pass
-
-                    if result and result.get('success'):
-                        faces = result.get('faces', [])
-                        recognized_names = []
-                        for face in faces:
-                            name = face.get('name')
-                            if name and name != "Unknown":
-                                recognized_names.append(name)
-                        
-                        if recognized_names:
-                            connection = get_db_connection()
-                            if connection is not None:
-                                cursor = connection.cursor()
-                                today = datetime.now().strftime("%Y-%m-%d")
-                                logged_count = 0
-                                
-                                for key in recognized_names:
-                                    user_id = None
-                                    if key.startswith("user_"):
-                                        try:
-                                            user_id = int(key.split("_")[1])
-                                        except (IndexError, ValueError):
-                                            continue
-                                    else:
-                                        try:
-                                            user_id = int(key)
-                                        except ValueError:
-                                            continue
-
-                                    if user_id is None:
-                                        continue
-
-                                    cursor.execute("SELECT 1 FROM users WHERE id = %s LIMIT 1", (user_id,))
-                                    if cursor.fetchone() is None:
-                                        continue
-
-                                    cursor.execute(
-                                        "SELECT 1 FROM attendance WHERE user_id = %s AND date(attendance_date) = %s AND course_id IS NULL LIMIT 1",
-                                        (user_id, today)
-                                    )
-
-                                    if cursor.fetchone() is None:
-                                        today_datetime = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                                        cursor.execute(
-                                            "INSERT INTO attendance (user_id, course_id, attendance_date, status) VALUES (%s, %s, %s, TRUE)",
-                                            (user_id, None, today_datetime)
-                                        )
-                                        logged_count += 1
-                                        print(f"[WS] Automatically logged attendance for student user_{user_id}")
-                                
-                                connection.commit()
-                                cursor.close()
-                                connection.close()
-                except Exception as ex:
-                    print(f"[WS] Subprocess error during frame processing: {ex}")
+                t = threading.Thread(target=process_frame_async, args=(fpath,))
+                t.daemon = True
+                t.start()
             else:
                 pass
     except Exception as e:
