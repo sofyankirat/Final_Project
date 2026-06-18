@@ -168,10 +168,18 @@
             transition: border-color 0.25s, box-shadow 0.25s;
         }
 
+        .tasks-input::placeholder {
+            color: #a39387;
+        }
+
         body.dark-mode .tasks-input {
             border-color: rgba(79, 212, 255, 0.24);
             background: rgba(10, 14, 36, 0.55);
             color: #e8f0ff;
+        }
+
+        body.dark-mode .tasks-input::placeholder {
+            color: #7b8ea3;
         }
 
         .tasks-input:focus {
@@ -190,6 +198,7 @@
             justify-content: center;
             gap: 8px;
             padding: 0 24px;
+            min-height: 52px;
             border-radius: 14px;
             border: none;
             background: linear-gradient(135deg, #ff6b35, #e85c20);
@@ -284,29 +293,35 @@
 
         .task-checkbox-container {
             position: relative;
-            width: 22px;
-            height: 22px;
+            width: 26px;
+            height: 26px;
             flex-shrink: 0;
+            cursor: pointer;
         }
 
         .task-checkbox {
             position: absolute;
             opacity: 0;
             cursor: pointer;
-            height: 0;
-            width: 0;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            z-index: 2;
+            margin: 0;
         }
 
         .task-checkmark {
             position: absolute;
             top: 0;
             left: 0;
-            height: 22px;
-            width: 22px;
-            border-radius: 6px;
+            height: 26px;
+            width: 26px;
+            border-radius: 8px;
             background-color: transparent;
             border: 2px solid #ff6b35;
             transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 1;
         }
 
         body.dark-mode .task-checkmark {
@@ -316,11 +331,13 @@
         .task-checkbox:checked ~ .task-checkmark {
             background-color: #ff6b35;
             border-color: #ff6b35;
+            box-shadow: 0 2px 8px rgba(255, 107, 53, 0.35);
         }
 
         body.dark-mode .task-checkbox:checked ~ .task-checkmark {
             background-color: #4fd4ff;
             border-color: #4fd4ff;
+            box-shadow: 0 2px 8px rgba(79, 212, 255, 0.35);
         }
 
         .task-checkmark:after {
@@ -334,10 +351,10 @@
         }
 
         .task-checkmark:after {
-            left: 6px;
-            top: 2px;
+            left: 8px;
+            top: 3px;
             width: 6px;
-            height: 11px;
+            height: 12px;
             border: solid white;
             border-width: 0 2.5px 2.5px 0;
             transform: rotate(45deg);
@@ -364,24 +381,36 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            width: 36px;
-            height: 36px;
-            border-radius: 10px;
-            border: none;
-            background: transparent;
-            color: #a39387;
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            border: 1px solid transparent;
+            background: rgba(239, 68, 68, 0.06);
+            color: #c4a99a;
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
             margin-left: 12px;
+            flex-shrink: 0;
         }
 
         body.dark-mode .task-delete-btn {
             color: #64748b;
+            background: rgba(239, 68, 68, 0.05);
         }
 
         .task-delete-btn:hover {
-            background: rgba(239, 68, 68, 0.1);
+            background: rgba(239, 68, 68, 0.14);
             color: #ef4444;
+            border-color: rgba(239, 68, 68, 0.25);
+            transform: scale(1.08);
+            box-shadow: 0 4px 14px rgba(239, 68, 68, 0.15);
+        }
+
+        body.dark-mode .task-delete-btn:hover {
+            background: rgba(239, 68, 68, 0.18);
+            color: #f87171;
+            border-color: rgba(239, 68, 68, 0.3);
+            box-shadow: 0 4px 14px rgba(239, 68, 68, 0.2);
         }
 
         /* Empty State */
@@ -396,10 +425,16 @@
         }
 
         .tasks-empty-icon {
-            font-size: 54px;
-            margin-bottom: 16px;
+            width: 72px;
+            height: 72px;
+            margin-bottom: 18px;
             opacity: 0.85;
             animation: floatEmpty 4s ease-in-out infinite;
+        }
+
+        .tasks-empty-icon svg {
+            width: 100%;
+            height: 100%;
         }
 
         .tasks-empty-title {
@@ -422,6 +457,64 @@
 
         body.dark-mode .tasks-empty-desc {
             color: #9ba4c7;
+        }
+
+        /* Day Card Completed Badge Overlay */
+        .day-card-complete-badge {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            pointer-events: none;
+            z-index: 5;
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+
+        .day-card.all-done .day-card-complete-badge {
+            opacity: 1;
+        }
+
+        .day-card.all-done {
+            border-color: rgba(34, 197, 94, 0.35);
+            box-shadow: 0 8px 28px rgba(34, 197, 94, 0.12);
+        }
+
+        body.dark-mode .day-card.all-done {
+            border-color: rgba(34, 197, 94, 0.3);
+            box-shadow: 0 8px 28px rgba(34, 197, 94, 0.08);
+        }
+
+        .day-card-complete-badge .badge-circle {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, rgba(34, 197, 94, 0.15), rgba(34, 197, 94, 0.08));
+            border: 2px solid rgba(34, 197, 94, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: pulseComplete 2.5s ease-in-out infinite;
+        }
+
+        body.dark-mode .day-card-complete-badge .badge-circle {
+            background: linear-gradient(135deg, rgba(34, 197, 94, 0.2), rgba(34, 197, 94, 0.08));
+            border-color: rgba(34, 197, 94, 0.45);
+        }
+
+        .day-card-complete-badge .badge-circle svg {
+            width: 28px;
+            height: 28px;
+            color: #22c55e;
+        }
+
+        @keyframes pulseComplete {
+            0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.25); }
+            50% { transform: scale(1.06); box-shadow: 0 0 0 8px rgba(34, 197, 94, 0); }
         }
 
         @keyframes slideIn {
@@ -762,33 +855,40 @@
         }
 
         .tasks-modal-close {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            border: none;
-            background: rgba(255, 107, 53, 0.1);
+            width: 38px;
+            height: 38px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 107, 53, 0.15);
+            background: rgba(255, 107, 53, 0.08);
             color: #ff6b35;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            transition: all 0.2s ease;
+            font-size: 22px;
+            font-weight: 600;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         body.dark-mode .tasks-modal-close {
-            background: rgba(79, 212, 255, 0.1);
+            background: rgba(79, 212, 255, 0.08);
+            border-color: rgba(79, 212, 255, 0.15);
             color: #4fd4ff;
         }
 
         .tasks-modal-close:hover {
-            transform: rotate(90deg);
-            background: #ff6b35;
+            transform: rotate(90deg) scale(1.05);
+            background: linear-gradient(135deg, #ff6b35, #e85c20);
+            border-color: transparent;
             color: #fff;
+            box-shadow: 0 4px 16px rgba(255, 107, 53, 0.35);
         }
 
         body.dark-mode .tasks-modal-close:hover {
-            background: #4fd4ff;
+            background: linear-gradient(135deg, #4fd4ff, #2563eb);
+            border-color: transparent;
             color: #06102b;
+            box-shadow: 0 4px 16px rgba(79, 212, 255, 0.35);
         }
 
         .tasks-modal-body {
@@ -1094,13 +1194,20 @@
                 <!-- ===== MAIN DAY CARDS GRID ===== -->
                 <div class="day-grid" id="dayGrid">
                     {% for card in cards %}
-                    <div class="day-card" data-date="{{ card.date_str }}" onclick="openTasksModal('{{ card.date_str }}')">
+                    <div class="day-card {% if card.total_count > 0 and card.completed_count == card.total_count %}all-done{% endif %}" data-date="{{ card.date_str }}" onclick="openTasksModal('{{ card.date_str }}')">
                         <button class="delete-day-btn" onclick="event.stopPropagation(); deleteDayCard('{{ card.date_str }}')" aria-label="Delete day card">
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                                 <line x1="18" y1="6" x2="6" y2="18"></line>
                                 <line x1="6" y1="6" x2="18" y2="18"></line>
                             </svg>
                         </button>
+                        <div class="day-card-complete-badge">
+                            <div class="badge-circle">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                                    <polyline points="20 6 9 17 4 12"></polyline>
+                                </svg>
+                            </div>
+                        </div>
                         <div class="day-card-header">
                             <span class="day-card-abbr">{{ card.day_abbr }}</span>
                             <div class="day-card-num">{{ card.day_num }}</div>
@@ -1164,9 +1271,15 @@
 
                             <!-- Empty State inside Modal -->
                             <div class="tasks-empty" id="tasksEmptyState" style="display: none;">
-                                <div class="tasks-empty-icon">🎉</div>
-                                <h3 class="tasks-empty-title">All caught up!</h3>
-                                <p class="tasks-empty-desc">Create a task above to start tracking your goals for this day.</p>
+                                <div class="tasks-empty-icon">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color: #ff6b35;">
+                                        <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"></path>
+                                        <rect x="9" y="3" width="6" height="4" rx="1"></rect>
+                                        <path d="M9 14l2 2 4-4"></path>
+                                    </svg>
+                                </div>
+                                <h3 class="tasks-empty-title">No tasks yet</h3>
+                                <p class="tasks-empty-desc">Add your first task above to start organizing this day.</p>
                             </div>
                         </div>
                     </div>
@@ -1408,6 +1521,13 @@
                             <line x1="6" y1="6" x2="18" y2="18"></line>
                         </svg>
                     </button>
+                    <div class="day-card-complete-badge">
+                        <div class="badge-circle">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="20 6 9 17 4 12"></polyline>
+                            </svg>
+                        </div>
+                    </div>
                     <div class="day-card-header">
                         <span class="day-card-abbr">${dayAbbr}</span>
                         <div class="day-card-num">${dayNum}</div>
@@ -1497,12 +1617,21 @@
         function updateCardProgress(dateStr, completed, total, percent) {
             const progressText = document.getElementById(`progressText-${dateStr}`);
             const progressBar = document.getElementById(`progressBar-${dateStr}`);
+            const dayCard = document.querySelector(`.day-card[data-date="${dateStr}"]`);
 
             if (progressText) {
                 progressText.textContent = `${completed} of ${total} Completed`;
             }
             if (progressBar) {
                 progressBar.style.width = `${percent}%`;
+            }
+            // Toggle all-done badge when every task is completed
+            if (dayCard) {
+                if (total > 0 && completed === total) {
+                    dayCard.classList.add('all-done');
+                } else {
+                    dayCard.classList.remove('all-done');
+                }
             }
         }
 
