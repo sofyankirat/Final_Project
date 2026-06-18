@@ -37,7 +37,7 @@
             font-size: 14.5px;
             color: #5a4a3a;
             margin: 0;
-            max-width: 720px;
+            max-width: none;
             line-height: 1.6;
         }
 
@@ -462,6 +462,363 @@
                 overflow: hidden;
             }
         }
+
+        /* Day Cards Grid */
+        .day-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 20px;
+            margin-top: 24px;
+        }
+
+        .day-card {
+            border-radius: 20px;
+            border: 1px solid rgba(255, 107, 53, 0.16);
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.85), rgba(255, 241, 230, 0.75));
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            padding: 24px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            min-height: 240px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            position: relative;
+            box-shadow: 0 8px 24px rgba(42, 20, 6, 0.04);
+        }
+
+        body.dark-mode .day-card {
+            border-color: rgba(79, 212, 255, 0.14);
+            background: linear-gradient(135deg, rgba(10, 14, 36, 0.8), rgba(20, 24, 48, 0.7));
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+        }
+
+        .day-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 16px 32px rgba(255, 107, 53, 0.12);
+            border-color: rgba(255, 107, 53, 0.35);
+        }
+
+        body.dark-mode .day-card:hover {
+            box-shadow: 0 16px 32px rgba(79, 212, 255, 0.12);
+            border-color: rgba(79, 212, 255, 0.3);
+        }
+
+        /* Calendar Sheet Design */
+        .day-card-header {
+            text-align: center;
+            margin-bottom: 12px;
+        }
+
+        .day-card-abbr {
+            font-size: 13px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: #ff6b35;
+        }
+
+        body.dark-mode .day-card-abbr {
+            color: #4fd4ff;
+        }
+
+        .day-card-num {
+            font-size: 48px;
+            font-weight: 800;
+            color: #2c2420;
+            line-height: 1;
+            margin: 6px 0;
+            font-feature-settings: "tnum";
+        }
+
+        body.dark-mode .day-card-num {
+            color: #e8f0ff;
+        }
+
+        .day-card-month {
+            font-size: 13.5px;
+            font-weight: 600;
+            color: #7a6a5a;
+        }
+
+        body.dark-mode .day-card-month {
+            color: #9ba4c7;
+        }
+
+        /* Day Card Footer Progress */
+        .day-card-footer {
+            width: 100%;
+            text-align: center;
+            margin-top: 16px;
+        }
+
+        .day-card-progress-text {
+            font-size: 12.5px;
+            font-weight: 700;
+            color: #5a4a3a;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        body.dark-mode .day-card-progress-text {
+            color: #b8d4ff;
+        }
+
+        .day-card-progress-bar-bg {
+            width: 100%;
+            height: 6px;
+            background: rgba(255, 107, 53, 0.1);
+            border-radius: 99px;
+            overflow: hidden;
+        }
+
+        body.dark-mode .day-card-progress-bar-bg {
+            background: rgba(79, 212, 255, 0.1);
+        }
+
+        .day-card-progress-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ff6b35, #ff9e7a);
+            border-radius: 99px;
+            transition: width 0.4s ease;
+        }
+
+        body.dark-mode .day-card-progress-bar-fill {
+            background: linear-gradient(90deg, #4fd4ff, #8bd9ff);
+        }
+
+        /* Delete Day Button inside Card */
+        .delete-day-btn {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            width: 28px;
+            height: 28px;
+            border-radius: 8px;
+            border: none;
+            background: transparent;
+            color: #a39387;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            opacity: 0;
+            transition: all 0.2s ease;
+            z-index: 10;
+        }
+
+        body.dark-mode .delete-day-btn {
+            color: #64748b;
+        }
+
+        .day-card:hover .delete-day-btn {
+            opacity: 1;
+        }
+
+        .delete-day-btn:hover {
+            background: rgba(239, 68, 68, 0.1);
+            color: #ef4444;
+            transform: scale(1.05);
+        }
+
+        /* Add Day Card */
+        .add-day-card {
+            border-radius: 20px;
+            border: 2px dashed rgba(255, 107, 53, 0.35);
+            background: transparent;
+            min-height: 240px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            gap: 12px;
+            transition: all 0.3s ease;
+            color: #ff6b35;
+        }
+
+        body.dark-mode .add-day-card {
+            border-color: rgba(79, 212, 255, 0.3);
+            color: #4fd4ff;
+        }
+
+        .add-day-card:hover {
+            border-color: #ff6b35;
+            background: rgba(255, 107, 53, 0.04);
+            transform: translateY(-5px);
+            box-shadow: 0 12px 28px rgba(255, 107, 53, 0.08);
+        }
+
+        body.dark-mode .add-day-card:hover {
+            border-color: #4fd4ff;
+            background: rgba(79, 212, 255, 0.04);
+            box-shadow: 0 12px 28px rgba(79, 212, 255, 0.08);
+        }
+
+        .add-day-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: rgba(255, 107, 53, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            font-weight: 700;
+            transition: transform 0.3s ease;
+        }
+
+        body.dark-mode .add-day-icon {
+            background: rgba(79, 212, 255, 0.1);
+        }
+
+        .add-day-card:hover .add-day-icon {
+            transform: rotate(90deg) scale(1.1);
+        }
+
+        .add-day-text {
+            font-size: 14.5px;
+            font-weight: 700;
+        }
+
+        /* Tasks Modal Overlay */
+        .tasks-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .tasks-modal-overlay.open {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .tasks-modal {
+            width: 95%;
+            max-width: 620px;
+            border-radius: 28px;
+            border: 1px solid rgba(255, 107, 53, 0.2);
+            background:
+                radial-gradient(circle at 12% 18%, rgba(255, 210, 176, 0.78), transparent 42%),
+                radial-gradient(circle at 88% 12%, rgba(255, 159, 117, 0.30), transparent 38%),
+                linear-gradient(145deg, rgba(255, 255, 255, 0.98), rgba(255, 241, 230, 0.9));
+            box-shadow: 0 24px 64px rgba(0, 0, 0, 0.18);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            transform: translateY(30px) scale(0.98);
+            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            max-height: 85vh;
+        }
+
+        body.dark-mode .tasks-modal {
+            border-color: rgba(79, 212, 255, 0.2);
+            background:
+                radial-gradient(circle at 14% 18%, rgba(79, 212, 255, 0.14), transparent 42%),
+                radial-gradient(circle at 85% 14%, rgba(120, 140, 255, 0.16), transparent 36%),
+                linear-gradient(160deg, rgba(10, 14, 36, 0.98), rgba(10, 12, 36, 0.92));
+            box-shadow: 0 24px 64px rgba(0, 0, 0, 0.35);
+        }
+
+        .tasks-modal-overlay.open .tasks-modal {
+            transform: translateY(0) scale(1);
+        }
+
+        .tasks-modal-header {
+            padding: 24px 28px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid rgba(255, 107, 53, 0.15);
+        }
+
+        body.dark-mode .tasks-modal-header {
+            border-bottom-color: rgba(79, 212, 255, 0.15);
+        }
+
+        .tasks-modal-title {
+            font-size: 18px;
+            font-weight: 800;
+            color: #2c2420;
+            margin: 0;
+        }
+
+        body.dark-mode .tasks-modal-title {
+            color: #e8f0ff;
+        }
+
+        .tasks-modal-close {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: none;
+            background: rgba(255, 107, 53, 0.1);
+            color: #ff6b35;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        body.dark-mode .tasks-modal-close {
+            background: rgba(79, 212, 255, 0.1);
+            color: #4fd4ff;
+        }
+
+        .tasks-modal-close:hover {
+            transform: rotate(90deg);
+            background: #ff6b35;
+            color: #fff;
+        }
+
+        body.dark-mode .tasks-modal-close:hover {
+            background: #4fd4ff;
+            color: #06102b;
+        }
+
+        .tasks-modal-body {
+            padding: 24px 28px 28px;
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        #newCardDateInput {
+            border: 1px solid rgba(255, 107, 53, 0.25);
+            background: rgba(255, 255, 255, 0.85);
+            color: #1a1a1a;
+            transition: all 0.25s ease;
+        }
+
+        body.dark-mode #newCardDateInput {
+            border-color: rgba(79, 212, 255, 0.24);
+            background: rgba(10, 14, 36, 0.55);
+            color: #e8f0ff;
+        }
+
+        #newCardDateInput:focus {
+            border-color: #ff6b35;
+            box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.15);
+        }
+
+        body.dark-mode #newCardDateInput:focus {
+            border-color: #4fd4ff;
+            box-shadow: 0 0 0 3px rgba(79, 212, 255, 0.15);
+        }
     </style>
 </head>
 
@@ -734,61 +1091,99 @@
                     <p class="tasks-subtitle">Keep track of your academic projects, homework assignments, and daily goals in one centralized dashboard.</p>
                 </div>
 
-                <!-- ===== MAIN TASKS CONTENT ===== -->
-                <div class="tasks-panel">
-                    <!-- Progress Card -->
-                    <div class="tasks-progress-container">
-                        <div class="tasks-progress-info">
-                            <span>Your Task Progress</span>
-                            <span class="tasks-progress-percent" id="tasksProgressText">0% Completed</span>
-                        </div>
-                        <div class="tasks-progress-bar-bg">
-                            <div class="tasks-progress-bar-fill" id="tasksProgressBar" style="width: 0%;"></div>
-                        </div>
-                    </div>
-
-                    <!-- Task Form -->
-                    <form class="tasks-form" id="addTaskForm">
-                        <div class="tasks-input-wrapper">
-                            <input class="tasks-input" type="text" id="taskInput" placeholder="Write a new task here..." required autocomplete="off">
-                        </div>
-                        <button class="tasks-btn-submit" type="submit">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                                <line x1="12" y1="5" x2="12" y2="19"></line>
-                                <line x1="5" y1="12" x2="19" y2="12"></line>
+                <!-- ===== MAIN DAY CARDS GRID ===== -->
+                <div class="day-grid" id="dayGrid">
+                    {% for card in cards %}
+                    <div class="day-card" data-date="{{ card.date_str }}" onclick="openTasksModal('{{ card.date_str }}')">
+                        <button class="delete-day-btn" onclick="event.stopPropagation(); deleteDayCard('{{ card.date_str }}')" aria-label="Delete day card">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="18" y1="6" x2="6" y2="18"></line>
+                                <line x1="6" y1="6" x2="18" y2="18"></line>
                             </svg>
-                            Add Task
                         </button>
-                    </form>
-
-                    <!-- Tasks List -->
-                    <div class="tasks-list" id="tasksList">
-                        {% for task in tasks %}
-                        <div class="task-item {% if task.completed %}completed{% endif %}" data-id="{{ task.id }}">
-                            <div class="task-left" onclick="toggleTaskStatus({{ task.id }})">
-                                <label class="task-checkbox-container">
-                                    <input type="checkbox" class="task-checkbox" {% if task.completed %}checked{% endif %} onclick="event.stopPropagation(); toggleTaskStatus({{ task.id }})">
-                                    <span class="task-checkmark"></span>
-                                </label>
-                                <span class="task-text">{{ task.text }}</span>
-                            </div>
-                            <button class="task-delete-btn" onclick="deleteTask({{ task.id }})" aria-label="Delete task">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                    <polyline points="3 6 5 6 21 6"></polyline>
-                                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                                    <line x1="10" y1="11" x2="10" y2="17"></line>
-                                    <line x1="14" y1="11" x2="14" y2="17"></line>
-                                </svg>
-                            </button>
+                        <div class="day-card-header">
+                            <span class="day-card-abbr">{{ card.day_abbr }}</span>
+                            <div class="day-card-num">{{ card.day_num }}</div>
+                            <span class="day-card-month">{{ card.month_year }}</span>
                         </div>
-                        {% endfor %}
+                        <div class="day-card-footer">
+                            <span class="day-card-progress-text" id="progressText-{{ card.date_str }}">
+                                {{ card.completed_count }} of {{ card.total_count }} Completed
+                            </span>
+                            <div class="day-card-progress-bar-bg">
+                                <div class="day-card-progress-bar-fill" id="progressBar-{{ card.date_str }}" style="width: {{ card.progress_percent }}%;"></div>
+                            </div>
+                        </div>
                     </div>
+                    {% endfor %}
 
-                    <!-- Empty State -->
-                    <div class="tasks-empty" id="tasksEmptyState" style="display: none;">
-                        <div class="tasks-empty-icon">🎉</div>
-                        <h3 class="tasks-empty-title">All caught up!</h3>
-                        <p class="tasks-empty-desc">Create a task above to start tracking your goals and checklist items.</p>
+                    <!-- Add Day Card -->
+                    <div class="add-day-card" onclick="openDatePicker()">
+                        <div class="add-day-icon">+</div>
+                        <span class="add-day-text">Add Day</span>
+                    </div>
+                </div>
+
+                <!-- ===== TASK EDITING OVERLAY MODAL ===== -->
+                <div class="tasks-modal-overlay" id="tasksModalOverlay" onclick="closeTasksModalOnBackdrop(event)">
+                    <div class="tasks-modal">
+                        <div class="tasks-modal-header">
+                            <h3 class="tasks-modal-title" id="tasksModalTitle">Tasks for Date</h3>
+                            <button class="tasks-modal-close" onclick="closeTasksModal()">&times;</button>
+                        </div>
+                        <div class="tasks-modal-body">
+                            <!-- Progress Container -->
+                            <div class="tasks-progress-container" style="margin-bottom: 24px;">
+                                <div class="tasks-progress-info">
+                                    <span>Tasks Progress</span>
+                                    <span class="tasks-progress-percent" id="tasksProgressText">0 of 0 (0%) Completed</span>
+                                </div>
+                                <div class="tasks-progress-bar-bg">
+                                    <div class="tasks-progress-bar-fill" id="tasksProgressBar" style="width: 0%;"></div>
+                                </div>
+                            </div>
+
+                            <!-- Add Task Form inside Modal -->
+                            <form class="tasks-form" id="addTaskForm" style="margin-bottom: 24px;">
+                                <div class="tasks-input-wrapper">
+                                    <input class="tasks-input" type="text" id="taskInput" placeholder="Write a new task for this day..." required autocomplete="off">
+                                </div>
+                                <button class="tasks-btn-submit" type="submit">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                        <line x1="12" y1="5" x2="12" y2="19"></line>
+                                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                                    </svg>
+                                    Add Task
+                                </button>
+                            </form>
+
+                            <!-- Tasks List inside Modal -->
+                            <div class="tasks-list" id="tasksList">
+                                <!-- Populated dynamically by JS -->
+                            </div>
+
+                            <!-- Empty State inside Modal -->
+                            <div class="tasks-empty" id="tasksEmptyState" style="display: none;">
+                                <div class="tasks-empty-icon">🎉</div>
+                                <h3 class="tasks-empty-title">All caught up!</h3>
+                                <p class="tasks-empty-desc">Create a task above to start tracking your goals for this day.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ===== DATE PICKER OVERLAY MODAL ===== -->
+                <div class="tasks-modal-overlay" id="datePickerOverlay" onclick="closeDatePickerOnBackdrop(event)">
+                    <div class="tasks-modal" style="max-width: 400px;">
+                        <div class="tasks-modal-header">
+                            <h3 class="tasks-modal-title">Select Date</h3>
+                            <button class="tasks-modal-close" onclick="closeDatePicker()">&times;</button>
+                        </div>
+                        <div class="tasks-modal-body" style="display: flex; flex-direction: column; gap: 20px; text-align: center;">
+                            <p style="margin: 0; font-size: 14.5px; color: #7a6a5a; font-weight: 500;" class="body-text-color">Choose the day you want to organize tasks for:</p>
+                            <input type="date" id="newCardDateInput" required>
+                            <button class="tasks-btn-submit" onclick="confirmAddDayCard()" style="width: 100%; padding: 14px 0;">Add Date Card</button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -894,6 +1289,24 @@
         });
 
         // ================== TASK MANAGER FUNCTIONALITY ==================
+        
+        // Seed the tasks data from Flask
+        window.tasksData = {
+            {% for card in cards %}
+            "{{ card.date_str }}": [
+                {% for task in card.tasks %}
+                {
+                    id: {{ task.id }},
+                    text: {{ task.text | tojson }},
+                    completed: {{ 'true' if task.completed else 'false' }}
+                },
+                {% endfor %}
+            ],
+            {% endfor %}
+        };
+
+        window.activeDate = null;
+
         const addTaskForm = document.getElementById('addTaskForm');
         const taskInput = document.getElementById('taskInput');
         const tasksList = document.getElementById('tasksList');
@@ -901,32 +1314,205 @@
         const tasksProgressText = document.getElementById('tasksProgressText');
         const tasksProgressBar = document.getElementById('tasksProgressBar');
 
-        // Update progress UI helper
-        function updateProgress() {
-            const items = document.querySelectorAll('.task-item');
-            const total = items.length;
+        // Escape HTML helper
+        function escapeHtml(text) {
+            const map = {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#039;'
+            };
+            return text.replace(/[&<>"']/g, function(m) { return map[m]; });
+        }
+
+        // Open/Close Tasks Modal
+        function openTasksModal(dateStr) {
+            window.activeDate = dateStr;
             
-            if (total === 0) {
-                tasksEmptyState.style.display = 'flex';
-                tasksProgressText.textContent = '0% Completed';
-                tasksProgressBar.style.width = '0%';
+            const card = document.querySelector(`.day-card[data-date="${dateStr}"]`);
+            let titleText = `Tasks for ${dateStr}`;
+            if (card) {
+                const num = card.querySelector('.day-card-num').textContent.trim();
+                const month = card.querySelector('.day-card-month').textContent.trim();
+                titleText = `Tasks for ${month.split(' ')[0]} ${num}, ${month.split(' ')[1]}`;
+            }
+            
+            document.getElementById('tasksModalTitle').textContent = titleText;
+            document.getElementById('tasksModalOverlay').classList.add('open');
+            renderModalTasks();
+        }
+
+        function closeTasksModal() {
+            document.getElementById('tasksModalOverlay').classList.remove('open');
+            window.activeDate = null;
+        }
+
+        function closeTasksModalOnBackdrop(e) {
+            if (e.target === document.getElementById('tasksModalOverlay')) {
+                closeTasksModal();
+            }
+        }
+
+        // Open/Close Date Picker
+        function openDatePicker() {
+            // Set default date input value to today
+            const today = new Date();
+            const yyyy = today.getFullYear();
+            const mm = String(today.getMonth() + 1).padStart(2, '0');
+            const dd = String(today.getDate()).padStart(2, '0');
+            document.getElementById('newCardDateInput').value = `${yyyy}-${mm}-${dd}`;
+            
+            document.getElementById('datePickerOverlay').classList.add('open');
+        }
+
+        function closeDatePicker() {
+            document.getElementById('datePickerOverlay').classList.remove('open');
+        }
+
+        function closeDatePickerOnBackdrop(e) {
+            if (e.target === document.getElementById('datePickerOverlay')) {
+                closeDatePicker();
+            }
+        }
+
+        // Confirm Add Day Card
+        function confirmAddDayCard() {
+            const dateStr = document.getElementById('newCardDateInput').value;
+            if (!dateStr) return;
+
+            // Check if card for this date already exists
+            if (window.tasksData[dateStr] !== undefined) {
+                closeDatePicker();
+                openTasksModal(dateStr);
                 return;
             }
 
-            tasksEmptyState.style.display = 'none';
-            const completed = document.querySelectorAll('.task-item.completed').length;
-            const percent = Math.round((completed / total) * 100);
-            
-            tasksProgressText.textContent = `${completed} of ${total} (${percent}%) Completed`;
-            tasksProgressBar.style.width = `${percent}%`;
+            // Initialize local tasks array for new date
+            window.tasksData[dateStr] = [];
+
+            // Generate date fields for rendering
+            const dateObj = new Date(dateStr + 'T00:00:00');
+            const dayAbbr = dateObj.toLocaleDateString('en-US', { weekday: 'short' });
+            const dayNum = String(dateObj.getDate()).padStart(2, '0');
+            const monthName = dateObj.toLocaleDateString('en-US', { month: 'long' });
+            const year = dateObj.getFullYear();
+            const monthYear = `${monthName} ${year}`;
+
+            // Create day card HTML
+            const cardHTML = `
+                <div class="day-card" data-date="${dateStr}" onclick="openTasksModal('${dateStr}')">
+                    <button class="delete-day-btn" onclick="event.stopPropagation(); deleteDayCard('${dateStr}')" aria-label="Delete day card">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
+                    </button>
+                    <div class="day-card-header">
+                        <span class="day-card-abbr">${dayAbbr}</span>
+                        <div class="day-card-num">${dayNum}</div>
+                        <span class="day-card-month">${monthYear}</span>
+                    </div>
+                    <div class="day-card-footer">
+                        <span class="day-card-progress-text" id="progressText-${dateStr}">0 of 0 Completed</span>
+                        <div class="day-card-progress-bar-bg">
+                            <div class="day-card-progress-bar-fill" id="progressBar-${dateStr}" style="width: 0%;"></div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            const dayGrid = document.getElementById('dayGrid');
+            const addCardEl = document.querySelector('.add-day-card');
+            addCardEl.insertAdjacentHTML('beforebegin', cardHTML);
+
+            // Sort day grid cards descending
+            const cards = Array.from(dayGrid.querySelectorAll('.day-card'));
+            cards.sort((a, b) => b.dataset.date.localeCompare(a.dataset.date));
+            cards.forEach(card => dayGrid.insertBefore(card, addCardEl));
+
+            closeDatePicker();
+            openTasksModal(dateStr);
         }
 
-        // Add task event listener
+        // Render tasks inside the modal
+        function renderModalTasks() {
+            const dateStr = window.activeDate;
+            if (!dateStr) return;
+
+            const tasks = window.tasksData[dateStr] || [];
+            tasksList.innerHTML = '';
+
+            if (tasks.length === 0) {
+                tasksEmptyState.style.display = 'flex';
+            } else {
+                tasksEmptyState.style.display = 'none';
+
+                // Sort tasks descending by ID (newest first)
+                const sortedTasks = [...tasks].sort((a, b) => b.id - a.id);
+
+                sortedTasks.forEach(task => {
+                    const taskHTML = `
+                        <div class="task-item ${task.completed ? 'completed' : ''}" data-id="${task.id}">
+                            <div class="task-left" onclick="toggleTaskStatus(${task.id})">
+                                <label class="task-checkbox-container">
+                                    <input type="checkbox" class="task-checkbox" ${task.completed ? 'checked' : ''} onclick="event.stopPropagation(); toggleTaskStatus(${task.id})">
+                                    <span class="task-checkmark"></span>
+                                </label>
+                                <span class="task-text">${escapeHtml(task.text)}</span>
+                            </div>
+                            <button class="task-delete-btn" onclick="deleteTask(${task.id})" aria-label="Delete task">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <polyline points="3 6 5 6 21 6"></polyline>
+                                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                    <line x1="10" y1="11" x2="10" y2="17"></line>
+                                    <line x1="14" y1="11" x2="14" y2="17"></line>
+                                </svg>
+                            </button>
+                        </div>
+                    `;
+                    tasksList.insertAdjacentHTML('beforeend', taskHTML);
+                });
+            }
+            updateModalProgress();
+        }
+
+        // Update progress UI helper
+        function updateModalProgress() {
+            const dateStr = window.activeDate;
+            if (!dateStr) return;
+
+            const tasks = window.tasksData[dateStr] || [];
+            const total = tasks.length;
+            const completed = tasks.filter(t => t.completed).length;
+            const percent = total > 0 ? Math.round((completed / total) * 100) : 0;
+
+            tasksProgressText.textContent = `${completed} of ${total} (${percent}%) Completed`;
+            tasksProgressBar.style.width = `${percent}%`;
+
+            // Sync with day card progress
+            updateCardProgress(dateStr, completed, total, percent);
+        }
+
+        function updateCardProgress(dateStr, completed, total, percent) {
+            const progressText = document.getElementById(`progressText-${dateStr}`);
+            const progressBar = document.getElementById(`progressBar-${dateStr}`);
+
+            if (progressText) {
+                progressText.textContent = `${completed} of ${total} Completed`;
+            }
+            if (progressBar) {
+                progressBar.style.width = `${percent}%`;
+            }
+        }
+
+        // Add task form submit
         if (addTaskForm) {
             addTaskForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
                 const text = taskInput.value.trim();
-                if (!text) return;
+                const dateStr = window.activeDate;
+                if (!text || !dateStr) return;
 
                 try {
                     const response = await fetch('/tasks/add', {
@@ -934,36 +1520,27 @@
                         headers: {
                             'Content-Type': 'application/json'
                         },
-                        body: JSON.stringify({ task_text: text })
+                        body: JSON.stringify({ 
+                            task_text: text,
+                            task_date: dateStr
+                        })
                     });
-                    
+
                     const result = await response.json();
                     if (result.success) {
                         taskInput.value = '';
-                        
-                        // Dynamically append new task element
                         const task = result.task;
-                        const taskHTML = `
-                            <div class="task-item" data-id="${task.id}">
-                                <div class="task-left" onclick="toggleTaskStatus(${task.id})">
-                                    <label class="task-checkbox-container">
-                                        <input type="checkbox" class="task-checkbox" onclick="event.stopPropagation(); toggleTaskStatus(${task.id})">
-                                        <span class="task-checkmark"></span>
-                                    </label>
-                                    <span class="task-text">${task.text}</span>
-                                </div>
-                                <button class="task-delete-btn" onclick="deleteTask(${task.id})" aria-label="Delete task">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                        <polyline points="3 6 5 6 21 6"></polyline>
-                                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                                        <line x1="10" y1="11" x2="10" y2="17"></line>
-                                        <line x1="14" y1="11" x2="14" y2="17"></line>
-                                    </svg>
-                                </button>
-                            </div>
-                        `;
-                        tasksList.insertAdjacentHTML('afterbegin', taskHTML);
-                        updateProgress();
+
+                        if (!window.tasksData[dateStr]) {
+                            window.tasksData[dateStr] = [];
+                        }
+                        window.tasksData[dateStr].push({
+                            id: task.id,
+                            text: task.text,
+                            completed: false
+                        });
+
+                        renderModalTasks();
                     } else {
                         alert(result.message || 'Failed to add task.');
                     }
@@ -976,21 +1553,30 @@
 
         // Toggle task completion
         async function toggleTaskStatus(taskId) {
-            const taskEl = document.querySelector(`.task-item[data-id="${taskId}"]`);
-            if (!taskEl) return;
+            const dateStr = window.activeDate;
+            if (!dateStr) return;
 
-            const checkbox = taskEl.querySelector('.task-checkbox');
-            
+            const tasks = window.tasksData[dateStr] || [];
+            const task = tasks.find(t => t.id === taskId);
+            if (!task) return;
+
             try {
                 const response = await fetch(`/tasks/toggle/${taskId}`, {
                     method: 'POST'
                 });
                 const result = await response.json();
-                
+
                 if (result.success) {
-                    taskEl.classList.toggle('completed', result.completed);
-                    if (checkbox) checkbox.checked = result.completed;
-                    updateProgress();
+                    task.completed = result.completed;
+
+                    const taskEl = document.querySelector(`.task-item[data-id="${taskId}"]`);
+                    if (taskEl) {
+                        taskEl.classList.toggle('completed', result.completed);
+                        const checkbox = taskEl.querySelector('.task-checkbox');
+                        if (checkbox) checkbox.checked = result.completed;
+                    }
+
+                    updateModalProgress();
                 } else {
                     alert(result.message || 'Failed to update task.');
                 }
@@ -1002,8 +1588,12 @@
 
         // Delete task
         async function deleteTask(taskId) {
-            const taskEl = document.querySelector(`.task-item[data-id="${taskId}"]`);
-            if (!taskEl) return;
+            const dateStr = window.activeDate;
+            if (!dateStr) return;
+
+            const tasks = window.tasksData[dateStr] || [];
+            const taskIndex = tasks.findIndex(t => t.id === taskId);
+            if (taskIndex === -1) return;
 
             if (!confirm('Are you sure you want to delete this task?')) return;
 
@@ -1012,13 +1602,20 @@
                     method: 'POST'
                 });
                 const result = await response.json();
-                
+
                 if (result.success) {
-                    taskEl.classList.add('removing');
-                    taskEl.addEventListener('animationend', () => {
-                        taskEl.remove();
-                        updateProgress();
-                    });
+                    const taskEl = document.querySelector(`.task-item[data-id="${taskId}"]`);
+                    if (taskEl) {
+                        taskEl.classList.add('removing');
+                        taskEl.addEventListener('animationend', () => {
+                            taskEl.remove();
+                            tasks.splice(taskIndex, 1);
+                            renderModalTasks();
+                        });
+                    } else {
+                        tasks.splice(taskIndex, 1);
+                        renderModalTasks();
+                    }
                 } else {
                     alert(result.message || 'Failed to delete task.');
                 }
@@ -1028,10 +1625,40 @@
             }
         }
 
-        // Initial progress update on load
-        document.addEventListener('DOMContentLoaded', () => {
-            updateProgress();
-        });
+        // Delete Day Card
+        async function deleteDayCard(dateStr) {
+            if (!confirm(`Are you sure you want to delete all tasks for ${dateStr}? This action cannot be undone.`)) return;
+
+            try {
+                const response = await fetch('/tasks/delete_day', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ task_date: dateStr })
+                });
+                const result = await response.json();
+
+                if (result.success) {
+                    delete window.tasksData[dateStr];
+
+                    const card = document.querySelector(`.day-card[data-date="${dateStr}"]`);
+                    if (card) {
+                        card.style.opacity = '0';
+                        card.style.transform = 'scale(0.8)';
+                        card.style.transition = 'all 0.3s ease';
+                        setTimeout(() => {
+                            card.remove();
+                        }, 300);
+                    }
+                } else {
+                    alert(result.message || 'Failed to delete tasks for this day.');
+                }
+            } catch (err) {
+                console.error('Error deleting day:', err);
+                alert('Network error. Failed to delete tasks for this day.');
+            }
+        }
     </script>
 </body>
 

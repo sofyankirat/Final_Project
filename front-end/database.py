@@ -279,11 +279,18 @@ def init_db():
             user_id INTEGER NOT NULL,
             task_text TEXT NOT NULL,
             is_completed BOOLEAN NOT NULL DEFAULT FALSE,
+            task_date TEXT,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
         )
         """
         cursor.execute(create_user_tasks_table)
+        
+        # Add task_date column if it doesn't exist (backward compatibility)
+        try:
+            cursor.execute("ALTER TABLE user_tasks ADD COLUMN task_date TEXT")
+        except Exception:
+            pass
         
         # Create separate index for user tasks
         cursor.execute("CREATE INDEX IF NOT EXISTS idx_user_tasks_user ON user_tasks (user_id)")

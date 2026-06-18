@@ -2104,66 +2104,104 @@ def receive_session_attendance():
 @login_required
 def tasks():
     """Tasks management page"""
-    user_id = session.get('user_id')
+    user_id = to_int_value(session.get('user_id'))
     email = session.get('email', '')
     username = email.split('@')[0].capitalize() if email else 'User'
 
-    # Get profile photo if exists
-    profile_photo = None
+    # Fetch real first name
     try:
         connection = get_db_connection()
         if connection:
             cursor = connection.cursor()
-            cursor.execute("SELECT student_id, gender FROM user_additional_info WHERE user_id = %s", (user_id,))
-            info = cursor.fetchone()
-            if info:
-                student_id = info[0]
-                gender = info[1].lower() if info[1] else 'male'
-                
-                # Check for uploaded custom photo
-                upload_dir = os.path.join(app.static_folder, 'uploads', 'profiles')
-                photo_filename = None
-                if student_id:
-                    for ext in ['jpg', 'jpeg', 'png', 'webp']:
-                        test_file = f"{student_id}.{ext}"
-                        if os.path.exists(os.path.join(upload_dir, test_file)):
-                            photo_filename = test_file
-                            break
-                if photo_filename:
-                    profile_photo = url_for('static', filename=f'uploads/profiles/{photo_filename}')
-                else:
-                    # Fallback default avatar
-                    profile_photo = url_for('static', filename=f'images/{"avatar_female.png" if gender == "female" else "avatar_male.png"}')
+            cursor.execute("SELECT first_name FROM user_additional_info WHERE user_id = %s", (user_id,))
+            result = cursor.fetchone()
+            if result and result[0]:
+                username = to_clean_string(result[0])
             cursor.close()
             connection.close()
     except Exception as e:
-        print(f"Error loading tasks profile photo: {e}")
+        print(f"Error fetching user name for tasks: {e}")
 
-    # Fetch user tasks
-    tasks_list = []
+    profile_photo = _get_profile_photo(user_id)
+
+    # Fetch user tasks grouped by date
+    tasks_by_date = {}
     try:
         connection = get_db_connection()
         if connection:
             cursor = connection.cursor()
             cursor.execute(
-                "SELECT id, task_text, is_completed FROM user_tasks WHERE user_id = %s ORDER BY created_at DESC",
+                "SELECT id, task_text, is_completed, task_date, created_at FROM user_tasks WHERE user_id = %s ORDER BY task_date DESC, created_at DESC",
                 (user_id,)
             )
             rows = cursor.fetchall()
             for r in rows:
-                tasks_list.append({
-                    'id': r[0],
-                    'text': r[1],
-                    'completed': bool(r[2])
+                tid, text, completed, tdate, created = r
+                if not tdate:
+                    if created:
+                        try:
+                            tdate = str(created).split(' ')[0]
+                        except Exception:
+                            tdate = datetime.now().strftime('%Y-%m-%d')
+                    else:
+                        tdate = datetime.now().strftime('%Y-%m-%d')
+                
+                if tdate not in tasks_by_date:
+                    tasks_by_date[tdate] = []
+                
+                tasks_by_date[tdate].append({
+                    'id': tid,
+                    'text': text,
+                    'completed': bool(completed)
                 })
             cursor.close()
             connection.close()
     except Exception as e:
         print(f"Error fetching tasks: {e}")
 
+    # Ensure we always have today's card available
+    today_str = datetime.now().strftime('%Y-%m-%d')
+    if today_str not in tasks_by_date:
+        tasks_by_date[today_str] = []
+
+    cards = []
+    # Sort dates descending
+    for d_str in sorted(tasks_by_date.keys(), reverse=True):
+        tasks = tasks_by_date[d_str]
+        try:
+            dt = datetime.strptime(d_str, '%Y-%m-%d')
+            day_name = dt.strftime('%A')
+            day_abbr = dt.strftime('%a')
+            day_num = dt.strftime('%d')
+            month_year = dt.strftime('%B %Y')
+            formatted_date = dt.strftime('%B %d, %Y')
+        except Exception:
+            day_name = "Date"
+            day_abbr = "Date"
+            day_num = d_str
+            month_year = ""
+            formatted_date = d_str
+            
+        completed_count = sum(1 for t in tasks if t['completed'])
+        total_count = len(tasks)
+        progress_percent = round((completed_count / total_count) * 100) if total_count > 0 else 0
+        
+        cards.append({
+            'date_str': d_str,
+            'day_name': day_name,
+            'day_abbr': day_abbr,
+            'day_num': day_num,
+            'month_year': month_year,
+            'formatted_date': formatted_date,
+            'tasks': tasks,
+            'completed_count': completed_count,
+            'total_count': total_count,
+            'progress_percent': progress_percent
+        })
+
     return render_template(
         'tasks.html',
-        tasks=tasks_list,
+        cards=cards,
         username=username,
         email=email,
         profile_photo=profile_photo
@@ -2177,7 +2215,11 @@ def add_task():
         user_id = session.get('user_id')
         data = request.get_json() or {}
         task_text = to_clean_string(data.get('task_text', ''))
+        task_date = to_clean_string(data.get('task_date', ''))
         
+        if not task_date:
+            task_date = datetime.now().strftime('%Y-%m-%d')
+            
         if not task_text:
             return jsonify({'success': False, 'message': 'Task content cannot be empty'}), 400
             
@@ -2187,8 +2229,8 @@ def add_task():
             
         cursor = connection.cursor()
         cursor.execute(
-            "INSERT INTO user_tasks (user_id, task_text, is_completed) VALUES (%s, %s, FALSE)",
-            (user_id, task_text)
+            "INSERT INTO user_tasks (user_id, task_text, is_completed, task_date) VALUES (%s, %s, FALSE, %s)",
+            (user_id, task_text, task_date)
         )
         task_id = cursor.lastrowid
         connection.commit()
@@ -2200,11 +2242,42 @@ def add_task():
             'task': {
                 'id': task_id,
                 'text': task_text,
-                'completed': False
+                'completed': False,
+                'date': task_date
             }
         }), 201
     except Exception as e:
         print(f"Error adding task: {e}")
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+@app.route('/tasks/delete_day', methods=['POST'])
+@login_required
+def delete_day():
+    """Delete all tasks for a specific date"""
+    try:
+        user_id = session.get('user_id')
+        data = request.get_json() or {}
+        task_date = to_clean_string(data.get('task_date', ''))
+        
+        if not task_date:
+            return jsonify({'success': False, 'message': 'Date is required'}), 400
+            
+        connection = get_db_connection()
+        if connection is None:
+            return jsonify({'success': False, 'message': 'Database connection error'}), 500
+            
+        cursor = connection.cursor()
+        cursor.execute(
+            "DELETE FROM user_tasks WHERE user_id = %s AND task_date = %s",
+            (user_id, task_date)
+        )
+        connection.commit()
+        cursor.close()
+        connection.close()
+        
+        return jsonify({'success': True})
+    except Exception as e:
+        print(f"Error deleting tasks for date: {e}")
         return jsonify({'success': False, 'message': str(e)}), 500
 
 @app.route('/tasks/toggle/<int:task_id>', methods=['POST'])
