@@ -11,4 +11,5 @@ gunicorn==20.1.0
 ultralytics
 onnxruntime
 opencv-python-headless
+flask-sock==0.7.0
 
