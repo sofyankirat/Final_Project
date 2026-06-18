@@ -123,8 +123,24 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
             }
 
             if (data.message.toLowerCase().includes('verify')) {
-                resendMessage.textContent = 'Didn\'t receive the email? Click "Resend verification email".';
+                resendMessage.innerHTML = 'Didn\'t receive the email? <a href="#" id="resendVerification" style="color: #2a1406; text-decoration: underline; font-weight: bold;">Resend verification email</a>.';
                 resendMessage.style.display = 'block';
+
+                const dynResendBtn = document.getElementById('resendVerification');
+                if (dynResendBtn) {
+                    dynResendBtn.addEventListener('click', async (e) => {
+                        e.preventDefault();
+                        const emailInput = document.getElementById('email');
+                        if (emailInput && emailInput.value.trim()) {
+                            await requestVerificationResend(emailInput.value.trim());
+                        } else {
+                            const emailError = document.getElementById('emailError');
+                            if (emailError) {
+                                emailError.textContent = 'Email is required to resend verification link.';
+                            }
+                        }
+                    });
+                }
             }
         }
     } catch (error) {
