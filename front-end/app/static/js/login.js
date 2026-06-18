@@ -181,6 +181,45 @@ if (resendVerificationBtn) {
 
 window.addEventListener('DOMContentLoaded', () => {
     const emailInput = document.getElementById('email');
+    const successMessage = document.getElementById('successMessage');
+    const resendMessage = document.getElementById('resendMessage');
+
+    // Check query parameters first (redirected from register page)
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('registered') === 'true') {
+        const registeredEmail = urlParams.get('email') || '';
+        
+        if (emailInput && registeredEmail) {
+            emailInput.value = registeredEmail;
+        }
+
+        if (successMessage) {
+            successMessage.innerHTML = `
+                <div style="background: rgba(220, 245, 225, 0.95); border-left: 4px solid #2e7d32; padding: 12px 16px; border-radius: 4px; margin-bottom: 16px; text-align: left;">
+                    <strong style="color: #1b5e20; font-size: 14px; display: block; margin-bottom: 4px;">✉️ Registration Successful!</strong>
+                    <span style="color: #2e7d32; font-size: 13px; line-height: 1.4; display: block;">
+                        A verification link has been sent to your email address. Please check your Gmail inbox (and spam folder) and verify your email before logging in.
+                    </span>
+                </div>
+            `;
+            successMessage.style.display = 'block';
+        }
+
+        if (resendMessage && registeredEmail) {
+            resendMessage.innerHTML = 'Didn\'t receive the email? <a href="#" id="resendVerification" style="color: #2a1406; text-decoration: underline; font-weight: bold;">Resend verification email</a>.';
+            resendMessage.style.display = 'block';
+
+            const dynResendBtn = document.getElementById('resendVerification');
+            if (dynResendBtn) {
+                dynResendBtn.addEventListener('click', async (e) => {
+                    e.preventDefault();
+                    await requestVerificationResend(registeredEmail);
+                });
+            }
+        }
+        return; // Don't check local storage if query param was handled
+    }
+
     const pendingEmail = localStorage.getItem('pendingVerificationEmail');
     const pendingAt = Number(localStorage.getItem('pendingVerificationAt') || '0');
     const maxAgeMs = 10 * 60 * 1000;
@@ -199,15 +238,6 @@ window.addEventListener('DOMContentLoaded', () => {
 
     if (emailInput && !emailInput.value) {
         emailInput.value = pendingEmail;
-    }
-
-    // IMPORTANT: Do NOT auto-trigger resend here.
-    // The registration flow already sends a verification email.
-    // Auto-calling /resend-verification causes duplicate emails.
-    const resendMessage = document.getElementById('resendMessage');
-    if (resendMessage) {
-        // Automatic verification notice removed per UX request.
-        // Do not show the 'We sent a verification email...' message here.
     }
 });
 

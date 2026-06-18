@@ -118,31 +118,8 @@ document.getElementById('registerForm').addEventListener('submit', async (e) => 
                 localStorage.setItem('pendingVerificationEmail', pendingEmail);
                 localStorage.setItem('pendingVerificationAt', String(Date.now()));
 
-                // Reset/clear the form
-                document.getElementById('registerForm').reset();
-
-                // Hide register form and footer
-                const form = document.getElementById('registerForm');
-                if (form) form.style.display = 'none';
-                const footer = document.querySelector('.login-footer');
-                if (footer) footer.style.display = 'none';
-
-                // Render verification card
-                successMessage.innerHTML = `
-                    <div style="text-align: center; padding: 20px 0;">
-                        <div style="font-size: 56px; margin-bottom: 20px; animation: buttonFloat 1s ease-in-out infinite alternate;">✉️</div>
-                        <h3 style="font-size: 22px; font-weight: 800; color: #2a1406; margin-bottom: 12px;">Verify Your Email</h3>
-                        <p style="color: #3a1e0a; font-size: 14px; line-height: 1.6; margin-bottom: 28px;">
-                            Registration successful! We have sent a verification email to <strong style="word-break: break-all; color: #2a1406;">${pendingEmail}</strong>.<br><br>
-                            Please check your inbox (and spam folder) and click the verification link to activate your account.
-                        </p>
-                        <a href="/login" class="btn btn-primary" style="display: inline-flex; width: 100%; justify-content: center; align-items: center; padding: 14px 20px;">
-                            <span>Go to Login</span>
-                            <span class="btn-icon">→</span>
-                        </a>
-                    </div>
-                `;
-                successMessage.style.display = 'block';
+                // Redirect immediately to login with URL params
+                window.location.href = `/login?registered=true&email=${encodeURIComponent(pendingEmail)}`;
             } else {
                 successMessage.textContent = data.message || 'Registration successful! Redirecting...';
                 successMessage.style.display = 'block';

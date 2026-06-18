@@ -193,6 +193,11 @@ def has_course_schedule(user_id: int):
 def send_verification_email(email, verification_token):
     """Send verification email to the user"""
     try:
+        import requests
+    except ImportError:
+        requests = None
+
+    try:
         subject = "Email Verification - Hamas"
         verification_link = f"{request.host_url}verify-email/{verification_token}"
         
@@ -216,7 +221,7 @@ def send_verification_email(email, verification_token):
             <h2>Email Verification</h2>
             <p>Welcome to the Student Recommendation and Attendance System!</p>
             <p>Please click the link below to verify your email address:</p>
-            <a href="{verification_link}" style="background-color: #4CAF50; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">
+            <a href="{verification_link}" style="background-color: #4CAF50; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;">
                 Verify Email
             </a>
             <p>Or copy this link in your browser:</p>
@@ -227,6 +232,43 @@ def send_verification_email(email, verification_token):
         </html>
         """
         
+        # Try sending using Brevo HTTP API (Port 443, not blocked by Railway)
+        brevo_api_key = os.getenv('BREVO_API_KEY')
+        if not brevo_api_key and EMAIL_PASSWORD and (EMAIL_PASSWORD.startswith("xkeysib-") or len(EMAIL_PASSWORD) > 40):
+            brevo_api_key = EMAIL_PASSWORD
+
+        if brevo_api_key and requests:
+            print("Attempting to send email via Brevo HTTP API...")
+            headers = {
+                "accept": "application/json",
+                "api-key": brevo_api_key,
+                "content-type": "application/json"
+            }
+            payload = {
+                "sender": {
+                    "name": "Hamas",
+                    "email": sender_email
+                },
+                "to": [
+                    {
+                        "email": recipient_email
+                    }
+                ],
+                "subject": subject,
+                "htmlContent": body
+            }
+            try:
+                res = requests.post("https://api.brevo.com/v3/smtp/email", json=payload, headers=headers, timeout=8.0)
+                if res.status_code in [200, 201, 202]:
+                    print("Email sent successfully via Brevo HTTP API.")
+                    return True
+                else:
+                    print(f"Brevo HTTP API failed with status {res.status_code}: {res.text}")
+            except Exception as http_err:
+                print(f"Brevo HTTP API request failed: {str(http_err)}")
+
+        # Fallback to standard SMTP
+        print("Falling back to SMTP email transmission...")
         message = MIMEMultipart("alternative")
         message["Subject"] = subject
         message["From"] = f"Hamas <{sender_email}>"
@@ -242,6 +284,7 @@ def send_verification_email(email, verification_token):
             server.login(EMAIL_ADDRESS, EMAIL_PASSWORD)
             server.sendmail(sender_email, recipient_email, message.as_string())
         
+        print("Email sent successfully via SMTP.")
         return True
     except Exception as e:
         print(f"Error sending email: {str(e)}")
