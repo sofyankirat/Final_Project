@@ -137,40 +137,58 @@ def get_user_courses_data(user_id: int) -> list[dict[str, Any]]:
 
 def has_additional_info(user_id: int):
     """Check if the user already submitted additional info."""
-    connection = get_db_connection()
-    if connection is None:
-        return False
+    import time
+    for attempt in range(3):
+        connection = get_db_connection()
+        if connection is None:
+            if attempt < 2:
+                time.sleep(0.1)
+                continue
+            return False
 
-    try:
-        cursor = connection.cursor()
-        cursor.execute("SELECT 1 FROM user_additional_info WHERE user_id = %s LIMIT 1", (user_id,))
-        result = cursor.fetchone()
-        cursor.close()
-        return result is not None
-    except Exception as error:
-        print(f"Additional info check error: {str(error)}")
-        return False
-    finally:
-        connection.close()
+        try:
+            cursor = connection.cursor()
+            cursor.execute("SELECT 1 FROM user_additional_info WHERE user_id = %s LIMIT 1", (user_id,))
+            result = cursor.fetchone()
+            cursor.close()
+            return result is not None
+        except Exception as error:
+            print(f"Additional info check error (attempt {attempt + 1}): {str(error)}")
+            if attempt < 2:
+                time.sleep(0.1)
+                continue
+            return False
+        finally:
+            if connection:
+                connection.close()
 
 
 def has_course_schedule(user_id: int):
     """Check if the user already submitted their course schedule."""
-    connection = get_db_connection()
-    if connection is None:
-        return False
+    import time
+    for attempt in range(3):
+        connection = get_db_connection()
+        if connection is None:
+            if attempt < 2:
+                time.sleep(0.1)
+                continue
+            return False
 
-    try:
-        cursor = connection.cursor()
-        cursor.execute("SELECT 1 FROM user_course_schedule WHERE user_id = %s LIMIT 1", (user_id,))
-        result = cursor.fetchone()
-        cursor.close()
-        return result is not None
-    except Exception as error:
-        print(f"Course schedule check error: {str(error)}")
-        return False
-    finally:
-        connection.close()
+        try:
+            cursor = connection.cursor()
+            cursor.execute("SELECT 1 FROM user_course_schedule WHERE user_id = %s LIMIT 1", (user_id,))
+            result = cursor.fetchone()
+            cursor.close()
+            return result is not None
+        except Exception as error:
+            print(f"Course schedule check error (attempt {attempt + 1}): {str(error)}")
+            if attempt < 2:
+                time.sleep(0.1)
+                continue
+            return False
+        finally:
+            if connection:
+                connection.close()
 
 def send_verification_email(email, verification_token):
     """Send verification email to the user"""

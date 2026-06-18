@@ -88,8 +88,9 @@ def get_db_connection():
             base_dir = os.path.dirname(os.path.abspath(__file__))
             db_path = os.path.join(base_dir, db_file)
         
-        connection = sqlite3.connect(db_path)
+        connection = sqlite3.connect(db_path, timeout=30.0)
         connection.execute("PRAGMA foreign_keys = ON;")
+        connection.execute("PRAGMA journal_mode = WAL;")
         
         # print("Database connection successful")
         return SQLiteConnectionWrapper(connection)
