@@ -1,24 +1,96 @@
-"""
-Database Configuration and Helper Functions using SQLite
+"""Database Configuration and Helper Functions.
+
+This module supports both local SQLite (default) and Postgres (Supabase) when
+`SUPABASE_URL` and `SUPA-PASS` are present in the environment. The returned
+connection wrapper exposes the same `cursor()`, `commit()`, and `close()` APIs
+used by the app.
 """
 
-import sqlite3
-from sqlite3 import Error
-from dotenv import load_dotenv  # type: ignore[import]
 import os
-
+from dotenv import load_dotenv  # type: ignore[import]
 load_dotenv()
 
-# Database Configuration (for compatibility)
 DB_CONFIG = {
     'database': os.getenv('DB_NAME', 'student_system'),
 }
+
 
 class User:
     """User model"""
     def __init__(self, email, password):
         self.email = email
         self.password = password
+
+
+# --- Postgres wrapper (psycopg2) ---------------------------------
+try:
+    import psycopg2  # type: ignore
+    from psycopg2.extras import RealDictCursor  # type: ignore
+except Exception:
+    psycopg2 = None
+
+
+class PGCursorWrapper:
+    def __init__(self, cursor):
+        self.cursor = cursor
+
+    def execute(self, query, params=None):
+        return self.cursor.execute(query, params)
+
+    def fetchone(self):
+        return self.cursor.fetchone()
+
+    def fetchall(self):
+        return self.cursor.fetchall()
+
+    def close(self):
+        try:
+            self.cursor.close()
+        except Exception:
+            pass
+
+    @property
+    def rowcount(self):
+        return self.cursor.rowcount
+
+    @property
+    def lastrowid(self):
+        # psycopg2 does not expose lastrowid; callers should use RETURNING id when needed
+        return None
+
+    @property
+    def description(self):
+        return self.cursor.description
+
+
+class PGConnectionWrapper:
+    def __init__(self, conn):
+        self.connection = conn
+
+    def cursor(self):
+        return PGCursorWrapper(self.connection.cursor())
+
+    def commit(self):
+        self.connection.commit()
+
+    def rollback(self):
+        self.connection.rollback()
+
+    def close(self):
+        try:
+            self.connection.close()
+        except Exception:
+            pass
+
+
+# --- SQLite wrapper (backwards compatible) -------------------------
+try:
+    import sqlite3
+    from sqlite3 import Error
+except Exception:
+    sqlite3 = None
+    Error = Exception
+
 
 class SQLiteCursorWrapper:
     """Wrapper to map %s parameters to SQLite's ? parameters"""
@@ -56,6 +128,7 @@ class SQLiteCursorWrapper:
     def description(self):
         return self.cursor.description
 
+
 class SQLiteConnectionWrapper:
     """Wrapper for SQLite connection"""
     def __init__(self, connection):
@@ -73,13 +146,50 @@ class SQLiteConnectionWrapper:
     def close(self):
         self.connection.close()
 
+
+def _build_postgres_conn():
+    """Build a psycopg2 connection string from env vars.
+
+    Uses `SUPABASE_URL` and `SUPA-PASS` from environment. Returns a psycopg2
+    connection or None if psycopg2 is unavailable.
+    """
+    if psycopg2 is None:
+        return None
+    from urllib.parse import urlparse, quote_plus
+    supa_url = os.getenv('SUPABASE_URL')
+    db_pass = os.getenv('SUPA-PASS') or os.getenv('SUPA_PASS')
+    if not supa_url or not db_pass:
+        return None
+    parsed = urlparse(supa_url)
+    host = parsed.netloc
+    # ensure host begins with db. subdomain for Supabase
+    if not host.startswith('db.'):
+        host = f"db.{host}"
+    enc_pass = quote_plus(db_pass)
+    conn_str = f"postgresql://postgres:{enc_pass}@{host}:5432/postgres?sslmode=require"
+    try:
+        conn = psycopg2.connect(conn_str)
+        return conn
+    except Exception as e:
+        print(f"Postgres connect error: {e}")
+        return None
+
+
 def get_db_connection():
-    """Create and return a database connection"""
+    """Create and return a database connection.
+
+    Prefers Postgres (Supabase) when env vars are present, otherwise falls back
+    to local SQLite database file.
+    """
+    # Try Postgres first
+    pg_conn = _build_postgres_conn()
+    if pg_conn is not None:
+        return PGConnectionWrapper(pg_conn)
+
+    # Fall back to SQLite
     try:
         db_name = DB_CONFIG['database']
         db_file = f"{db_name}.db"
-        
-        # Support SQLITE_DB_DIR env var for persistent storage (e.g. Railway volume mounts)
         db_dir = os.getenv('SQLITE_DB_DIR')
         if db_dir:
             os.makedirs(db_dir, exist_ok=True)
@@ -87,12 +197,10 @@ def get_db_connection():
         else:
             base_dir = os.path.dirname(os.path.abspath(__file__))
             db_path = os.path.join(base_dir, db_file)
-        
+
         connection = sqlite3.connect(db_path, timeout=30.0)
         connection.execute("PRAGMA foreign_keys = ON;")
         connection.execute("PRAGMA journal_mode = WAL;")
-        
-        # print("Database connection successful")
         return SQLiteConnectionWrapper(connection)
     except Error as e:
         print(f"Error while connecting to SQLite: {e}")
