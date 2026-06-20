@@ -89,6 +89,9 @@ class PostgresCursorWrapper:
             query = query.replace("INTEGER PRIMARY KEY AUTOINCREMENT", "SERIAL PRIMARY KEY")
             query = query.replace("LONGTEXT", "TEXT")
             query = query.replace("DATETIME", "TIMESTAMP")
+            # Map course foreign key because Supabase courses table uses course_id as primary key
+            import re
+            query = re.sub(r'REFERENCES\s+courses\s*\(\s*id\s*\)', 'REFERENCES courses(course_id)', query, flags=re.IGNORECASE)
             
         q_strip = query.strip()
         is_insert = q_strip.upper().startswith("INSERT")
