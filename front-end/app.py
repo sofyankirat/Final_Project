@@ -2133,6 +2133,219 @@ def upload_ai_chat_attachment():
         return jsonify({'success': False, 'message': 'Failed to upload attachment'}), 500
 
 
+@app.route('/api/ai-chat', methods=['POST'])
+@login_required
+def ai_chat():
+    """Endpoint to handle AI Agent chat queries integrated with Mini_RAG / Gemini"""
+    import requests
+    user_id = to_int_value(session.get('user_id'))
+    payload = request.get_json() or {}
+    
+    message = to_clean_string(payload.get('message', ''))
+    file_url = to_clean_string(payload.get('fileUrl', ''))
+    mime_type = to_clean_string(payload.get('mimeType', ''))
+    chat_history = payload.get('chatHistory', [])
+
+    # If the message is completely empty and there is no file, return early
+    if not message and not file_url:
+        return jsonify({'success': False, 'message': 'Empty message'}), 400
+
+    # Project ID is default 1 for the chatbot in Mini_RAG
+    project_id = 1
+    mini_rag_url = os.getenv("MINI_RAG_URL", "http://localhost:8000")
+    
+    # 1. Resolve local path if attachment is provided
+    local_path = None
+    if file_url:
+        try:
+            if file_url.startswith('/static/'):
+                relative_path = file_url[8:]  # remove '/static/'
+                local_path = os.path.join(get_static_root(), relative_path)
+            elif file_url.startswith('static/'):
+                relative_path = file_url[7:]
+                local_path = os.path.join(get_static_root(), relative_path)
+            else:
+                local_path = file_url
+        except Exception as e:
+            print(f"Error mapping file url to local path: {e}")
+
+    # Helper function to get Gemini Key dynamically
+    def get_gemini_api_key():
+        key = os.getenv("GEMINI_API_KEY")
+        if key:
+            return key
+        try:
+            base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+            rag_env = os.path.join(base_dir, 'Mini_RAG', 'src', '.env')
+            if os.path.exists(rag_env):
+                with open(rag_env, 'r', encoding='utf-8') as f:
+                    for line in f:
+                        if line.startswith('GEMINI_API_KEY='):
+                            val = line.split('=', 1)[1].strip()
+                            if val.startswith('"') and val.endswith('"'):
+                                val = val[1:-1]
+                            elif val.startswith("'") and val.endswith("'"):
+                                val = val[1:-1]
+                            if val:
+                                return val
+        except Exception:
+            pass
+        return "AIzaSyAw3NQOuvHDo06IlqEDKOouwFq6_g5u1ms"  # fallback default
+
+    # Direct Gemini API Caller
+    def call_gemini_direct(prompt_text, chat_hist, img_path=None, mtype=None):
+        gemini_key = get_gemini_api_key()
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={gemini_key}"
+        headers = {"Content-Type": "application/json"}
+        
+        contents = []
+        # Parse history
+        if chat_hist:
+            for msg in chat_hist:
+                sender = msg.get("sender")
+                text = msg.get("text", "")
+                if not text:
+                    continue
+                role = "user" if sender == "user" else "model"
+                contents.append({
+                    "role": role,
+                    "parts": [{"text": text}]
+                })
+        
+        # Add current message
+        current_parts = []
+        if img_path and mtype and os.path.exists(img_path):
+            try:
+                with open(img_path, "rb") as image_file:
+                    encoded_string = base64.b64encode(image_file.read()).decode('utf-8')
+                current_parts.append({
+                    "inlineData": {
+                        "mimeType": mtype,
+                        "data": encoded_string
+                    }
+                })
+            except Exception as e:
+                print(f"Error encoding image for Gemini: {e}")
+                
+        if prompt_text:
+            current_parts.append({"text": prompt_text})
+        elif not current_parts:
+            current_parts.append({"text": ""})
+            
+        contents.append({
+            "role": "user",
+            "parts": current_parts
+        })
+        
+        payload = {
+            "contents": contents
+        }
+        
+        try:
+            res = requests.post(url, json=payload, headers=headers, timeout=20)
+            if res.status_code == 200:
+                res_json = res.json()
+                candidates = res_json.get("candidates", [])
+                if candidates:
+                    parts = candidates[0].get("content", {}).get("parts", [])
+                    if parts:
+                        return parts[0].get("text", "")
+            else:
+                print(f"Direct Gemini API error {res.status_code}: {res.text}")
+        except Exception as e:
+            print(f"Direct Gemini API exception: {e}")
+        return None
+
+    # Check if attachment is an image
+    is_image = mime_type.startswith('image/') if mime_type else False
+
+    # 2. If it's an image/photo, we process it using Gemini Vision directly
+    if is_image and local_path and os.path.exists(local_path):
+        response_text = call_gemini_direct(message, chat_history, local_path, mime_type)
+        if response_text:
+            return jsonify({'success': True, 'answer': response_text})
+        else:
+            return jsonify({'success': False, 'message': 'Failed to process image with Gemini'}), 500
+
+    # 3. Otherwise, try to call Mini_RAG service
+    try:
+        # A. If there is a document attachment, ingest it first via Mini_RAG
+        if local_path and os.path.exists(local_path) and not is_image:
+            # Upload file
+            upload_url = f"{mini_rag_url}/api/v1/data/upload/{project_id}"
+            filename = os.path.basename(local_path)
+            with open(local_path, 'rb') as f:
+                files = {'file': (filename, f, mime_type or 'application/octet-stream')}
+                up_res = requests.post(upload_url, files=files, timeout=15)
+            
+            if up_res.status_code == 200:
+                up_data = up_res.json()
+                file_id = up_data.get("file_id")
+                
+                # Process file
+                process_url = f"{mini_rag_url}/api/v1/data/process/{project_id}"
+                proc_payload = {
+                    "file_id": file_id,
+                    "chunk_size": 100,
+                    "overlap_size": 20,
+                    "do_reset": 0
+                }
+                proc_res = requests.post(process_url, json=proc_payload, timeout=20)
+                
+                if proc_res.status_code == 200:
+                    # Push vector index
+                    push_url = f"{mini_rag_url}/api/v1/nlp/index/push/{project_id}"
+                    push_res = requests.post(push_url, json={"do_reset": 0}, timeout=60)
+                    if push_res.status_code != 200:
+                        print(f"Warning: Mini_RAG index push returned status {push_res.status_code}")
+                else:
+                    print(f"Warning: Mini_RAG file process returned status {proc_res.status_code}")
+            else:
+                print(f"Warning: Mini_RAG file upload returned status {up_res.status_code}")
+
+        # B. Call RAG Answer endpoint
+        answer_url = f"{mini_rag_url}/api/v1/nlp/index/answer/{project_id}"
+        # Map chat history to Mini_RAG expectations
+        mapped_history = []
+        for msg in chat_history:
+            sender = msg.get("sender")
+            text = msg.get("text", "")
+            if not text:
+                continue
+            mapped_history.append({
+                "role": "user" if sender == "user" else "assistant",
+                "text": text
+            })
+
+        rag_payload = {
+            "text": message,
+            "limit": 5,
+            "chat_history": mapped_history
+        }
+        
+        answer_res = requests.post(answer_url, json=rag_payload, timeout=20)
+        if answer_res.status_code == 200:
+            ans_data = answer_res.json()
+            answer_text = ans_data.get("answer")
+            if answer_text:
+                return jsonify({'success': True, 'answer': answer_text})
+            
+    except requests.exceptions.RequestException as e:
+        print(f"Mini_RAG service unreachable or failed. Falling back to direct Gemini: {e}")
+
+    # 4. Fallback to direct Gemini
+    print("Falling back to direct Gemini...")
+    fallback_text = call_gemini_direct(message, chat_history, local_path if is_image else None, mime_type if is_image else None)
+    if fallback_text:
+        return jsonify({'success': True, 'answer': fallback_text})
+    
+    # If all fails
+    return jsonify({
+        'success': False, 
+        'message': 'Failed to generate response from both Mini_RAG and Gemini APIs.'
+    }), 500
+
+
 def is_user_enrolled(student_name: str, user_id: int = 0) -> bool:
     """Check if the student has successfully enrolled (exists in database.pkl)."""
     key_to_check = f"user_{user_id}" if user_id > 0 else student_name
@@ -2254,6 +2467,8 @@ def get_attendance_records(user_id: int) -> list[dict[str, Any]]:
         
         if isinstance(att_date, datetime):
             dt_obj = att_date
+        elif isinstance(att_date, date):
+            dt_obj = datetime.combine(att_date, time.min)
         elif isinstance(att_date, str):
             try:
                 if ' ' in att_date:
@@ -2913,6 +3128,9 @@ def get_notifications_api():
                 
                 if isinstance(att_date, datetime):
                     time_str = att_date.strftime('%I:%M %p')
+                    date_str = att_date.strftime('%Y-%m-%d')
+                elif isinstance(att_date, date):
+                    time_str = "—"
                     date_str = att_date.strftime('%Y-%m-%d')
                 elif isinstance(att_date, str):
                     try:

@@ -2809,18 +2809,67 @@
                 const responseChatId = currentChatId;
                 const responseToken = ++activeResponseToken;
 
-                appendTyping();
-                await new Promise(r => setTimeout(r, 1200 + Math.random() * 600));
-
-                if (responseToken !== activeResponseToken || responseChatId !== currentChatId) {
-                    removeTyping();
-                    return;
+                // Extract attachment info from the newly pushed message
+                let fileUrl = '';
+                let mimeType = '';
+                const lastMsg = chats[responseChatId] ? chats[responseChatId][chats[responseChatId].length - 1] : null;
+                if (lastMsg && lastMsg.fileHTML) {
+                    const tempDiv = document.createElement('div');
+                    tempDiv.innerHTML = lastMsg.fileHTML;
+                    const img = tempDiv.querySelector('img');
+                    const fileCard = tempDiv.querySelector('.msg-file-card');
+                    if (img) {
+                        fileUrl = img.getAttribute('src') || '';
+                        mimeType = 'image/jpeg'; // fallback default
+                    } else if (fileCard) {
+                        fileUrl = fileCard.getAttribute('data-file-url') || '';
+                        mimeType = 'application/pdf'; // fallback default
+                    }
                 }
 
-                removeTyping();
-                const response = placeholderResponses[responseIndex % placeholderResponses.length];
-                responseIndex++;
-                appendMessage(response, 'ai');
+                appendTyping();
+
+                try {
+                    const requestPayload = {
+                        message: promptText,
+                        fileUrl: fileUrl,
+                        mimeType: mimeType,
+                        chatHistory: chats[responseChatId] ? chats[responseChatId].slice(0, -1) : []
+                    };
+
+                    const chatResponse = await fetch('/api/ai-chat', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(requestPayload)
+                    });
+
+                    if (responseToken !== activeResponseToken || responseChatId !== currentChatId) {
+                        removeTyping();
+                        return;
+                    }
+
+                    removeTyping();
+
+                    if (chatResponse.ok) {
+                        const data = await chatResponse.json();
+                        if (data.success && data.answer) {
+                            appendMessage(data.answer, 'ai');
+                            return;
+                        }
+                    }
+
+                    const errorData = await chatResponse.json().catch(() => ({}));
+                    const errMsg = errorData.message || 'An error occurred while communicating with the AI Agent.';
+                    appendMessage(`⚠️ ${errMsg}`, 'ai');
+
+                } catch (error) {
+                    if (responseToken !== activeResponseToken || responseChatId !== currentChatId) {
+                        removeTyping();
+                        return;
+                    }
+                    removeTyping();
+                    appendMessage('⚠️ Connection error. Please make sure the server is reachable.', 'ai');
+                }
             }
 
             function saveRename() {
@@ -2912,10 +2961,14 @@
             const responseToken = ++activeResponseToken;
 
             let fileHtmlData = null;
+            let fileUrl = '';
+            let mimeType = '';
             if (attachedFile) {
                 try {
                     const uploadedAttachment = await uploadChatAttachment(attachedFile);
                     fileHtmlData = buildUploadedAttachmentHtml(uploadedAttachment);
+                    fileUrl = uploadedAttachment.fileUrl;
+                    mimeType = uploadedAttachment.mimeType;
                 } catch (error) {
                     alert(error.message || 'Could not upload the file. Please try again.');
                     return;
@@ -2935,17 +2988,47 @@
 
             appendTyping();
 
-            await new Promise(r => setTimeout(r, 1200 + Math.random() * 600));
+            try {
+                const requestPayload = {
+                    message: text,
+                    fileUrl: fileUrl,
+                    mimeType: mimeType,
+                    chatHistory: chats[responseChatId] ? chats[responseChatId].slice(0, -1) : []
+                };
 
-            if (responseToken !== activeResponseToken || responseChatId !== currentChatId) {
+                const chatResponse = await fetch('/api/ai-chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(requestPayload)
+                });
+
+                if (responseToken !== activeResponseToken || responseChatId !== currentChatId) {
+                    removeTyping();
+                    return;
+                }
+
                 removeTyping();
-                return;
-            }
 
-            removeTyping();
-            const response = placeholderResponses[responseIndex % placeholderResponses.length];
-            responseIndex++;
-            appendMessage(response, 'ai');
+                if (chatResponse.ok) {
+                    const data = await chatResponse.json();
+                    if (data.success && data.answer) {
+                        appendMessage(data.answer, 'ai');
+                        return;
+                    }
+                }
+
+                const errorData = await chatResponse.json().catch(() => ({}));
+                const errMsg = errorData.message || 'An error occurred while communicating with the AI Agent.';
+                appendMessage(`⚠️ ${errMsg}`, 'ai');
+
+            } catch (error) {
+                if (responseToken !== activeResponseToken || responseChatId !== currentChatId) {
+                    removeTyping();
+                    return;
+                }
+                removeTyping();
+                appendMessage('⚠️ Connection error. Please make sure the server is reachable.', 'ai');
+            }
         }
 
         // ─── Common Questions ─────────────────────────────────────────
