@@ -6,7 +6,7 @@ Student Recommendation and Attendance System
 from flask import Flask, render_template, request, jsonify, session, redirect, url_for  # type: ignore[import]
 from werkzeug.security import generate_password_hash, check_password_hash  # type: ignore[import]
 from werkzeug.utils import secure_filename  # type: ignore[import]
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 import secrets
 import smtplib
 import html
@@ -94,6 +94,178 @@ def to_float_value(value: Any, default: float = 0.0) -> float:
         return default
 
 
+SEMESTER_START = date(2026, 2, 1)
+SEMESTER_END = date(2026, 6, 30)
+
+WEEKDAY_MAP = {
+    'monday': 0, 'mon': 0,
+    'tuesday': 1, 'tue': 1,
+    'wednesday': 2, 'wed': 2,
+    'thursday': 3, 'thu': 3,
+    'friday': 4, 'fri': 4,
+    'saturday': 5, 'sat': 5,
+    'sunday': 6, 'sun': 6
+}
+
+def count_weekday_occurrences(start_date, end_date, weekday: int) -> int:
+    """
+    Count how many times a given weekday occurs between start_date and end_date (inclusive).
+    weekday: 0=Monday ... 6=Sunday
+    """
+    if isinstance(start_date, str):
+        start_date = datetime.strptime(start_date.split()[0], "%Y-%m-%d").date()
+    elif hasattr(start_date, 'date'):
+        start_date = start_date.date()
+        
+    if isinstance(end_date, str):
+        end_date = datetime.strptime(end_date.split()[0], "%Y-%m-%d").date()
+    elif hasattr(end_date, 'date'):
+        end_date = end_date.date()
+
+    count = 0
+    curr = start_date
+    while curr <= end_date:
+        if curr.weekday() == weekday:
+            count += 1
+        curr += timedelta(days=1)
+    return count
+
+def parse_days_to_weekdays(days_str: str) -> list[int]:
+    """Cleanly parse days string like 'Monday' or 'Mon, Wed' to list of weekday integers."""
+    weekdays = []
+    if not days_str:
+        return weekdays
+    parts = [p.strip().lower() for p in days_str.replace(',', ' ').split()]
+    for p in parts:
+        if p in WEEKDAY_MAP:
+            weekdays.append(WEEKDAY_MAP[p])
+    return weekdays
+
+def mark_attendance(student_id: int, weekday: int):
+    """
+    Mark attendance for student_id for the most recent date matching weekday.
+    Increases that student's stored attendance percentage for that weekday.
+    """
+    from datetime import datetime, timedelta
+    now = datetime.now()
+    days_ago = (now.weekday() - weekday) % 7
+    target_date = now - timedelta(days=days_ago)
+    date_str = target_date.strftime("%Y-%m-%d")
+    
+    connection = get_db_connection()
+    if connection:
+        try:
+            cursor = connection.cursor()
+            cursor.execute(
+                "SELECT id FROM user_course_schedule WHERE user_id = %s",
+                (student_id,)
+            )
+            rows = cursor.fetchall()
+            matching_course_id = None
+            
+            for row in rows:
+                sch_id = row[0]
+                cursor.execute(
+                    "SELECT days FROM user_course_schedule WHERE id = %s",
+                    (sch_id,)
+                )
+                days_row = cursor.fetchone()
+                if days_row:
+                    c_days = parse_days_to_weekdays(to_clean_string(days_row[0]))
+                    if weekday in c_days:
+                        matching_course_id = sch_id
+                        break
+            
+            if matching_course_id is None:
+                cursor.execute(
+                    "SELECT 1 FROM attendance WHERE user_id = %s AND date(attendance_date) = %s AND course_id IS NULL LIMIT 1",
+                    (student_id, date_str)
+                )
+            else:
+                cursor.execute(
+                    "SELECT 1 FROM attendance WHERE user_id = %s AND date(attendance_date) = %s AND course_id = %s LIMIT 1",
+                    (student_id, date_str, matching_course_id)
+                )
+            
+            if cursor.fetchone() is None:
+                today_datetime = target_date.strftime("%Y-%m-%d %H:%M:%S")
+                cursor.execute(
+                    "INSERT INTO attendance (user_id, course_id, attendance_date, status) VALUES (%s, %s, %s, TRUE)",
+                    (student_id, matching_course_id, today_datetime)
+                )
+                connection.commit()
+            cursor.close()
+        except Exception as e:
+            print(f"Error marking attendance: {e}")
+        finally:
+            connection.close()
+
+def get_weekly_attendance(student_id: int) -> dict[str, float]:
+    """
+    Get weekday attendance percentages (Mon-Sun) based on weekday occurrences in the semester.
+    Returns: {"Mon": 45.2, "Tue": 50.0, ...}
+    """
+    days_map = {0: "Mon", 1: "Tue", 2: "Wed", 3: "Thu", 4: "Fri", 5: "Sat", 6: "Sun"}
+    result = {name: 0.0 for name in days_map.values()}
+    
+    increments = {}
+    for wd in range(7):
+        occ = count_weekday_occurrences(SEMESTER_START, SEMESTER_END, wd)
+        increments[wd] = 100.0 / occ if occ > 0 else 0.0
+
+    try:
+        connection = get_db_connection()
+        if connection:
+            cursor = connection.cursor()
+            cursor.execute(
+                "SELECT attendance_date FROM attendance WHERE user_id = %s",
+                (student_id,)
+            )
+            rows = cursor.fetchall()
+            cursor.close()
+            connection.close()
+            
+            attendance_by_wd = {wd: 0 for wd in range(7)}
+            unique_dates = set()
+            for row in rows:
+                dt = row[0]
+                if not dt:
+                    continue
+                if isinstance(dt, str):
+                    try:
+                        if ' ' in dt:
+                            dt_obj = datetime.strptime(dt, "%Y-%m-%d %H:%M:%S")
+                        else:
+                            dt_obj = datetime.strptime(dt, "%Y-%m-%d")
+                    except ValueError:
+                        continue
+                else:
+                    dt_obj = dt
+                    
+                dt_date = dt_obj.date() if hasattr(dt_obj, 'date') else dt_obj
+                if SEMESTER_START <= dt_date <= SEMESTER_END:
+                    unique_dates.add(dt_date)
+                    
+            for dt_date in unique_dates:
+                wd = dt_date.weekday()
+                attendance_by_wd[wd] += 1
+                
+            for wd in range(7):
+                pct = min(100.0, attendance_by_wd[wd] * increments[wd])
+                result[days_map[wd]] = round(pct, 1)
+    except Exception as e:
+        print(f"Error in get_weekly_attendance: {e}")
+    return result
+
+def calculate_overall_attendance_rate(courses_data: list[dict[str, Any]]) -> float:
+    """Calculate the overall weighted attendance rate across all enrolled courses."""
+    total_present = sum(c.get('present_count', 0) for c in courses_data)
+    total_lectures = sum(c.get('total_lectures', 0) for c in courses_data)
+    if total_lectures > 0:
+        return round((total_present / total_lectures) * 100, 1)
+    return 0.0
+
+
 def get_user_courses_data(user_id: int) -> list[dict[str, Any]]:
     """Fetch user's selected courses with dynamic attendance percent based on database records."""
     courses_data = []
@@ -103,39 +275,71 @@ def get_user_courses_data(user_id: int) -> list[dict[str, Any]]:
         if connection:
             cursor = connection.cursor()
             cursor.execute(
-                "SELECT id, course_name FROM user_course_schedule WHERE user_id = %s ORDER BY course_name",
+                "SELECT id, course_name, days FROM user_course_schedule WHERE user_id = %s ORDER BY course_name",
                 (user_id,)
             )
             rows = cursor.fetchall()
             
-            # Fetch all attendance records for this user to calculate percentages
+            # Fetch all attendance records for this user to calculate present counts
             cursor.execute(
-                "SELECT course_id FROM attendance WHERE user_id = %s",
+                "SELECT course_id, attendance_date FROM attendance WHERE user_id = %s",
                 (user_id,)
             )
             att_rows = cursor.fetchall()
-            
-            att_counts = {}
-            for r in att_rows:
-                cid = r[0]
-                if cid is not None:
-                    att_counts[cid] = att_counts.get(cid, 0) + 1
-            
             cursor.close()
             connection.close()
+            
+            # Organize attendance by course_id (unique dates within semester)
+            att_by_course = {}
+            for r in att_rows:
+                cid = r[0]
+                dt = r[1]
+                if cid is None or not dt:
+                    continue
+                if isinstance(dt, str):
+                    try:
+                        if ' ' in dt:
+                            dt_obj = datetime.strptime(dt, "%Y-%m-%d %H:%M:%S")
+                        else:
+                            dt_obj = datetime.strptime(dt, "%Y-%m-%d")
+                    except ValueError:
+                        continue
+                else:
+                    dt_obj = dt
+                
+                dt_date = dt_obj.date() if hasattr(dt_obj, 'date') else dt_obj
+                if SEMESTER_START <= dt_date <= SEMESTER_END:
+                    att_by_course.setdefault(cid, set()).add(dt_date)
             
             for idx, row in enumerate(rows):
                 sch_id = row[0]
                 name = to_clean_string(row[1])
-                # Base rate of 50%, add 10% per attendance up to 100%
-                att_count = att_counts.get(sch_id, 0)
-                pct = min(100, 50 + att_count * 10)
+                days_str = to_clean_string(row[2])
+                
+                # Calculate total lectures
+                weekdays = parse_days_to_weekdays(days_str)
+                total_lectures = 0
+                for wd in weekdays:
+                    total_lectures += count_weekday_occurrences(SEMESTER_START, SEMESTER_END, wd)
+                
+                # Calculate present count
+                present_dates = att_by_course.get(sch_id, set())
+                present_count = len(present_dates)
+                
+                # Compute pct
+                if total_lectures > 0:
+                    pct = round((present_count / total_lectures) * 100, 1)
+                else:
+                    pct = 0.0
+                
                 clr = colors[idx % len(colors)]
                 courses_data.append({
                     'name': name,
                     'pct': pct,
                     'clr': clr,
-                    'id': sch_id
+                    'id': sch_id,
+                    'present_count': present_count,
+                    'total_lectures': total_lectures
                 })
     except Exception as e:
         print(f"Error fetching user courses: {e}")
@@ -152,47 +356,18 @@ def get_user_courses_data(user_id: int) -> list[dict[str, Any]]:
                 'name': name,
                 'pct': pct,
                 'clr': clr,
-                'id': None
+                'id': None,
+                'present_count': int(pct / 10),
+                'total_lectures': 10
             })
     return courses_data
 
 
-def get_weekly_attendance_stats(user_id: int) -> list[int]:
-    """Calculate weekly attendance rate (Mon-Sun) based on database records."""
-    rates = [50, 50, 50, 50, 50, 50, 50]
-    try:
-        connection = get_db_connection()
-        if connection:
-            cursor = connection.cursor()
-            cursor.execute(
-                "SELECT attendance_date FROM attendance WHERE user_id = %s",
-                (user_id,)
-            )
-            rows = cursor.fetchall()
-            cursor.close()
-            connection.close()
-            
-            for row in rows:
-                dt = row[0]
-                if not dt:
-                    continue
-                if isinstance(dt, str):
-                    try:
-                        if ' ' in dt:
-                            dt_obj = datetime.strptime(dt, "%Y-%m-%d %H:%M:%S")
-                        else:
-                            dt_obj = datetime.strptime(dt, "%Y-%m-%d")
-                    except ValueError:
-                        continue
-                else:
-                    dt_obj = dt
-                
-                day_idx = dt_obj.weekday()
-                if 0 <= day_idx < 7:
-                    rates[day_idx] = min(100, rates[day_idx] + 10)
-    except Exception as e:
-        print(f"Error calculating weekly stats: {e}")
-    return rates
+def get_weekly_attendance_stats(user_id: int) -> list[float]:
+    """Calculate weekly attendance rate (Mon-Sun) based on semester calculations."""
+    weekly_dict = get_weekly_attendance(user_id)
+    days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+    return [weekly_dict.get(d, 0.0) for d in days]
 
 
 def has_additional_info(user_id: int):
@@ -770,10 +945,11 @@ def dashboard():
         print(f"Error fetching recommendation history for dashboard: {rec_err}")
 
     weekly_data = get_weekly_attendance_stats(to_int_value(user_id))
+    attendance_rate = calculate_overall_attendance_rate(courses)
     return render_template('dashboard.html', username=username, email=email,
                            profile_photo=_get_profile_photo(user_id), gpa=gpa_value,
                            courses=courses, recommendation_history=recommendation_history,
-                           weekly_data=weekly_data)
+                           weekly_data=weekly_data, attendance_rate=attendance_rate)
 
 
 def get_static_root() -> str:
@@ -1946,9 +2122,10 @@ def attendance():
     enrolled = is_user_enrolled(student_name, user_id)
     courses = get_user_courses_data(user_id)
     weekly_data = get_weekly_attendance_stats(user_id)
+    attendance_rate = calculate_overall_attendance_rate(courses)
     return render_template('attendance.html', username=username, email=email,
                            profile_photo=_get_profile_photo(user_id), enrolled=enrolled,
-                           courses=courses, weekly_data=weekly_data)
+                           courses=courses, weekly_data=weekly_data, attendance_rate=attendance_rate)
 
 
 @app.route('/api/attendance/enroll', methods=['POST'])
@@ -2414,11 +2591,13 @@ def get_attendance_stats_api():
     user_id = to_int_value(user_id)
     courses = get_user_courses_data(user_id)
     weekly_data = get_weekly_attendance_stats(user_id)
+    attendance_rate = calculate_overall_attendance_rate(courses)
     
     return jsonify({
         'success': True,
         'courses': courses,
-        'weekly_data': weekly_data
+        'weekly_data': weekly_data,
+        'attendance_rate': attendance_rate
     })
 
 

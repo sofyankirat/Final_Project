@@ -302,10 +302,10 @@
                             </svg>
                         </div>
                         <div class="stat-info">
-                            <span class="stat-value" id="val-attendance">—</span>
+                            <span class="stat-value" id="val-attendance">{% if attendance_rate is defined and attendance_rate is not none %}{{ attendance_rate | round | int }}%{% else %}—{% endif %}</span>
                             <span class="stat-label">Attendance Rate</span>
                         </div>
-                        <span class="stat-badge stat-badge-pending">Pending</span>
+                        <span class="stat-badge" {% if attendance_rate is defined and attendance_rate is not none %}style="background: rgba(59, 130, 246, 0.12); color: rgb(59, 130, 246);"{% endif %}>{% if attendance_rate is defined and attendance_rate is not none %}Active{% else %}Pending{% endif %}</span>
                     </div>
 
                     <div class="dash-stat-card" id="stat-percentage">

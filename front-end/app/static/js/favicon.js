@@ -197,10 +197,8 @@
 
             // 2. Update KPI Stats Rate
             const rateValEl = document.getElementById('val-attendance');
-            if (rateValEl && data.weekly_data) {
-                const validRates = data.weekly_data.filter(r => r > 50);
-                const avgRate = data.weekly_data.length > 0 ? Math.round(data.weekly_data.reduce((a, b) => a + b, 0) / data.weekly_data.length) : 50;
-                rateValEl.textContent = avgRate + '%';
+            if (rateValEl && data.attendance_rate !== undefined) {
+                rateValEl.textContent = Math.round(data.attendance_rate) + '%';
                 
                 const rateBadgeEl = document.querySelector('#stat-attendance .stat-badge');
                 if (rateBadgeEl) {
@@ -211,30 +209,7 @@
                 }
             }
 
-            // Update Percentage KPI
-            const pctValEl = document.getElementById('val-percentage');
-            if (pctValEl && data.courses && data.courses.length > 0) {
-                const totalPct = data.courses.reduce((a, b) => a + b.pct, 0);
-                const avgPct = Math.round(totalPct / data.courses.length);
-                pctValEl.textContent = avgPct + '%';
-            }
-
-            // Update Academic Grade KPI
-            const gradeValEl = document.getElementById('val-assessment');
-            if (gradeValEl && data.courses && data.courses.length > 0) {
-                const totalPct = data.courses.reduce((a, b) => a + b.pct, 0);
-                const avgPct = totalPct / data.courses.length;
-                let grade = 'F';
-                if (avgPct >= 90) grade = 'A+';
-                else if (avgPct >= 85) grade = 'A';
-                else if (avgPct >= 80) grade = 'A-';
-                else if (avgPct >= 75) grade = 'B+';
-                else if (avgPct >= 70) grade = 'B';
-                else if (avgPct >= 65) grade = 'C+';
-                else if (avgPct >= 60) grade = 'C';
-                else if (avgPct >= 50) grade = 'D';
-                gradeValEl.textContent = grade;
-            }
+            // Update Percentage and Academic Grade is managed by local GPA widgets updateGpaWidgets in dashboard.html.
 
             // 3. Update Course bars
             const courseBarsContainer = document.querySelector('.course-bars-area');
