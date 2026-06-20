@@ -10,9 +10,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libglib2.0-0 \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy front-end requirements first to leverage Docker cache
-COPY front-end/requirements.txt /app/front-end/requirements.txt
-RUN pip install --no-cache-dir -r /app/front-end/requirements.txt
+# Copy full requirements and install to include ML dependencies (monolith)
+COPY requirements.txt /app/requirements.txt
+RUN pip install --no-cache-dir -r /app/requirements.txt
 
 # Copy all required codebase parts into the container
 COPY front-end /app/front-end
@@ -29,5 +29,5 @@ ENV FLASK_APP=app.py
 # Set working directory to front-end for executing the app
 WORKDIR /app/front-end
 
-# Run the Flask application using Gunicorn, binding to the port assigned by Railway with threads support for WebSockets
-CMD gunicorn --bind 0.0.0.0:$PORT --timeout 120 --threads 8 --worker-class gthread app:app
+# Run the monolithic Flask application using Gunicorn (wsgi:app exposes the app)
+CMD gunicorn --bind 0.0.0.0:$PORT --timeout 120 --threads 8 wsgi:app
