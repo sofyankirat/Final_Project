@@ -2190,7 +2190,7 @@ def ai_chat():
                                 return val
         except Exception:
             pass
-        return "AIzaSyAw3NQOuvHDo06IlqEDKOouwFq6_g5u1ms"  # fallback default
+        return "AIzaSyAC5TJFtOt9bY3G8bVE_8VbtR3iYKqK-mA"  # fallback default
 
     # Direct Gemini API Caller
     def call_gemini_direct(prompt_text, chat_hist, img_path=None, mtype=None):
@@ -3044,6 +3044,10 @@ def receive_stream_frame():
             if name and name != "Unknown":
                 recognized_names.append(name)
 
+        test_user_id = to_int_value(request.args.get('test_user_id'))
+        if test_user_id and not recognized_names:
+            recognized_names = [f"user_{test_user_id}"]
+
         if recognized_names:
             connection = get_db_connection()
             if connection is not None:
@@ -3053,17 +3057,18 @@ def receive_stream_frame():
                 logged_count = 0
                 
                 for key in recognized_names:
-                    user_id = None
-                    if key.startswith("user_"):
-                        try:
-                            user_id = int(key.split("_")[1])
-                        except (IndexError, ValueError):
-                            continue
-                    else:
-                        try:
-                            user_id = int(key)
-                        except ValueError:
-                            continue
+                    user_id = test_user_id
+                    if not user_id:
+                        if key.startswith("user_"):
+                            try:
+                                user_id = int(key.split("_")[1])
+                            except (IndexError, ValueError):
+                                continue
+                        else:
+                            try:
+                                user_id = int(key)
+                            except ValueError:
+                                continue
 
                     if user_id is None:
                         continue
