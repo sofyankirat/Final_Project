@@ -253,11 +253,8 @@ def get_weekly_attendance(student_id: int) -> dict[str, float]:
                     attendance_by_wd[wd] += 1
                 
             for wd in range(7):
-                if wd == 5:  # Saturday
-                    result[days_map[wd]] = 0.0
-                else:
-                    pct = min(100.0, attendance_by_wd[wd] * increments[wd])
-                    result[days_map[wd]] = round(pct, 1)
+                pct = min(100.0, attendance_by_wd[wd] * increments[wd])
+                result[days_map[wd]] = round(pct, 1)
     except Exception as e:
         print(f"Error in get_weekly_attendance: {e}")
     return result
@@ -2442,7 +2439,7 @@ def ws_camera_stream(ws):
 
 
 def find_matching_course(user_id: int) -> int | None:
-    """Find the course schedule entry ID that matches the current time and day of week, with a closest-course fallback."""
+    """Find the course schedule entry ID that matches the current time and day of week exactly."""
     now = get_local_now()
     current_day = now.strftime("%A")  # e.g., "Monday"
     current_time = now.time()
@@ -2459,16 +2456,15 @@ def find_matching_course(user_id: int) -> int | None:
             cursor.close()
             connection.close()
             
-            day_matches = []
-            exact_match_id = None
-            
             for row in rows:
                 course_sch_id = row[0]
                 start_val = row[1]
                 end_val = row[2]
                 day_val = to_clean_string(row[3])
                 
-                if day_val.strip().lower() != current_day.lower():
+                # Check if current day is in the scheduled days
+                days_list = [d.strip().lower() for d in day_val.split(',')]
+                if current_day.lower() not in days_list:
                     continue
                 
                 def to_time_obj(t_val):
@@ -2490,40 +2486,7 @@ def find_matching_course(user_id: int) -> int | None:
                 
                 if start_time and end_time:
                     if start_time <= current_time <= end_time:
-                        exact_match_id = course_sch_id
-                        break
-                    else:
-                        day_matches.append((course_sch_id, start_time, end_time))
-            
-            if exact_match_id is not None:
-                return exact_match_id
-                
-            # Fallback: Find the closest course on the same day within a 2-hour window
-            if day_matches:
-                closest_course_id = None
-                min_diff = None
-                
-                def time_to_mins(t):
-                    return t.hour * 60 + t.minute
-                
-                curr_mins = time_to_mins(current_time)
-                
-                for cid, s_time, e_time in day_matches:
-                    s_mins = time_to_mins(s_time)
-                    e_mins = time_to_mins(e_time)
-                    
-                    if curr_mins < s_mins:
-                        diff = s_mins - curr_mins
-                    else:
-                        diff = curr_mins - e_mins
-                        
-                    if min_diff is None or diff < min_diff:
-                        min_diff = diff
-                        closest_course_id = cid
-                
-                # Match it if it's within 120 minutes (2 hours)
-                if min_diff is not None and min_diff <= 120:
-                    return closest_course_id
+                        return course_sch_id
     except Exception as e:
         print(f"Error matching course: {e}")
     return None
