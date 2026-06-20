@@ -2169,6 +2169,199 @@ def attendance():
                            courses=courses, weekly_data=weekly_data, attendance_rate=attendance_rate)
 
 
+def get_attendance_records(user_id: int) -> list[dict[str, Any]]:
+    """
+    Generate the complete attendance records list (both present and absent).
+    """
+    records = []
+    
+    try:
+        connection = get_db_connection()
+        if not connection:
+            return []
+        
+        cursor = connection.cursor()
+        cursor.execute(
+            "SELECT id, course_name, start_time, end_time, days FROM user_course_schedule WHERE user_id = %s",
+            (user_id,)
+        )
+        schedules = cursor.fetchall()
+        
+        cursor.execute(
+            "SELECT id, course_id, attendance_date, status FROM attendance WHERE user_id = %s",
+            (user_id,)
+        )
+        attendance_rows = cursor.fetchall()
+        
+        cursor.close()
+        connection.close()
+    except Exception as e:
+        print(f"Error fetching data for records: {e}")
+        return []
+
+    schedule_map = {}
+    for sch in schedules:
+        sch_id = sch[0]
+        course_name = to_clean_string(sch[1])
+        start_time_val = sch[2]
+        end_time_val = sch[3]
+        days_str = to_clean_string(sch[4])
+        
+        weekdays = parse_days_to_weekdays(days_str)
+        schedule_map[sch_id] = {
+            'id': sch_id,
+            'course_name': course_name,
+            'start_time': start_time_val,
+            'end_time': end_time_val,
+            'weekdays': weekdays
+        }
+
+    present_sessions = set()
+    
+    for row in attendance_rows:
+        att_id = row[0]
+        course_id = row[1]
+        att_date = row[2]
+        status = row[3]
+        
+        if not att_date:
+            continue
+        
+        if isinstance(att_date, datetime):
+            dt_obj = att_date
+        elif isinstance(att_date, str):
+            try:
+                if ' ' in att_date:
+                    dt_obj = datetime.strptime(att_date, "%Y-%m-%d %H:%M:%S")
+                else:
+                    dt_obj = datetime.strptime(att_date, "%Y-%m-%d")
+            except ValueError:
+                continue
+        else:
+            continue
+            
+        dt_date = dt_obj.date()
+        
+        matched_course_name = "General class"
+        if course_id in schedule_map:
+            matched_course_name = schedule_map[course_id]['course_name']
+            present_sessions.add((course_id, dt_date.strftime("%Y-%m-%d")))
+        else:
+            matched_sched_id = None
+            for sch_id, sch in schedule_map.items():
+                if dt_date.weekday() in sch['weekdays']:
+                    def to_time_obj(t_val):
+                        if isinstance(t_val, str):
+                            try:
+                                parts = t_val.split(':')
+                                if len(parts) >= 2:
+                                    return time(int(parts[0]), int(parts[1]))
+                            except ValueError:
+                                pass
+                        elif isinstance(t_val, time):
+                            return t_val
+                        elif hasattr(t_val, 'hour'):
+                            return time(t_val.hour, t_val.minute)
+                        return None
+                    
+                    st = to_time_obj(sch['start_time'])
+                    et = to_time_obj(sch['end_time'])
+                    if st and et and st <= dt_obj.time() <= et:
+                        matched_sched_id = sch_id
+                        matched_course_name = sch['course_name']
+                        break
+            
+            if matched_sched_id:
+                present_sessions.add((matched_sched_id, dt_date.strftime("%Y-%m-%d")))
+            
+        records.append({
+            'course_name': matched_course_name,
+            'status': 'Present',
+            'day': dt_obj.strftime("%A"),
+            'date': dt_date,
+            'time': dt_obj.strftime("%I:%M %p"),
+            'sort_key': dt_obj
+        })
+
+    local_now = get_local_now()
+    today_date = local_now.date()
+    
+    def to_time_obj_helper(t_val):
+        if isinstance(t_val, str):
+            try:
+                parts = t_val.split(':')
+                if len(parts) >= 2:
+                    return time(int(parts[0]), int(parts[1]))
+            except ValueError:
+                pass
+        elif isinstance(t_val, time):
+            return t_val
+        elif hasattr(t_val, 'hour'):
+            return time(t_val.hour, t_val.minute)
+        return None
+
+    current_d = SEMESTER_START
+    while current_d <= today_date:
+        wd = current_d.weekday()
+        current_day_str = current_d.strftime("%Y-%m-%d")
+        
+        for sch_id, sch in schedule_map.items():
+            if wd in sch['weekdays']:
+                end_t = to_time_obj_helper(sch['end_time'])
+                start_t = to_time_obj_helper(sch['start_time'])
+                if end_t and start_t:
+                    session_ended = False
+                    if current_d < today_date:
+                        session_ended = True
+                    elif current_d == today_date:
+                        if end_t <= local_now.time():
+                            session_ended = True
+                    
+                    if session_ended:
+                        if (sch_id, current_day_str) not in present_sessions:
+                            session_start_dt = datetime.combine(current_d, start_t)
+                            records.append({
+                                'course_name': sch['course_name'],
+                                'status': 'Not Present',
+                                'day': current_d.strftime("%A"),
+                                'date': current_d,
+                                'time': '—',
+                                'sort_key': session_start_dt
+                            })
+                            
+        current_d += timedelta(days=1)
+
+    records.sort(key=lambda x: x['sort_key'], reverse=True)
+    return records
+
+
+@app.route('/records')
+@login_required
+def records():
+    """Attendance records log page"""
+    user_id = to_int_value(session.get('user_id'))
+    email = session.get('email', '')
+    username = email.split('@')[0].capitalize() if email else 'User'
+    try:
+        connection = get_db_connection()
+        if connection:
+            cursor = connection.cursor()
+            cursor.execute("SELECT first_name FROM user_additional_info WHERE user_id = %s", (user_id,))
+            result = cursor.fetchone()
+            if result and result[0]:
+                username = to_clean_string(result[0])
+            cursor.close()
+            connection.close()
+    except Exception as e:
+        print(f"Error fetching user name: {e}")
+    
+    attendance_records = get_attendance_records(user_id)
+    
+    return render_template('records.html', username=username, email=email,
+                           profile_photo=_get_profile_photo(user_id),
+                           records=attendance_records)
+
+
 @app.route('/api/attendance/enroll', methods=['POST'])
 @login_required
 def attendance_enroll():
