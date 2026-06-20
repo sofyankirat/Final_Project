@@ -130,13 +130,32 @@
             if (!data.success) return;
 
             const currentHash = JSON.stringify(data.notifications);
-            if (currentHash === lastNotifsHash) return;
+            if (currentHash === lastNotifsHash) {
+                const lastViewedHash = localStorage.getItem('notifs_last_viewed_hash');
+                const notifDot = notifBtn.querySelector('.header-notif-dot');
+                if (notifDot) {
+                    if (data.notifications && data.notifications.length > 0 && currentHash !== lastViewedHash) {
+                        notifDot.style.display = 'block';
+                    } else {
+                        notifDot.style.display = 'none';
+                    }
+                }
+                return;
+            }
             lastNotifsHash = currentHash;
+            window.currentNotifsHash = currentHash;
 
             const notifDot = notifBtn.querySelector('.header-notif-dot');
+            const lastViewedHash = localStorage.getItem('notifs_last_viewed_hash');
             if (data.notifications && data.notifications.length > 0) {
                 notifBtn.classList.add('has-notif');
-                if (notifDot) notifDot.style.display = 'block';
+                if (notifDot) {
+                    if (currentHash !== lastViewedHash) {
+                        notifDot.style.display = 'block';
+                    } else {
+                        notifDot.style.display = 'none';
+                    }
+                }
 
                 let html = '<div style="display:flex; flex-direction:column; gap:8px; max-height:280px; overflow-y:auto; padding: 4px;">';
                 data.notifications.slice(0, 3).forEach(n => {
@@ -262,6 +281,16 @@
         
         checkAndRefreshNotifications();
         checkAndRefreshStats();
+        
+        notifBtn.addEventListener('click', () => {
+            const notifDot = notifBtn.querySelector('.header-notif-dot');
+            if (notifDot) {
+                notifDot.style.display = 'none';
+            }
+            if (window.currentNotifsHash) {
+                localStorage.setItem('notifs_last_viewed_hash', window.currentNotifsHash);
+            }
+        });
         
         setInterval(() => {
             checkAndRefreshNotifications();
