@@ -217,7 +217,7 @@ def get_weekly_attendance(student_id: int) -> dict[str, float]:
     increments = {}
     for wd in range(7):
         occ = count_weekday_occurrences(SEMESTER_START, SEMESTER_END, wd)
-        increments[wd] = 100.0 / occ if occ > 0 else 0.0
+        increments[wd] = (100.0 / occ if occ > 0 else 0.0) * 2.0
 
     try:
         connection = get_db_connection()
@@ -259,12 +259,13 @@ def get_weekly_attendance(student_id: int) -> dict[str, float]:
         print(f"Error in get_weekly_attendance: {e}")
     return result
 
+
 def calculate_overall_attendance_rate(courses_data: list[dict[str, Any]]) -> float:
-    """Calculate the overall weighted attendance rate across all enrolled courses."""
+    """Calculate the overall weighted attendance rate across all enrolled courses with a 2.0x scale."""
     total_present = sum(c.get('present_count', 0) for c in courses_data)
     total_lectures = sum(c.get('total_lectures', 0) for c in courses_data)
     if total_lectures > 0:
-        return round((total_present / total_lectures) * 100, 1)
+        return min(100.0, round((total_present * 2.0 / total_lectures) * 100, 1))
     return 0.0
 
 
@@ -328,9 +329,9 @@ def get_user_courses_data(user_id: int) -> list[dict[str, Any]]:
                 present_list = att_by_course.get(sch_id, [])
                 present_count = len(present_list)
                 
-                # Compute pct
+                # Compute pct with a 2.0x scale
                 if total_lectures > 0:
-                    pct = round((present_count / total_lectures) * 100, 1)
+                    pct = min(100.0, round((present_count * 2.0 / total_lectures) * 100, 1))
                 else:
                     pct = 0.0
                 
@@ -2658,7 +2659,7 @@ def get_notifications_api():
                 LEFT JOIN user_course_schedule c ON a.course_id = c.id
                 WHERE a.user_id = %s
                 ORDER BY a.created_at DESC, a.id DESC
-                LIMIT 5
+                LIMIT 3
                 """,
                 (user_id,)
             )
