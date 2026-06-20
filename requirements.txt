@@ -45,3 +45,6 @@ typing_extensions==4.7.1
 ultralytics==8.0.160
 urllib3==2.0.4
 PyYAML==6.0.1
+gunicorn==20.1.0
+psycopg2-binary==2.9.10
+supabase==1.0.0
