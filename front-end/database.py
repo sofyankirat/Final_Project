@@ -155,10 +155,13 @@ def get_db_connection():
     
     if supabase_url and supa_pass:
         try:
-            # Extract reference ID from https://ref_id.supabase.co
-            cleaned = supabase_url.replace("https://", "").replace("http://", "")
-            ref_id = cleaned.split('.')[0]
-            host = f"db.{ref_id}.supabase.co"
+            host = os.getenv('SUPABASE_HOST')
+            port = os.getenv('SUPABASE_PORT', '5432')
+            if not host:
+                # Extract reference ID from https://ref_id.supabase.co
+                cleaned = supabase_url.replace("https://", "").replace("http://", "")
+                ref_id = cleaned.split('.')[0]
+                host = f"db.{ref_id}.supabase.co"
             
             import psycopg2
             connection = psycopg2.connect(
@@ -166,7 +169,7 @@ def get_db_connection():
                 database="postgres",
                 user="postgres",
                 password=supa_pass,
-                port="5432",
+                port=port,
                 connect_timeout=10
             )
             print(f"Database: Connected to Supabase Cloud ({host})")
