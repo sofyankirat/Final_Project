@@ -73,8 +73,107 @@ class SQLiteConnectionWrapper:
     def close(self):
         self.connection.close()
 
+class PostgresCursorWrapper:
+    """Wrapper to map insert results and translate schema SQL for Postgres"""
+    def __init__(self, cursor):
+        self.cursor = cursor
+        self._lastrowid = None
+
+    def execute(self, query, params=None):
+        if not query:
+            return self.cursor.execute(query, params)
+            
+        # Translate SQLite-specific table creation queries to PostgreSQL
+        query_upper = query.upper()
+        if "CREATE TABLE" in query_upper:
+            query = query.replace("INTEGER PRIMARY KEY AUTOINCREMENT", "SERIAL PRIMARY KEY")
+            query = query.replace("LONGTEXT", "TEXT")
+            query = query.replace("DATETIME", "TIMESTAMP")
+            
+        q_strip = query.strip()
+        is_insert = q_strip.upper().startswith("INSERT")
+        
+        if is_insert and "RETURNING" not in q_strip.upper():
+            if q_strip.endswith(";"):
+                q_strip = q_strip[:-1]
+            q_strip += " RETURNING id"
+            res = self.cursor.execute(q_strip, params)
+            try:
+                row = self.cursor.fetchone()
+                if row:
+                    self._lastrowid = row[0]
+            except Exception:
+                pass
+            return res
+        else:
+            return self.cursor.execute(query, params)
+
+    @property
+    def lastrowid(self):
+        return self._lastrowid
+
+    def fetchone(self):
+        return self.cursor.fetchone()
+
+    def fetchall(self):
+        return self.cursor.fetchall()
+
+    def close(self):
+        self.cursor.close()
+
+    @property
+    def rowcount(self):
+        return self.cursor.rowcount
+
+    @property
+    def description(self):
+        return self.cursor.description
+
+
+class PostgresConnectionWrapper:
+    """Wrapper for PostgreSQL connection"""
+    def __init__(self, connection):
+        self.connection = connection
+
+    def cursor(self):
+        return PostgresCursorWrapper(self.connection.cursor())
+
+    def commit(self):
+        self.connection.commit()
+
+    def rollback(self):
+        self.connection.rollback()
+
+    def close(self):
+        self.connection.close()
+
+
 def get_db_connection():
-    """Create and return a database connection"""
+    """Create and return a database connection (Supabase PostgreSQL or SQLite fallback)"""
+    supabase_url = os.getenv('SUPABASE_URL')
+    supa_pass = os.getenv('SUPA_PASS')
+    
+    if supabase_url and supa_pass:
+        try:
+            # Extract reference ID from https://ref_id.supabase.co
+            cleaned = supabase_url.replace("https://", "").replace("http://", "")
+            ref_id = cleaned.split('.')[0]
+            host = f"db.{ref_id}.supabase.co"
+            
+            import psycopg2
+            connection = psycopg2.connect(
+                host=host,
+                database="postgres",
+                user="postgres",
+                password=supa_pass,
+                port="5432",
+                connect_timeout=10
+            )
+            return PostgresConnectionWrapper(connection)
+        except Exception as e:
+            print(f"Failed to connect to Supabase PostgreSQL: {e}. Falling back to SQLite.")
+
+    # SQLite Fallback
     try:
         db_name = DB_CONFIG['database']
         db_file = f"{db_name}.db"
@@ -92,7 +191,6 @@ def get_db_connection():
         connection.execute("PRAGMA foreign_keys = ON;")
         connection.execute("PRAGMA journal_mode = WAL;")
         
-        # print("Database connection successful")
         return SQLiteConnectionWrapper(connection)
     except Error as e:
         print(f"Error while connecting to SQLite: {e}")
@@ -191,13 +289,15 @@ def init_db():
         cursor.execute(create_user_additional_info_table)
 
         # Check if student_id column exists, if not, add it (for existing databases)
-        try:
-            cursor.execute("SELECT student_id FROM user_additional_info LIMIT 1")
-        except Error:
+        is_postgres = isinstance(connection, PostgresConnectionWrapper)
+        if not is_postgres:
             try:
-                cursor.execute("ALTER TABLE user_additional_info ADD COLUMN student_id VARCHAR(100)")
-            except Error as ae:
-                print(f"Error migrating student_id: {ae}")
+                cursor.execute("SELECT student_id FROM user_additional_info LIMIT 1")
+            except Exception:
+                try:
+                    cursor.execute("ALTER TABLE user_additional_info ADD COLUMN student_id VARCHAR(100)")
+                except Exception as ae:
+                    print(f"Error migrating student_id: {ae}")
 
         # Create AI chat state table (persisted conversation history per user)
         create_ai_chat_state_table = """
@@ -287,10 +387,11 @@ def init_db():
         cursor.execute(create_user_tasks_table)
         
         # Add task_date column if it doesn't exist (backward compatibility)
-        try:
-            cursor.execute("ALTER TABLE user_tasks ADD COLUMN task_date TEXT")
-        except Exception:
-            pass
+        if not is_postgres:
+            try:
+                cursor.execute("ALTER TABLE user_tasks ADD COLUMN task_date TEXT")
+            except Exception:
+                pass
         
         # Create separate index for user tasks
         cursor.execute("CREATE INDEX IF NOT EXISTS idx_user_tasks_user ON user_tasks (user_id)")
@@ -302,7 +403,7 @@ def init_db():
         print("Database initialized successfully")
         return True
     
-    except Error as e:
+    except Exception as e:
         print(f"Error initializing database: {e}")
         return False
 
