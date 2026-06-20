@@ -3,6 +3,7 @@ wheel
 
 # Front-end web application
 Flask==2.3.0
+Flask-Sock==0.5.0
 mysql-connector-python==8.0.33
 python-dotenv==1.0.0
 Werkzeug==2.3.0
