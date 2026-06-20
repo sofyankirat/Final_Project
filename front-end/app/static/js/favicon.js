@@ -139,7 +139,7 @@
                 if (notifDot) notifDot.style.display = 'block';
 
                 let html = '<div style="display:flex; flex-direction:column; gap:8px; max-height:280px; overflow-y:auto; padding: 4px;">';
-                data.notifications.forEach(n => {
+                data.notifications.slice(0, 3).forEach(n => {
                     html += `
                     <div class="notif-item" style="padding: 10px; border-bottom: 1px solid rgba(0,0,0,0.06); display: flex; flex-direction: column; gap: 4px; border-radius: 6px; transition: background 0.2s;">
                         <div class="notif-title" style="font-weight: 700; font-size: 13px; color: var(--notif-title-clr, #1a1a1a);">${n.title}</div>

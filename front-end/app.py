@@ -253,12 +253,14 @@ def get_weekly_attendance(student_id: int) -> dict[str, float]:
                     attendance_by_wd[wd] += 1
                 
             for wd in range(7):
-                pct = min(100.0, attendance_by_wd[wd] * increments[wd])
-                result[days_map[wd]] = round(pct, 1)
+                if wd == 5:  # Saturday
+                    result[days_map[wd]] = 0.0
+                else:
+                    pct = min(100.0, attendance_by_wd[wd] * increments[wd])
+                    result[days_map[wd]] = round(pct, 1)
     except Exception as e:
         print(f"Error in get_weekly_attendance: {e}")
     return result
-
 
 def calculate_overall_attendance_rate(courses_data: list[dict[str, Any]]) -> float:
     """Calculate the overall weighted attendance rate across all enrolled courses with a 2.0x scale."""
@@ -1433,18 +1435,57 @@ def course_schedule():
 
         try:
             cursor = connection.cursor()
-            # Clear any existing schedule first to prevent duplicates or clean edit/re-submit
-            cursor.execute("DELETE FROM user_course_schedule WHERE user_id = %s", (user_id,))
-
+            
+            # Fetch existing course schedule entries for this user
+            cursor.execute(
+                "SELECT id, course_name, start_time, end_time, days FROM user_course_schedule WHERE user_id = %s",
+                (user_id,)
+            )
+            existing_rows = cursor.fetchall()
+            
+            # Map them by (course_name.strip().lower(), days.strip().lower())
+            existing_by_key = {}
+            for row in existing_rows:
+                db_id = row[0]
+                db_name = to_clean_string(row[1]).strip().lower()
+                db_days = to_clean_string(row[4]).strip().lower()
+                existing_by_key[(db_name, db_days)] = row
+            
+            kept_ids = set()
+            
             for (name, start, end, days, _, _) in entries:
-                cursor.execute(
-                    """
-                    INSERT INTO user_course_schedule (
-                        user_id, course_name, start_time, end_time, days
-                    ) VALUES (%s, %s, %s, %s, %s)
-                    """,
-                    (user_id, name, start, end, days)
-                )
+                key = (name.strip().lower(), days.strip().lower())
+                if key in existing_by_key:
+                    db_id = existing_by_key[key][0]
+                    # Update start_time and end_time
+                    cursor.execute(
+                        """
+                        UPDATE user_course_schedule 
+                        SET start_time = %s, end_time = %s 
+                        WHERE id = %s
+                        """,
+                        (start, end, db_id)
+                    )
+                    kept_ids.add(db_id)
+                else:
+                    # Insert new course entry
+                    cursor.execute(
+                        """
+                        INSERT INTO user_course_schedule (
+                            user_id, course_name, start_time, end_time, days
+                        ) VALUES (%s, %s, %s, %s, %s)
+                        """,
+                        (user_id, name, start, end, days)
+                    )
+            
+            # Delete any courses that were not kept
+            for key, row in existing_by_key.items():
+                db_id = row[0]
+                if db_id not in kept_ids:
+                    cursor.execute(
+                        "DELETE FROM user_course_schedule WHERE id = %s",
+                        (db_id,)
+                    )
 
             connection.commit()
             cursor.close()
