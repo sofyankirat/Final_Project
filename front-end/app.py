@@ -1835,13 +1835,7 @@ def upload_ai_chat_attachment():
 
 
 def is_user_enrolled(student_name: str, user_id: int = 0) -> bool:
-    """Check if the student has successfully enrolled (exists in database.pkl and local directory has captures)."""
-    if user_id > 0:
-        static_root = get_static_root()
-        upload_dir = os.path.join(static_root, 'uploads', 'attendance', f'user_{user_id}')
-        if not os.path.exists(upload_dir) or not os.listdir(upload_dir):
-            return False
-
+    """Check if the student has successfully enrolled (exists in database.pkl)."""
     key_to_check = f"user_{user_id}" if user_id > 0 else student_name
 
     import pickle
