@@ -2182,7 +2182,7 @@ def get_attendance_records(user_id: int) -> list[dict[str, Any]]:
         
         cursor = connection.cursor()
         cursor.execute(
-            "SELECT id, course_name, start_time, end_time, days FROM user_course_schedule WHERE user_id = %s",
+            "SELECT id, course_name, start_time, end_time, days, created_at FROM user_course_schedule WHERE user_id = %s",
             (user_id,)
         )
         schedules = cursor.fetchall()
@@ -2206,6 +2206,7 @@ def get_attendance_records(user_id: int) -> list[dict[str, Any]]:
         start_time_val = sch[2]
         end_time_val = sch[3]
         days_str = to_clean_string(sch[4])
+        created_at_val = sch[5] if len(sch) > 5 else None
         
         weekdays = parse_days_to_weekdays(days_str)
         schedule_map[sch_id] = {
@@ -2213,7 +2214,8 @@ def get_attendance_records(user_id: int) -> list[dict[str, Any]]:
             'course_name': course_name,
             'start_time': start_time_val,
             'end_time': end_time_val,
-            'weekdays': weekdays
+            'weekdays': weekdays,
+            'created_at': created_at_val
         }
 
     present_sessions = set()
@@ -2300,12 +2302,31 @@ def get_attendance_records(user_id: int) -> list[dict[str, Any]]:
             return time(t_val.hour, t_val.minute)
         return None
 
-    current_d = SEMESTER_START
-    while current_d <= today_date:
-        wd = current_d.weekday()
-        current_day_str = current_d.strftime("%Y-%m-%d")
+    def parse_created_at_to_date(val) -> date:
+        if not val:
+            return SEMESTER_START
+        if isinstance(val, datetime):
+            return val.date()
+        if isinstance(val, date):
+            return val
+        val_str = str(val).strip()
+        try:
+            if ' ' in val_str:
+                dt_part = val_str.split(' ')[0]
+                return datetime.strptime(dt_part, "%Y-%m-%d").date()
+            return datetime.strptime(val_str, "%Y-%m-%d").date()
+        except Exception:
+            return SEMESTER_START
+
+    for sch_id, sch in schedule_map.items():
+        created_date = parse_created_at_to_date(sch.get('created_at'))
+        start_checking_d = max(SEMESTER_START, created_date)
         
-        for sch_id, sch in schedule_map.items():
+        current_d = start_checking_d
+        while current_d <= today_date:
+            wd = current_d.weekday()
+            current_day_str = current_d.strftime("%Y-%m-%d")
+            
             if wd in sch['weekdays']:
                 end_t = to_time_obj_helper(sch['end_time'])
                 start_t = to_time_obj_helper(sch['start_time'])
@@ -2328,8 +2349,7 @@ def get_attendance_records(user_id: int) -> list[dict[str, Any]]:
                                 'time': '—',
                                 'sort_key': session_start_dt
                             })
-                            
-        current_d += timedelta(days=1)
+            current_d += timedelta(days=1)
 
     records.sort(key=lambda x: x['sort_key'], reverse=True)
     return records
