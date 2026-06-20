@@ -140,11 +140,19 @@
 
                 let html = '<div style="display:flex; flex-direction:column; gap:8px; max-height:280px; overflow-y:auto; padding: 4px;">';
                 data.notifications.slice(0, 3).forEach(n => {
+                    const isSuccess = n.title && (n.title.toLowerCase().includes('success') || n.title.toLowerCase().includes('attendance') || n.message.toLowerCase().includes('present') || n.message.toLowerCase().includes('marked'));
+                    const badgeCircle = isSuccess 
+                        ? `<span class="notif-badge-circle success" style="width: 8px; height: 8px; border-radius: 50%; background-color: #22c55e; display: inline-block; box-shadow: 0 0 6px #22c55e; flex-shrink: 0; margin-top: 5px;"></span>`
+                        : `<span class="notif-badge-circle generic" style="width: 8px; height: 8px; border-radius: 50%; background-color: #ff6b35; display: inline-block; flex-shrink: 0; margin-top: 5px;"></span>`;
+
                     html += `
-                    <div class="notif-item" style="padding: 10px; border-bottom: 1px solid rgba(0,0,0,0.06); display: flex; flex-direction: column; gap: 4px; border-radius: 6px; transition: background 0.2s;">
-                        <div class="notif-title" style="font-weight: 700; font-size: 13px; color: var(--notif-title-clr, #1a1a1a);">${n.title}</div>
-                        <div style="font-size: 11.5px; color: var(--notif-desc-clr, #5a4a3a); line-height: 1.4;">${n.message}</div>
-                        <div style="font-size: 10px; color: var(--notif-time-clr, #9a8a7a); text-align: right; margin-top: 2px;">${n.time}</div>
+                    <div class="notif-item" style="padding: 10px; border-bottom: 1px solid rgba(0,0,0,0.06); display: flex; flex-direction: row; align-items: flex-start; gap: 8px; border-radius: 6px; transition: background 0.2s;">
+                        ${badgeCircle}
+                        <div style="display: flex; flex-direction: column; gap: 4px; flex-grow: 1;">
+                            <div class="notif-title" style="font-weight: 700; font-size: 13px; color: var(--notif-title-clr, #1a1a1a);">${n.title}</div>
+                            <div style="font-size: 11.5px; color: var(--notif-desc-clr, #5a4a3a); line-height: 1.4;">${n.message}</div>
+                            <div style="font-size: 10px; color: var(--notif-time-clr, #9a8a7a); text-align: right; margin-top: 2px;">${n.time}</div>
+                        </div>
                     </div>`;
                 });
                 html += '</div>';

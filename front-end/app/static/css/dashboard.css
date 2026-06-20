@@ -423,11 +423,25 @@ body.dark-mode .toggle-icon-wrap {
     position: absolute;
     top: 8px;
     right: 8px;
-    width: 7px;
-    height: 7px;
+    width: 9px;
+    height: 9px;
     border-radius: 50%;
-    background: #e8c547;
+    background: #ff6b35;
     border: 1.5px solid #ffffff;
+    box-shadow: 0 0 0 0 rgba(255, 107, 53, 0.7);
+    animation: pulse-glow 1.6s infinite;
+}
+
+@keyframes pulse-glow {
+    0% {
+        box-shadow: 0 0 0 0 rgba(255, 107, 53, 0.7);
+    }
+    70% {
+        box-shadow: 0 0 0 6px rgba(255, 107, 53, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(255, 107, 53, 0);
+    }
 }
 
 /* Profile block */
@@ -1485,8 +1499,9 @@ body.dark-mode .header-profile-email {
 }
 
 body.dark-mode .header-notif-dot {
-    background: linear-gradient(135deg, #20b8a6, #6366f1);
+    background: #ff6b35;
     border-color: rgba(12, 14, 40, 1);
+    box-shadow: 0 0 0 0 rgba(255, 107, 53, 0.7);
 }
 
 /* Cards dark */
