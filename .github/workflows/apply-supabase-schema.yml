@@ -24,37 +24,4 @@ jobs:
           pip install psycopg2-binary
 
       - name: Apply supabase schema
-        run: |
-          python3 - <<'PY'
-import os,sys
-from urllib.parse import urlparse, quote_plus
-import psycopg2
-from pathlib import Path
-ROOT=Path.cwd()
-SQL_FILE=ROOT/'migration'/'supabase_schema.sql'
-if not SQL_FILE.exists():
-    print('Schema file not found:', SQL_FILE); sys.exit(1)
-SUPABASE_URL=os.getenv('SUPABASE_URL')
-DB_PASS=os.getenv('SUPA_PASS') or os.getenv('SUPA-PASS')
-if not SUPABASE_URL or not DB_PASS:
-    print('Missing SUPABASE_URL or SUPA_PASS. Set repository secrets SUPABASE_URL and SUPA_PASS'); sys.exit(2)
-parsed=urlparse(SUPABASE_URL)
-netloc=parsed.netloc
-db_host = netloc if netloc.startswith('db.') else 'db.'+netloc
-enc=quote_plus(DB_PASS)
-conn_str=f"postgresql://postgres:{enc}@{db_host}:5432/postgres?sslmode=require"
-print('Connecting to', db_host)
-try:
-    conn=psycopg2.connect(conn_str)
-    cur=conn.cursor()
-    sql=SQL_FILE.read_text()
-    print('Applying schema SQL...')
-    cur.execute(sql)
-    conn.commit()
-    cur.close()
-    conn.close()
-    print('Schema applied successfully.')
-except Exception as e:
-    print('Schema apply failed:', e)
-    sys.exit(3)
-PY
+        run: python3 scripts/apply_supabase_schema.py
