@@ -1,3 +1,6 @@
+setuptools>=61.0.0
+wheel
+
 # Front-end web application
 Flask==2.3.0
 mysql-connector-python==8.0.33
