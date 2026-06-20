@@ -46,11 +46,16 @@ def run_workflow(repo: str, workflow_file: str, ref: str = 'main'):
 
 
 def main():
-    p = argparse.ArgumentParser(description='Set GitHub Actions secrets from .env and run workflow')
-    p.add_argument('--env', default='.env', help='Path to .env file (KEY=VALUE lines)')
-    p.add_argument('--repo', default='sofyankirat/Final_Project', help='GitHub repo (owner/repo)')
-    p.add_argument('--workflow', default='azure-deploy.yml', help='Workflow filename under .github/workflows')
-    p.add_argument('--trigger', action='store_true', help='Trigger the workflow after setting secrets')
+    p = argparse.ArgumentParser(
+        description='Set GitHub Actions secrets from .env and run workflow')
+    p.add_argument('--env', default='.env',
+                   help='Path to .env file (KEY=VALUE lines)')
+    p.add_argument('--repo', default='sofyankirat/Final_Project',
+                   help='GitHub repo (owner/repo)')
+    p.add_argument('--workflow', default='azure-deploy.yml',
+                   help='Workflow filename under .github/workflows')
+    p.add_argument('--trigger', action='store_true',
+                   help='Trigger the workflow after setting secrets')
     args = p.parse_args()
 
     env_path = Path(args.env)
@@ -59,6 +64,11 @@ def main():
         sys.exit(2)
 
     values = parse_env(env_path)
+    # normalize keys: replace '-' with '_' so SUPA-PASS -> SUPA_PASS
+    normalized = {}
+    for k, v in values.items():
+        normalized[k.replace('-', '_')] = v
+    values = normalized
     if not values:
         print("No secrets found in env file.")
         sys.exit(0)
