@@ -1848,7 +1848,7 @@
                     labels: days,
                     datasets: [{
                         label: 'Attendance Rate (%)',
-                        data: [80, 75, 80, 60, 0, 80, 0],
+                        data: {{ weekly_data | tojson if weekly_data is defined else [80, 75, 80, 60, 0, 80, 0] }},
                         backgroundColor: accent1,
                         borderRadius: 6,
                         borderSkipped: false,
@@ -1874,6 +1874,7 @@
                     }
                 }
             });
+            window.weeklyChartInst = weeklyChartInst;
         }
 
         /* ── Recognition Test ── */
@@ -2008,7 +2009,7 @@
                     labels: days,
                     datasets: [{
                         label: 'Attendance Rate (%)',
-                        data: [80, 75, 80, 60, 0, 80, 0],
+                        data: {{ weekly_data | tojson if weekly_data is defined else [80, 75, 80, 60, 0, 80, 0] }},
                         backgroundColor: accent1,
                         borderRadius: 8,
                         borderSkipped: false,
@@ -2036,6 +2037,7 @@
                     }
                 }
             });
+            window.weeklyChartZoomedInst = weeklyChartZoomedInst;
         }
 
         // Zoom Modal logic for Attendance by Course

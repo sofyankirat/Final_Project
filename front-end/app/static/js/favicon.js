@@ -114,9 +114,185 @@
         img.src = href;
     }
 
+    let lastNotifsHash = null;
+    let lastStatsHash = null;
+
+    async function checkAndRefreshNotifications() {
+        const notifBtn = document.getElementById('headerBtnNotif');
+        const notifPopup = document.getElementById('notifPopup');
+        if (!notifBtn || !notifPopup) return;
+
+        try {
+            const res = await fetch('/api/notifications');
+            if (res.status === 401) return;
+            if (!res.ok) return;
+            const data = await res.json();
+            if (!data.success) return;
+
+            const currentHash = JSON.stringify(data.notifications);
+            if (currentHash === lastNotifsHash) return;
+            lastNotifsHash = currentHash;
+
+            const notifDot = notifBtn.querySelector('.header-notif-dot');
+            if (data.notifications && data.notifications.length > 0) {
+                notifBtn.classList.add('has-notif');
+                if (notifDot) notifDot.style.display = 'block';
+
+                let html = '<div style="display:flex; flex-direction:column; gap:8px; max-height:280px; overflow-y:auto; padding: 4px;">';
+                data.notifications.forEach(n => {
+                    html += `
+                    <div class="notif-item" style="padding: 10px; border-bottom: 1px solid rgba(0,0,0,0.06); display: flex; flex-direction: column; gap: 4px; border-radius: 6px; transition: background 0.2s;">
+                        <div class="notif-title" style="font-weight: 700; font-size: 13px; color: var(--notif-title-clr, #1a1a1a);">${n.title}</div>
+                        <div style="font-size: 11.5px; color: var(--notif-desc-clr, #5a4a3a); line-height: 1.4;">${n.message}</div>
+                        <div style="font-size: 10px; color: var(--notif-time-clr, #9a8a7a); text-align: right; margin-top: 2px;">${n.time}</div>
+                    </div>`;
+                });
+                html += '</div>';
+                notifPopup.innerHTML = html;
+
+                const isDark = document.body.classList.contains('dark-mode');
+                notifPopup.style.setProperty('--notif-title-clr', isDark ? '#ffffff' : '#1a1a1a');
+                notifPopup.style.setProperty('--notif-desc-clr', isDark ? '#e2e8f8' : '#5a4a3a');
+                notifPopup.style.setProperty('--notif-time-clr', isDark ? '#b8c5e6' : '#9a8a7a');
+            } else {
+                notifBtn.classList.remove('has-notif');
+                if (notifDot) notifDot.style.display = 'none';
+                notifPopup.innerHTML = `
+                <div class="popup-empty">
+                    <span class="popup-icon">🔔</span>
+                    <span class="popup-msg">No notifications right now</span>
+                </div>`;
+            }
+        } catch (e) {
+            console.error('Error fetching notifications:', e);
+        }
+    }
+
+    async function checkAndRefreshStats() {
+        const notifBtn = document.getElementById('headerBtnNotif');
+        if (!notifBtn) return;
+
+        try {
+            const res = await fetch('/api/attendance/stats');
+            if (res.status === 401) return;
+            if (!res.ok) return;
+            const data = await res.json();
+            if (!data.success) return;
+
+            const currentHash = JSON.stringify(data);
+            if (currentHash === lastStatsHash) return;
+            lastStatsHash = currentHash;
+
+            // 1. Update weekly charts
+            const wInst = window.weeklyChartInst;
+            const wzInst = window.weeklyChartZoomedInst;
+            if (wInst && wInst.data && wInst.data.datasets && wInst.data.datasets[0]) {
+                wInst.data.datasets[0].data = data.weekly_data;
+                wInst.update();
+            }
+            if (wzInst && wzInst.data && wzInst.data.datasets && wzInst.data.datasets[0]) {
+                wzInst.data.datasets[0].data = data.weekly_data;
+                wzInst.update();
+            }
+
+            // 2. Update KPI Stats Rate
+            const rateValEl = document.getElementById('val-attendance');
+            if (rateValEl && data.weekly_data) {
+                const validRates = data.weekly_data.filter(r => r > 50);
+                const avgRate = data.weekly_data.length > 0 ? Math.round(data.weekly_data.reduce((a, b) => a + b, 0) / data.weekly_data.length) : 50;
+                rateValEl.textContent = avgRate + '%';
+                
+                const rateBadgeEl = document.querySelector('#stat-attendance .stat-badge');
+                if (rateBadgeEl) {
+                    rateBadgeEl.textContent = 'Active';
+                    rateBadgeEl.className = 'stat-badge';
+                    rateBadgeEl.style.background = 'rgba(59, 130, 246, 0.12)';
+                    rateBadgeEl.style.color = '#3b82f6';
+                }
+            }
+
+            // Update Percentage KPI
+            const pctValEl = document.getElementById('val-percentage');
+            if (pctValEl && data.courses && data.courses.length > 0) {
+                const totalPct = data.courses.reduce((a, b) => a + b.pct, 0);
+                const avgPct = Math.round(totalPct / data.courses.length);
+                pctValEl.textContent = avgPct + '%';
+            }
+
+            // Update Academic Grade KPI
+            const gradeValEl = document.getElementById('val-assessment');
+            if (gradeValEl && data.courses && data.courses.length > 0) {
+                const totalPct = data.courses.reduce((a, b) => a + b.pct, 0);
+                const avgPct = totalPct / data.courses.length;
+                let grade = 'F';
+                if (avgPct >= 90) grade = 'A+';
+                else if (avgPct >= 85) grade = 'A';
+                else if (avgPct >= 80) grade = 'A-';
+                else if (avgPct >= 75) grade = 'B+';
+                else if (avgPct >= 70) grade = 'B';
+                else if (avgPct >= 65) grade = 'C+';
+                else if (avgPct >= 60) grade = 'C';
+                else if (avgPct >= 50) grade = 'D';
+                gradeValEl.textContent = grade;
+            }
+
+            // 3. Update Course bars
+            const courseBarsContainer = document.querySelector('.course-bars-area');
+            if (courseBarsContainer && data.courses) {
+                let html = '';
+                data.courses.forEach(course => {
+                    html += `
+                    <div class="course-bar-row">
+                        <span class="course-bar-label">${course.name}</span>
+                        <div class="course-bar-track">
+                            <div class="course-bar-fill" data-pct="${course.pct}" data-clr="${course.clr}" style="width: ${course.pct}%; background-color: ${course.clr};"></div>
+                        </div>
+                        <span class="course-bar-pct">${course.pct}%</span>
+                    </div>`;
+                });
+                courseBarsContainer.innerHTML = html;
+                
+                if (typeof animateCourseBars === 'function') {
+                    animateCourseBars(courseBarsContainer);
+                }
+            }
+
+            // Update Course bars in modal
+            const modalContent = document.querySelector('#courseAttendanceModal .custom-modal-content');
+            if (modalContent && document.getElementById('courseAttendanceModal').classList.contains('open')) {
+                const originalBars = document.querySelector('.course-bars-area');
+                if (originalBars) {
+                    modalContent.innerHTML = originalBars.innerHTML;
+                    if (typeof animateCourseBars === 'function') {
+                        animateCourseBars(document.getElementById('courseAttendanceModal'));
+                    }
+                }
+            }
+        } catch (e) {
+            console.error('Error fetching stats:', e);
+        }
+    }
+
+    function initRealtimeSync() {
+        const notifBtn = document.getElementById('headerBtnNotif');
+        if (!notifBtn) return;
+        
+        checkAndRefreshNotifications();
+        checkAndRefreshStats();
+        
+        setInterval(() => {
+            checkAndRefreshNotifications();
+            checkAndRefreshStats();
+        }, 5000);
+    }
+
     if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initFaviconCropper);
+        document.addEventListener('DOMContentLoaded', () => {
+            initFaviconCropper();
+            initRealtimeSync();
+        });
     } else {
         initFaviconCropper();
+        initRealtimeSync();
     }
 })();

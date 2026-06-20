@@ -95,8 +95,7 @@ def to_float_value(value: Any, default: float = 0.0) -> float:
 
 
 def get_user_courses_data(user_id: int) -> list[dict[str, Any]]:
-    """Fetch user's selected courses with deterministic mock attendance percent and color."""
-    import hashlib
+    """Fetch user's selected courses with dynamic attendance percent based on database records."""
     courses_data = []
     colors = ['#ff6b35', '#e8c547', '#3b82f6', '#22c55e', '#a855f7', '#ec4899', '#14b8a6', '#f43f5e']
     try:
@@ -104,21 +103,39 @@ def get_user_courses_data(user_id: int) -> list[dict[str, Any]]:
         if connection:
             cursor = connection.cursor()
             cursor.execute(
-                "SELECT course_name FROM user_course_schedule WHERE user_id = %s ORDER BY course_name",
+                "SELECT id, course_name FROM user_course_schedule WHERE user_id = %s ORDER BY course_name",
                 (user_id,)
             )
             rows = cursor.fetchall()
+            
+            # Fetch all attendance records for this user to calculate percentages
+            cursor.execute(
+                "SELECT course_id FROM attendance WHERE user_id = %s",
+                (user_id,)
+            )
+            att_rows = cursor.fetchall()
+            
+            att_counts = {}
+            for r in att_rows:
+                cid = r[0]
+                if cid is not None:
+                    att_counts[cid] = att_counts.get(cid, 0) + 1
+            
             cursor.close()
             connection.close()
+            
             for idx, row in enumerate(rows):
-                name = to_clean_string(row[0])
-                hash_val = int(hashlib.md5(f"{name}_{user_id}".encode()).hexdigest(), 16)
-                pct = 40 + (hash_val % 59)
+                sch_id = row[0]
+                name = to_clean_string(row[1])
+                # Base rate of 50%, add 10% per attendance up to 100%
+                att_count = att_counts.get(sch_id, 0)
+                pct = min(100, 50 + att_count * 10)
                 clr = colors[idx % len(colors)]
                 courses_data.append({
                     'name': name,
                     'pct': pct,
-                    'clr': clr
+                    'clr': clr,
+                    'id': sch_id
                 })
     except Exception as e:
         print(f"Error fetching user courses: {e}")
@@ -127,15 +144,55 @@ def get_user_courses_data(user_id: int) -> list[dict[str, Any]]:
     if not courses_data:
         default_names = ['Mathematics', 'Physics', 'Computer Sci.', 'Data Structures', 'English']
         for idx, name in enumerate(default_names):
+            import hashlib
             hash_val = int(hashlib.md5(f"{name}_{user_id}".encode()).hexdigest(), 16)
             pct = 40 + (hash_val % 59)
             clr = colors[idx % len(colors)]
             courses_data.append({
                 'name': name,
                 'pct': pct,
-                'clr': clr
+                'clr': clr,
+                'id': None
             })
     return courses_data
+
+
+def get_weekly_attendance_stats(user_id: int) -> list[int]:
+    """Calculate weekly attendance rate (Mon-Sun) based on database records."""
+    rates = [50, 50, 50, 50, 50, 50, 50]
+    try:
+        connection = get_db_connection()
+        if connection:
+            cursor = connection.cursor()
+            cursor.execute(
+                "SELECT attendance_date FROM attendance WHERE user_id = %s",
+                (user_id,)
+            )
+            rows = cursor.fetchall()
+            cursor.close()
+            connection.close()
+            
+            for row in rows:
+                dt = row[0]
+                if not dt:
+                    continue
+                if isinstance(dt, str):
+                    try:
+                        if ' ' in dt:
+                            dt_obj = datetime.strptime(dt, "%Y-%m-%d %H:%M:%S")
+                        else:
+                            dt_obj = datetime.strptime(dt, "%Y-%m-%d")
+                    except ValueError:
+                        continue
+                else:
+                    dt_obj = dt
+                
+                day_idx = dt_obj.weekday()
+                if 0 <= day_idx < 7:
+                    rates[day_idx] = min(100, rates[day_idx] + 10)
+    except Exception as e:
+        print(f"Error calculating weekly stats: {e}")
+    return rates
 
 
 def has_additional_info(user_id: int):
@@ -712,9 +769,11 @@ def dashboard():
     except Exception as rec_err:
         print(f"Error fetching recommendation history for dashboard: {rec_err}")
 
+    weekly_data = get_weekly_attendance_stats(to_int_value(user_id))
     return render_template('dashboard.html', username=username, email=email,
                            profile_photo=_get_profile_photo(user_id), gpa=gpa_value,
-                           courses=courses, recommendation_history=recommendation_history)
+                           courses=courses, recommendation_history=recommendation_history,
+                           weekly_data=weekly_data)
 
 
 def get_static_root() -> str:
@@ -1886,9 +1945,10 @@ def attendance():
     
     enrolled = is_user_enrolled(student_name, user_id)
     courses = get_user_courses_data(user_id)
+    weekly_data = get_weekly_attendance_stats(user_id)
     return render_template('attendance.html', username=username, email=email,
                            profile_photo=_get_profile_photo(user_id), enrolled=enrolled,
-                           courses=courses)
+                           courses=courses, weekly_data=weekly_data)
 
 
 @app.route('/api/attendance/enroll', methods=['POST'])
@@ -2161,6 +2221,59 @@ def ws_camera_stream(ws):
         print("[WS] ESP32-CAM disconnected.")
 
 
+def find_matching_course(user_id: int) -> int | None:
+    """Find the course schedule entry ID that matches the current time and day of week."""
+    from datetime import datetime, time
+    now = datetime.now()
+    current_day = now.strftime("%A")  # e.g., "Monday"
+    current_time = now.time()
+    
+    try:
+        connection = get_db_connection()
+        if connection:
+            cursor = connection.cursor()
+            cursor.execute(
+                "SELECT id, start_time, end_time, days FROM user_course_schedule WHERE user_id = %s",
+                (user_id,)
+            )
+            rows = cursor.fetchall()
+            cursor.close()
+            connection.close()
+            
+            for row in rows:
+                course_sch_id = row[0]
+                start_val = row[1]
+                end_val = row[2]
+                day_val = to_clean_string(row[3])
+                
+                if day_val.strip().lower() != current_day.lower():
+                    continue
+                
+                def to_time_obj(t_val):
+                    if isinstance(t_val, str):
+                        try:
+                            parts = t_val.split(':')
+                            if len(parts) >= 2:
+                                return time(int(parts[0]), int(parts[1]))
+                        except ValueError:
+                            pass
+                    elif isinstance(t_val, time):
+                        return t_val
+                    elif hasattr(t_val, 'hour'):
+                        return time(t_val.hour, t_val.minute)
+                    return None
+                
+                start_time = to_time_obj(start_val)
+                end_time = to_time_obj(end_val)
+                
+                if start_time and end_time:
+                    if start_time <= current_time <= end_time:
+                        return course_sch_id
+    except Exception as e:
+        print(f"Error matching course: {e}")
+    return None
+
+
 @app.route('/stream/frame', methods=['POST'])
 def receive_stream_frame():
     """Receive raw JPEG bytes from ESP32-CAM, perform face recognition, and mark present."""
@@ -2248,10 +2361,14 @@ def receive_stream_frame():
                     if cursor.fetchone() is None:
                         continue
 
-                    if course_id:
+                    user_course_id = course_id
+                    if not user_course_id:
+                        user_course_id = find_matching_course(user_id)
+
+                    if user_course_id:
                         cursor.execute(
                             "SELECT 1 FROM attendance WHERE user_id = %s AND date(attendance_date) = %s AND course_id = %s LIMIT 1",
-                            (user_id, today, course_id)
+                            (user_id, today, user_course_id)
                         )
                     else:
                         cursor.execute(
@@ -2263,7 +2380,7 @@ def receive_stream_frame():
                         today_datetime = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                         cursor.execute(
                             "INSERT INTO attendance (user_id, course_id, attendance_date, status) VALUES (%s, %s, %s, TRUE)",
-                            (user_id, course_id, today_datetime)
+                            (user_id, user_course_id, today_datetime)
                         )
                         logged_count += 1
                 
@@ -2286,6 +2403,87 @@ def receive_stream_frame():
 
     except Exception as err:
         return jsonify({'success': False, 'message': f'Server error: {err}'}), 500
+
+
+@app.route('/api/attendance/stats', methods=['GET'])
+def get_attendance_stats_api():
+    user_id = session.get('user_id')
+    if not user_id:
+        return jsonify({'success': False, 'message': 'Unauthorized'}), 401
+    
+    user_id = to_int_value(user_id)
+    courses = get_user_courses_data(user_id)
+    weekly_data = get_weekly_attendance_stats(user_id)
+    
+    return jsonify({
+        'success': True,
+        'courses': courses,
+        'weekly_data': weekly_data
+    })
+
+
+@app.route('/api/notifications', methods=['GET'])
+def get_notifications_api():
+    user_id = session.get('user_id')
+    if not user_id:
+        return jsonify({'success': False, 'message': 'Unauthorized'}), 401
+    
+    user_id = to_int_value(user_id)
+    notifications = []
+    try:
+        connection = get_db_connection()
+        if connection:
+            cursor = connection.cursor()
+            cursor.execute(
+                """
+                SELECT a.attendance_date, c.course_name 
+                FROM attendance a
+                LEFT JOIN user_course_schedule c ON a.course_id = c.id
+                WHERE a.user_id = %s
+                ORDER BY a.created_at DESC, a.id DESC
+                LIMIT 5
+                """,
+                (user_id,)
+            )
+            rows = cursor.fetchall()
+            cursor.close()
+            connection.close()
+            
+            for row in rows:
+                att_date = row[0]
+                course_name = to_clean_string(row[1]) if row[1] else "General Class"
+                
+                if isinstance(att_date, datetime):
+                    time_str = att_date.strftime('%I:%M %p')
+                    date_str = att_date.strftime('%Y-%m-%d')
+                elif isinstance(att_date, str):
+                    try:
+                        if ' ' in att_date:
+                            dt_obj = datetime.strptime(att_date, "%Y-%m-%d %H:%M:%S")
+                        else:
+                            dt_obj = datetime.strptime(att_date, "%Y-%m-%d")
+                        time_str = dt_obj.strftime('%I:%M %p')
+                        date_str = dt_obj.strftime('%Y-%m-%d')
+                    except ValueError:
+                        time_str = "Recent"
+                        date_str = to_clean_string(att_date)
+                else:
+                    time_str = "Recent"
+                    date_str = "Today"
+                
+                notifications.append({
+                    'title': 'Attendance Marked',
+                    'message': f'Marked present in {course_name}.',
+                    'time': f'{date_str} at {time_str}'
+                  })
+    except Exception as e:
+        print(f"Error fetching notifications: {e}")
+    
+    return jsonify({
+        'success': True,
+        'notifications': notifications
+    })
+
 
 @app.route('/api/attendance/session', methods=['POST'])
 def receive_session_attendance():
