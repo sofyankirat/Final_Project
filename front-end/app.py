@@ -6,7 +6,7 @@ Student Recommendation and Attendance System
 from flask import Flask, render_template, request, jsonify, session, redirect, url_for  # type: ignore[import]
 from werkzeug.security import generate_password_hash, check_password_hash  # type: ignore[import]
 from werkzeug.utils import secure_filename  # type: ignore[import]
-from datetime import datetime, timedelta, date
+from datetime import datetime, timedelta, date, time
 import secrets
 import smtplib
 import html
@@ -146,7 +146,6 @@ def mark_attendance(student_id: int, weekday: int):
     Mark attendance for student_id for the most recent date matching weekday.
     Increases that student's stored attendance percentage for that weekday.
     """
-    from datetime import datetime, timedelta
     now = datetime.now()
     days_ago = (now.weekday() - weekday) % 7
     target_date = now - timedelta(days=days_ago)
@@ -2262,9 +2261,10 @@ def attendance_test_recognize():
 import threading
 
 is_processing_frame = False
+ws_recognized_users = set()
 
 def process_frame_async(fpath):
-    global is_processing_frame
+    global is_processing_frame, ws_recognized_users
     
     script_path = os.path.join(_ATTENDANCE_ROOT, 'web_recognize.py')
     venv_python = os.path.join(_ATTENDANCE_ROOT, 'venv', 'Scripts', 'python.exe')
@@ -2302,7 +2302,6 @@ def process_frame_async(fpath):
                 connection = get_db_connection()
                 if connection is not None:
                     cursor = connection.cursor()
-                    today = datetime.now().strftime("%Y-%m-%d")
                     logged_count = 0
                     
                     for key in recognized_names:
@@ -2325,19 +2324,17 @@ def process_frame_async(fpath):
                         if cursor.fetchone() is None:
                             continue
 
-                        cursor.execute(
-                            "SELECT 1 FROM attendance WHERE user_id = %s AND date(attendance_date) = %s AND course_id IS NULL LIMIT 1",
-                            (user_id, today)
-                        )
+                        if user_id in ws_recognized_users:
+                            continue
 
-                        if cursor.fetchone() is None:
-                            today_datetime = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                            cursor.execute(
-                                "INSERT INTO attendance (user_id, course_id, attendance_date, status) VALUES (%s, %s, %s, TRUE)",
-                                (user_id, None, today_datetime)
-                            )
-                            logged_count += 1
-                            print(f"[WS] Automatically logged attendance for student user_{user_id}")
+                        today_datetime = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                        cursor.execute(
+                            "INSERT INTO attendance (user_id, course_id, attendance_date, status) VALUES (%s, %s, %s, TRUE)",
+                            (user_id, None, today_datetime)
+                        )
+                        ws_recognized_users.add(user_id)
+                        logged_count += 1
+                        print(f"[WS] Automatically logged attendance for student user_{user_id}")
                     
                     if logged_count > 0:
                         connection.commit()
@@ -2357,8 +2354,9 @@ def process_frame_async(fpath):
 @sock.route('/ws/camera-stream')
 def ws_camera_stream(ws):
     """WebSocket stream endpoint for ESP32-CAM to stream binary JPEG frames."""
-    global is_processing_frame
+    global is_processing_frame, ws_recognized_users
     print("[WS] ESP32-CAM connected via WebSocket!")
+    ws_recognized_users.clear()
     
     try:
         ws.send("start")
@@ -2400,7 +2398,6 @@ def ws_camera_stream(ws):
 
 def find_matching_course(user_id: int) -> int | None:
     """Find the course schedule entry ID that matches the current time and day of week."""
-    from datetime import datetime, time
     now = datetime.now()
     current_day = now.strftime("%A")  # e.g., "Monday"
     current_time = now.time()
@@ -2542,15 +2539,17 @@ def receive_stream_frame():
                     if not user_course_id:
                         user_course_id = find_matching_course(user_id)
 
+                    ten_seconds_ago = (datetime.now() - timedelta(seconds=10)).strftime("%Y-%m-%d %H:%M:%S")
+
                     if user_course_id:
                         cursor.execute(
-                            "SELECT 1 FROM attendance WHERE user_id = %s AND date(attendance_date) = %s AND course_id = %s LIMIT 1",
-                            (user_id, today, user_course_id)
+                            "SELECT 1 FROM attendance WHERE user_id = %s AND course_id = %s AND attendance_date >= %s LIMIT 1",
+                            (user_id, user_course_id, ten_seconds_ago)
                         )
                     else:
                         cursor.execute(
-                            "SELECT 1 FROM attendance WHERE user_id = %s AND date(attendance_date) = %s AND course_id IS NULL LIMIT 1",
-                            (user_id, today)
+                            "SELECT 1 FROM attendance WHERE user_id = %s AND course_id IS NULL AND attendance_date >= %s LIMIT 1",
+                            (user_id, ten_seconds_ago)
                         )
 
                     if cursor.fetchone() is None:
