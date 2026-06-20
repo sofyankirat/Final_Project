@@ -3,7 +3,7 @@ Main Flask Application
 Student Recommendation and Attendance System
 """
 
-from flask import Flask, render_template, request, jsonify, session, redirect, url_for  # type: ignore[import]
+from flask import Flask, render_template, request, jsonify, session, redirect, url_for, send_from_directory  # type: ignore[import]
 from werkzeug.security import generate_password_hash, check_password_hash  # type: ignore[import]
 from werkzeug.utils import secure_filename  # type: ignore[import]
 from datetime import datetime, timedelta, date, time
@@ -972,11 +972,30 @@ def is_allowed_chat_upload(filename: str) -> bool:
 
 def _get_profile_photo(user_id):
     """Return the URL for the user's profile photo, or None if none exists."""
+    db_dir = os.getenv('SQLITE_DB_DIR')
+    if db_dir:
+        uploads_dir = os.path.join(db_dir, 'uploads')
+        path = os.path.join(uploads_dir, f'profile_{user_id}.jpg')
+        if os.path.exists(path):
+            return url_for('serve_profile_photo', user_id=user_id)
+            
     static_root = get_static_root()
     path = os.path.join(static_root, 'uploads', f'profile_{user_id}.jpg')
     if os.path.exists(path):
         return url_for('static', filename=f'uploads/profile_{user_id}.jpg')
     return None
+
+
+@app.route('/uploads/profile/<int:user_id>')
+def serve_profile_photo(user_id):
+    db_dir = os.getenv('SQLITE_DB_DIR')
+    if not db_dir:
+        return "Not found", 404
+    uploads_dir = os.path.join(db_dir, 'uploads')
+    photo_path = os.path.join(uploads_dir, f'profile_{user_id}.jpg')
+    if os.path.exists(photo_path):
+        return send_from_directory(uploads_dir, f'profile_{user_id}.jpg')
+    return "Not found", 404
 
 
 
@@ -1039,8 +1058,12 @@ def profile_update():
             try:
                 _header, encoded = photo_data.split(',', 1)
                 img_bytes = base64.b64decode(encoded)
-                static_root = get_static_root()
-                uploads_dir = os.path.join(static_root, 'uploads')
+                db_dir = os.getenv('SQLITE_DB_DIR')
+                if db_dir:
+                    uploads_dir = os.path.join(db_dir, 'uploads')
+                else:
+                    static_root = get_static_root()
+                    uploads_dir = os.path.join(static_root, 'uploads')
                 os.makedirs(uploads_dir, exist_ok=True)
                 photo_path = os.path.join(uploads_dir, f'profile_{user_id}.jpg')
                 with open(photo_path, 'wb') as fh:
