@@ -224,6 +224,7 @@ def init_db():
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
         """
+        print("Executing CREATE TABLE users...")
         cursor.execute(create_users_table)
         
         # Create attendance table
@@ -238,6 +239,7 @@ def init_db():
             FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
         )
         """
+        print("Executing CREATE TABLE attendance...")
         cursor.execute(create_attendance_table)
         
         # Create courses table
@@ -252,6 +254,7 @@ def init_db():
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
         """
+        print("Executing CREATE TABLE courses...")
         cursor.execute(create_courses_table)
         
         # Create recommendations table
@@ -266,6 +269,7 @@ def init_db():
             FOREIGN KEY (course_id) REFERENCES courses(id) ON DELETE CASCADE
         )
         """
+        print("Executing CREATE TABLE recommendations...")
         cursor.execute(create_recommendations_table)
 
         # Create additional user profile info table
@@ -291,6 +295,7 @@ def init_db():
             FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
         )
         """
+        print("Executing CREATE TABLE user_additional_info...")
         cursor.execute(create_user_additional_info_table)
 
         # Check if student_id column exists, if not, add it (for existing databases)
@@ -317,6 +322,7 @@ def init_db():
             FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
         )
         """
+        print("Executing CREATE TABLE user_ai_chat_state...")
         cursor.execute(create_ai_chat_state_table)
 
         # Create recommendation history table (persisted recommendation runs per user)
@@ -336,6 +342,7 @@ def init_db():
             FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
         )
         """
+        print("Executing CREATE TABLE user_recommendation_history...")
         cursor.execute(create_recommendation_history_table)
         
         # Create separate index for recommendation history
@@ -354,6 +361,7 @@ def init_db():
             FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
         )
         """
+        print("Executing CREATE TABLE help_requests...")
         cursor.execute(create_help_requests_table)
         
         # Create separate index for help requests
@@ -372,6 +380,7 @@ def init_db():
             FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
         )
         """
+        print("Executing CREATE TABLE user_course_schedule...")
         cursor.execute(create_course_schedule_table)
         
         # Create separate index for course schedule
@@ -389,6 +398,7 @@ def init_db():
             FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
         )
         """
+        print("Executing CREATE TABLE user_tasks...")
         cursor.execute(create_user_tasks_table)
         
         # Add task_date column if it doesn't exist (backward compatibility)
