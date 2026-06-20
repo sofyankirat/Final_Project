@@ -97,6 +97,13 @@ def to_float_value(value: Any, default: float = 0.0) -> float:
 SEMESTER_START = date(2026, 2, 1)
 SEMESTER_END = date(2026, 6, 30)
 
+def get_local_now() -> datetime:
+    """Get current datetime in UTC+2 (Cairo/Egypt) timezone, naive."""
+    import datetime as dt
+    tz_offset = dt.timezone(dt.timedelta(hours=2))
+    return dt.datetime.now(dt.timezone.utc).astimezone(tz_offset).replace(tzinfo=None)
+
+
 WEEKDAY_MAP = {
     'monday': 0, 'mon': 0,
     'tuesday': 1, 'tue': 1,
@@ -146,7 +153,7 @@ def mark_attendance(student_id: int, weekday: int):
     Mark attendance for student_id for the most recent date matching weekday.
     Increases that student's stored attendance percentage for that weekday.
     """
-    now = datetime.now()
+    now = get_local_now()
     days_ago = (now.weekday() - weekday) % 7
     target_date = now - timedelta(days=days_ago)
     date_str = target_date.strftime("%Y-%m-%d")
@@ -225,7 +232,6 @@ def get_weekly_attendance(student_id: int) -> dict[str, float]:
             connection.close()
             
             attendance_by_wd = {wd: 0 for wd in range(7)}
-            unique_dates = set()
             for row in rows:
                 dt = row[0]
                 if not dt:
@@ -243,11 +249,8 @@ def get_weekly_attendance(student_id: int) -> dict[str, float]:
                     
                 dt_date = dt_obj.date() if hasattr(dt_obj, 'date') else dt_obj
                 if SEMESTER_START <= dt_date <= SEMESTER_END:
-                    unique_dates.add(dt_date)
-                    
-            for dt_date in unique_dates:
-                wd = dt_date.weekday()
-                attendance_by_wd[wd] += 1
+                    wd = dt_date.weekday()
+                    attendance_by_wd[wd] += 1
                 
             for wd in range(7):
                 pct = min(100.0, attendance_by_wd[wd] * increments[wd])
@@ -288,7 +291,7 @@ def get_user_courses_data(user_id: int) -> list[dict[str, Any]]:
             cursor.close()
             connection.close()
             
-            # Organize attendance by course_id (unique dates within semester)
+            # Organize attendance by course_id (all records within semester)
             att_by_course = {}
             for r in att_rows:
                 cid = r[0]
@@ -308,7 +311,7 @@ def get_user_courses_data(user_id: int) -> list[dict[str, Any]]:
                 
                 dt_date = dt_obj.date() if hasattr(dt_obj, 'date') else dt_obj
                 if SEMESTER_START <= dt_date <= SEMESTER_END:
-                    att_by_course.setdefault(cid, set()).add(dt_date)
+                    att_by_course.setdefault(cid, []).append(dt_date)
             
             for idx, row in enumerate(rows):
                 sch_id = row[0]
@@ -322,8 +325,8 @@ def get_user_courses_data(user_id: int) -> list[dict[str, Any]]:
                     total_lectures += count_weekday_occurrences(SEMESTER_START, SEMESTER_END, wd)
                 
                 # Calculate present count
-                present_dates = att_by_course.get(sch_id, set())
-                present_count = len(present_dates)
+                present_list = att_by_course.get(sch_id, [])
+                present_count = len(present_list)
                 
                 # Compute pct
                 if total_lectures > 0:
@@ -2327,7 +2330,7 @@ def process_frame_async(fpath):
                         if user_id in ws_recognized_users:
                             continue
 
-                        today_datetime = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                        today_datetime = get_local_now().strftime("%Y-%m-%d %H:%M:%S")
                         cursor.execute(
                             "INSERT INTO attendance (user_id, course_id, attendance_date, status) VALUES (%s, %s, %s, TRUE)",
                             (user_id, None, today_datetime)
@@ -2380,7 +2383,7 @@ def ws_camera_stream(ws):
                     continue
                 
                 is_processing_frame = True
-                timestamp = datetime.now().strftime('%Y%m%d_%H%M%S_%f')
+                timestamp = get_local_now().strftime('%Y%m%d_%H%M%S_%f')
                 fpath = os.path.join(test_dir, f"ws_esp32_{timestamp}.jpg")
                 with open(fpath, 'wb') as fh:
                     fh.write(data)
@@ -2397,8 +2400,8 @@ def ws_camera_stream(ws):
 
 
 def find_matching_course(user_id: int) -> int | None:
-    """Find the course schedule entry ID that matches the current time and day of week."""
-    now = datetime.now()
+    """Find the course schedule entry ID that matches the current time and day of week, with a closest-course fallback."""
+    now = get_local_now()
     current_day = now.strftime("%A")  # e.g., "Monday"
     current_time = now.time()
     
@@ -2413,6 +2416,9 @@ def find_matching_course(user_id: int) -> int | None:
             rows = cursor.fetchall()
             cursor.close()
             connection.close()
+            
+            day_matches = []
+            exact_match_id = None
             
             for row in rows:
                 course_sch_id = row[0]
@@ -2442,7 +2448,40 @@ def find_matching_course(user_id: int) -> int | None:
                 
                 if start_time and end_time:
                     if start_time <= current_time <= end_time:
-                        return course_sch_id
+                        exact_match_id = course_sch_id
+                        break
+                    else:
+                        day_matches.append((course_sch_id, start_time, end_time))
+            
+            if exact_match_id is not None:
+                return exact_match_id
+                
+            # Fallback: Find the closest course on the same day within a 2-hour window
+            if day_matches:
+                closest_course_id = None
+                min_diff = None
+                
+                def time_to_mins(t):
+                    return t.hour * 60 + t.minute
+                
+                curr_mins = time_to_mins(current_time)
+                
+                for cid, s_time, e_time in day_matches:
+                    s_mins = time_to_mins(s_time)
+                    e_mins = time_to_mins(e_time)
+                    
+                    if curr_mins < s_mins:
+                        diff = s_mins - curr_mins
+                    else:
+                        diff = curr_mins - e_mins
+                        
+                    if min_diff is None or diff < min_diff:
+                        min_diff = diff
+                        closest_course_id = cid
+                
+                # Match it if it's within 120 minutes (2 hours)
+                if min_diff is not None and min_diff <= 120:
+                    return closest_course_id
     except Exception as e:
         print(f"Error matching course: {e}")
     return None
@@ -2461,7 +2500,7 @@ def receive_stream_frame():
     static_root = get_static_root()
     test_dir = os.path.join(static_root, 'uploads', 'attendance', 'test')
     os.makedirs(test_dir, exist_ok=True)
-    timestamp = datetime.now().strftime('%Y%m%d_%H%M%S_%f')
+    timestamp = get_local_now().strftime('%Y%m%d_%H%M%S_%f')
     fpath = os.path.join(test_dir, f'esp32_{timestamp}.jpg')
     with open(fpath, 'wb') as fh:
         fh.write(img_bytes)
@@ -2511,7 +2550,7 @@ def receive_stream_frame():
             connection = get_db_connection()
             if connection is not None:
                 cursor = connection.cursor()
-                today = datetime.now().strftime("%Y-%m-%d")
+                today = get_local_now().strftime("%Y-%m-%d")
                 course_id = to_int_value(request.args.get('course_id')) or None
                 logged_count = 0
                 
@@ -2539,7 +2578,7 @@ def receive_stream_frame():
                     if not user_course_id:
                         user_course_id = find_matching_course(user_id)
 
-                    ten_seconds_ago = (datetime.now() - timedelta(seconds=10)).strftime("%Y-%m-%d %H:%M:%S")
+                    ten_seconds_ago = (get_local_now() - timedelta(seconds=10)).strftime("%Y-%m-%d %H:%M:%S")
 
                     if user_course_id:
                         cursor.execute(
@@ -2553,7 +2592,7 @@ def receive_stream_frame():
                         )
 
                     if cursor.fetchone() is None:
-                        today_datetime = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                        today_datetime = get_local_now().strftime("%Y-%m-%d %H:%M:%S")
                         cursor.execute(
                             "INSERT INTO attendance (user_id, course_id, attendance_date, status) VALUES (%s, %s, %s, TRUE)",
                             (user_id, user_course_id, today_datetime)
@@ -2679,7 +2718,7 @@ def receive_session_attendance():
             return jsonify({'success': False, 'message': 'Database connection error'}), 500
 
         cursor = connection.cursor()
-        today = datetime.now().strftime("%Y-%m-%d")
+        today = get_local_now().strftime("%Y-%m-%d")
 
         logged_count = 0
         for key in student_keys:
@@ -2707,20 +2746,22 @@ def receive_session_attendance():
             if cursor.fetchone() is None:
                 continue
 
-            # Check if already present today for this course to prevent duplicates
+            ten_seconds_ago = (get_local_now() - timedelta(seconds=10)).strftime("%Y-%m-%d %H:%M:%S")
+
+            # Check if already present in the last 10 seconds for this course to prevent duplicates
             if course_id:
                 cursor.execute(
-                    "SELECT 1 FROM attendance WHERE user_id = %s AND date(attendance_date) = %s AND course_id = %s LIMIT 1",
-                    (user_id, today, course_id)
+                    "SELECT 1 FROM attendance WHERE user_id = %s AND course_id = %s AND attendance_date >= %s LIMIT 1",
+                    (user_id, course_id, ten_seconds_ago)
                 )
             else:
                 cursor.execute(
-                    "SELECT 1 FROM attendance WHERE user_id = %s AND date(attendance_date) = %s AND course_id IS NULL LIMIT 1",
-                    (user_id, today)
+                    "SELECT 1 FROM attendance WHERE user_id = %s AND course_id IS NULL AND attendance_date >= %s LIMIT 1",
+                    (user_id, ten_seconds_ago)
                 )
 
             if cursor.fetchone() is None:
-                today_datetime = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                today_datetime = get_local_now().strftime("%Y-%m-%d %H:%M:%S")
                 cursor.execute(
                     "INSERT INTO attendance (user_id, course_id, attendance_date, status) VALUES (%s, %s, %s, TRUE)",
                     (user_id, course_id, today_datetime)
