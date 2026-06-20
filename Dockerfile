@@ -29,5 +29,5 @@ ENV FLASK_APP=app.py
 # Set working directory to front-end for executing the app
 WORKDIR /app/front-end
 
-# Run the monolithic Flask application using Gunicorn (wsgi:app exposes the app)
-CMD gunicorn --bind 0.0.0.0:$PORT --timeout 120 --threads 8 wsgi:app
+# Run the monolithic Flask application using Gunicorn (use front-end's app module)
+CMD gunicorn --bind 0.0.0.0:$PORT --timeout 120 --threads 8 app:app
