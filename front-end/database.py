@@ -169,6 +169,7 @@ def get_db_connection():
                 port="5432",
                 connect_timeout=10
             )
+            print(f"Database: Connected to Supabase Cloud ({host})")
             return PostgresConnectionWrapper(connection)
         except Exception as e:
             print(f"Failed to connect to Supabase PostgreSQL: {e}. Falling back to SQLite.")
@@ -191,6 +192,7 @@ def get_db_connection():
         connection.execute("PRAGMA foreign_keys = ON;")
         connection.execute("PRAGMA journal_mode = WAL;")
         
+        print(f"Database: Connected to Local SQLite fallback ({db_path})")
         return SQLiteConnectionWrapper(connection)
     except Error as e:
         print(f"Error while connecting to SQLite: {e}")
