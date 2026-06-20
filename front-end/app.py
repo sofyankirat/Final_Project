@@ -2238,7 +2238,10 @@ def ai_chat():
         })
         
         payload = {
-            "contents": contents
+            "contents": contents,
+            "systemInstruction": {
+                "parts": [{"text": "You are the AI Assistant for the Student Portal. Answer student questions about courses, schedules, and academic topics. Be helpful, informative, and professional. Avoid saying you are in a demo, placeholder, or mock mode."}]
+            }
         }
         
         try:
@@ -2335,7 +2338,46 @@ def ai_chat():
 
     # 4. Fallback to direct Gemini
     print("Falling back to direct Gemini...")
-    fallback_text = call_gemini_direct(message, chat_history, local_path if is_image else None, mime_type if is_image else None)
+    
+    # If a document (PDF or TXT) was uploaded, extract its text content to pass to Gemini
+    doc_context = ""
+    if local_path and os.path.exists(local_path) and not is_image:
+        try:
+            fn = os.path.basename(local_path)
+            if mime_type == 'application/pdf' or fn.endswith('.pdf'):
+                # Extract PDF text
+                try:
+                    import fitz # PyMuPDF
+                    doc = fitz.open(local_path)
+                    pdf_text = ""
+                    for page in doc:
+                        pdf_text += page.get_text()
+                    if pdf_text:
+                        doc_context = f"\n\n[Content from uploaded document '{fn}']:\n{pdf_text}\n"
+                except ImportError:
+                    try:
+                        import pypdf
+                        reader = pypdf.PdfReader(local_path)
+                        pdf_text = ""
+                        for page in reader.pages:
+                            pdf_text += page.extract_text() or ""
+                        if pdf_text:
+                            doc_context = f"\n\n[Content from uploaded document '{fn}']:\n{pdf_text}\n"
+                    except Exception as e:
+                        print(f"Error reading PDF: {e}")
+            elif mime_type.startswith('text/') or fn.endswith('.txt') or fn.endswith('.json') or fn.endswith('.csv'):
+                with open(local_path, 'r', encoding='utf-8', errors='ignore') as f:
+                    txt_content = f.read()
+                if txt_content:
+                    doc_context = f"\n\n[Content from uploaded file '{fn}']:\n{txt_content}\n"
+        except Exception as e:
+            print(f"Error extracting document text: {e}")
+
+    final_message = message
+    if doc_context:
+        final_message = f"{doc_context}\n\nUser Question:\n{message}"
+
+    fallback_text = call_gemini_direct(final_message, chat_history, local_path if is_image else None, mime_type if is_image else None)
     if fallback_text:
         return jsonify({'success': True, 'answer': fallback_text})
     

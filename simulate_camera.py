@@ -1,8 +1,8 @@
 import os
 import requests
 
-# URL of your live Railway server
-URL = 'https://finalproject-production-aa41.up.railway.app/stream/frame'
+# URL of your local or live server
+URL = 'http://localhost:5000/stream/frame'
 
 # Path to your face photo (put your photo here)
 IMAGE_PATH = 'my_face.jpg'
