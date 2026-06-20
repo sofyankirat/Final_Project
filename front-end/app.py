@@ -772,7 +772,7 @@ def register():
             hashed_password = generate_password_hash(password)
             
             # Insert new user
-            is_verified_value = 1 if SKIP_EMAIL_VERIFICATION else 0
+            is_verified_value = True if SKIP_EMAIL_VERIFICATION else False
             cursor.execute(
                 "INSERT INTO users (email, password, is_verified, verification_token, token_expiry) VALUES (%s, %s, %s, %s, %s)",
                 (email, hashed_password, is_verified_value, verification_token, datetime.now() + timedelta(hours=24))
