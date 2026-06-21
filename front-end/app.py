@@ -232,8 +232,8 @@ def get_weekly_attendance(student_id: int) -> dict[str, float]:
             rows = cursor.fetchall()
             cursor.close()
             connection.close()
-            
             attendance_by_wd = {wd: 0 for wd in range(7)}
+            unique_dates = set()
             for row in rows:
                 dt = row[0]
                 if not dt:
@@ -251,8 +251,11 @@ def get_weekly_attendance(student_id: int) -> dict[str, float]:
                     
                 dt_date = dt_obj.date() if hasattr(dt_obj, 'date') else dt_obj
                 if SEMESTER_START <= dt_date <= SEMESTER_END:
-                    wd = dt_date.weekday()
-                    attendance_by_wd[wd] += 1
+                    unique_dates.add(dt_date)
+                    
+            for dt_date in unique_dates:
+                wd = dt_date.weekday()
+                attendance_by_wd[wd] += 1
                 
             for wd in range(7):
                 pct = min(100.0, attendance_by_wd[wd] * increments[wd])
