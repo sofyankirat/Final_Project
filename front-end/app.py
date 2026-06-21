@@ -2287,19 +2287,30 @@ To configure a new working key:
             }
         }
         
-        try:
-            res = requests.post(url, json=payload, headers=headers, timeout=20)
-            if res.status_code == 200:
-                res_json = res.json()
-                candidates = res_json.get("candidates", [])
-                if candidates:
-                    parts = candidates[0].get("content", {}).get("parts", [])
-                    if parts:
-                        return parts[0].get("text", "")
-            else:
-                print(f"Direct Gemini API error {res.status_code}: {res.text}")
-                if res.status_code == 403 or "leaked" in res.text or "API key" in res.text:
-                    return """⚠️ **Gemini API Key Blocked:** Your Gemini API key has been flagged as **leaked** and has been deactivated by Google.
+        rate_limit_exceeded = False
+        max_retries = 3
+        retry_delay = 2.5
+        for attempt in range(max_retries):
+            try:
+                res = requests.post(url, json=payload, headers=headers, timeout=20)
+                if res.status_code == 200:
+                    res_json = res.json()
+                    candidates = res_json.get("candidates", [])
+                    if candidates:
+                        parts = candidates[0].get("content", {}).get("parts", [])
+                        if parts:
+                            return parts[0].get("text", "")
+                elif res.status_code == 429:
+                    rate_limit_exceeded = True
+                    print(f"Direct Gemini API rate limit (429) hit, retrying in {retry_delay}s... (Attempt {attempt+1}/{max_retries})")
+                    import time
+                    time.sleep(retry_delay)
+                    retry_delay *= 2
+                    continue
+                else:
+                    print(f"Direct Gemini API error {res.status_code}: {res.text}")
+                    if res.status_code == 403 or "leaked" in res.text or "API key" in res.text:
+                        return """⚠️ **Gemini API Key Blocked:** Your Gemini API key has been flagged as **leaked** and has been deactivated by Google.
 
 To restore AI Agent functionality, please follow these steps:
 1. Go to **[Google AI Studio](https://aistudio.google.com/)** and create a new API key.
@@ -2312,9 +2323,25 @@ To restore AI Agent functionality, please follow these steps:
    GEMINI_API_KEY="your_new_api_key"
    ```
 4. Restart your Flask server."""
-        except Exception as e:
-            print(f"Direct Gemini API exception: {e}")
-        return None
+                    break
+            except Exception as e:
+                print(f"Direct Gemini API exception: {e}")
+                import time
+                time.sleep(retry_delay)
+                retry_delay *= 2
+
+        if rate_limit_exceeded:
+            return """⚠️ **Gemini API Free Tier Quota Exceeded (429 Rate Limit):** 
+You have exceeded the current rate limit of 20 requests per minute/day on the Gemini API Free Tier.
+
+To restore functionality:
+1. Please wait a few seconds/minutes before sending another message.
+2. If this continues, check your Google AI Studio account and billing options, or create/rotate to a new API key."""
+        
+        return """⚠️ **AI Service Temporarily Unavailable:**
+The AI Agent was unable to process your request. This can happen due to a server connection failure or temporary API issues.
+
+Please try again in a few moments."""
 
     # Check if attachment is an image or PDF
     is_image = mime_type.startswith('image/') if mime_type else False
