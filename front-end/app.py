@@ -2301,16 +2301,19 @@ To restore AI Agent functionality, please follow these steps:
             print(f"Direct Gemini API exception: {e}")
         return None
 
-    # Check if attachment is an image
+    # Check if attachment is an image or PDF
     is_image = mime_type.startswith('image/') if mime_type else False
+    is_pdf = (mime_type == 'application/pdf') if mime_type else (file_url.lower().endswith('.pdf'))
+    is_direct_gemini = is_image or is_pdf
 
-    # 2. If it's an image/photo, we process it using Gemini Vision directly
-    if is_image and local_path and os.path.exists(local_path):
-        response_text = call_gemini_direct(message, chat_history, local_path, mime_type)
+    # 2. If it's an image/photo or PDF, we process it using Gemini directly
+    if is_direct_gemini and local_path and os.path.exists(local_path):
+        mtype = 'application/pdf' if is_pdf else mime_type
+        response_text = call_gemini_direct(message, chat_history, local_path, mtype)
         if response_text:
             return jsonify({'success': True, 'answer': response_text})
         else:
-            return jsonify({'success': False, 'message': 'Failed to process image with Gemini'}), 500
+            return jsonify({'success': False, 'message': 'Failed to process attachment with Gemini'}), 500
 
     # 3. Otherwise, try to call Mini_RAG service
     try:
@@ -2419,7 +2422,7 @@ To restore AI Agent functionality, please follow these steps:
     if doc_context:
         final_message = f"{doc_context}\n\nUser Question:\n{message}"
 
-    fallback_text = call_gemini_direct(final_message, chat_history, local_path if is_image else None, mime_type if is_image else None)
+    fallback_text = call_gemini_direct(final_message, chat_history, local_path if is_direct_gemini else None, ('application/pdf' if is_pdf else mime_type) if is_direct_gemini else None)
     if fallback_text:
         return jsonify({'success': True, 'answer': fallback_text})
     

@@ -1478,6 +1478,101 @@
             background-color: rgba(0, 0, 0, 0.85);
             backdrop-filter: blur(5px);
         }
+
+        /* ===== CHAT ZOOM STYLES ===== */
+        .chat-zoom-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.45);
+            backdrop-filter: blur(4px);
+            z-index: 999;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+        .chat-zoom-overlay.is-visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        body.chat-zoomed .dash-sidebar,
+        body.chat-zoomed .top-header-bar {
+            display: none !important;
+        }
+
+        body.chat-zoomed .dash-main-area,
+        body.chat-zoomed .dash-main-content {
+            margin: 0 !important;
+            padding: 0 !important;
+            max-width: 100vw !important;
+            width: 100vw !important;
+        }
+
+        body.chat-zoomed .chat-glow-wrap {
+            position: fixed !important;
+            top: 50% !important;
+            left: 50% !important;
+            transform: translate(-50%, -50%) !important;
+            z-index: 1000 !important;
+            width: 95vw !important;
+            height: 90vh !important;
+            max-width: 1400px !important;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3) !important;
+        }
+
+        body.chat-zoomed .chat-outer {
+            height: 100% !important;
+        }
+
+        body.chat-zoomed .chat-window {
+            height: calc(90vh - 180px) !important;
+            min-height: unset !important;
+        }
+
+        /* Exit Zoom Floating X Button */
+        .chat-zoom-close-btn {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: rgba(0, 0, 0, 0.5);
+            color: #ffffff;
+            border: none;
+            cursor: pointer;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1010;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        body.chat-zoomed .chat-zoom-close-btn {
+            display: flex;
+        }
+
+        .chat-zoom-close-btn:hover {
+            background: #dc2626;
+            transform: scale(1.1);
+        }
+
+        .chat-zoom-close-btn svg {
+            width: 16px;
+            height: 16px;
+            stroke: currentColor;
+            stroke-width: 2.5;
+            fill: none;
+        }
+        
+        body.chat-zoomed .common-qs-section,
+        body.chat-zoomed .ai-history-sidebar {
+            display: none !important;
+        }
     </style>
 </head>
 
@@ -1779,6 +1874,9 @@
 
             </div>
 
+            <!-- Chat Zoom Overlay -->
+            <div class="chat-zoom-overlay" id="chatZoomOverlay" aria-hidden="true"></div>
+
             <!-- ===== AI MAIN LAYOUT (Sidebar + Chat) ===== -->
             <div class="ai-main-layout">
                 <!-- Previous Chats Sidebar -->
@@ -1804,6 +1902,13 @@
 
                 <!-- ===== CHAT BLOCK WITH GLOWING BORDER ===== -->
                 <div class="chat-glow-wrap" style="flex: 1; min-width: 0;">
+                    <!-- Close button for zoom mode -->
+                    <button class="chat-zoom-close-btn" id="chatZoomCloseBtn" title="Exit Zoom Mode">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
+                    </button>
                     <div class="chat-outer" style="height: 600px;">
                         <!-- Messages window -->
                         <div class="chat-window" id="chatWindow">
@@ -2168,29 +2273,46 @@
             loadChat(currentChatId);
         });
 
-        // Fullscreen toggle — expands layout and collapses sidebar
+        // Fullscreen/Zoom toggle — expands layout to fill viewport, matching schedule card zoom
         let isFullscreen = false;
+        const chatZoomOverlay = document.getElementById('chatZoomOverlay');
+        const chatZoomCloseBtn = document.getElementById('chatZoomCloseBtn');
+
+        function setChatZoomState(state) {
+            isFullscreen = state;
+            document.body.classList.toggle('chat-zoomed', state);
+            if (chatZoomOverlay) {
+                chatZoomOverlay.classList.toggle('is-visible', state);
+                chatZoomOverlay.setAttribute('aria-hidden', String(!state));
+            }
+            if (fullscreenBtn) {
+                fullscreenBtn.title = state ? 'Exit Fullscreen' : 'Fullscreen';
+                fullscreenBtn.querySelector('svg').innerHTML = state
+                    ? '<path d="M8 3v3a2 2 0 0 1-2 2H3"></path><path d="M21 8h-3a2 2 0 0 1-2-2V3"></path><path d="M3 16h3a2 2 0 0 1 2 2v3"></path><path d="M16 21v-3a2 2 0 0 1 2-2h3"></path>'
+                    : '<path d="M8 3H5a2 2 0 0 0-2 2v3"></path><path d="M21 8V5a2 2 0 0 0-2-2h-3"></path><path d="M3 16v3a2 2 0 0 0 2 2h3"></path><path d="M16 21h3a2 2 0 0 0 2-2v-3"></path>';
+            }
+            if (chatWindow) {
+                setTimeout(() => {
+                    chatWindow.scrollTop = chatWindow.scrollHeight;
+                }, 200);
+            }
+        }
+
         if (fullscreenBtn) {
             fullscreenBtn.addEventListener('click', () => {
-                isFullscreen = !isFullscreen;
-                const sidebar = document.getElementById('dashSidebar');
-                if (isFullscreen) {
-                    document.body.classList.add('chat-fullscreen-mode');
-                    if (sidebar && !sidebar.classList.contains('collapsed')) {
-                        sidebar.classList.add('collapsed');
-                        sidebar.dataset.wasOpen = 'true';
-                    }
-                    fullscreenBtn.title = 'Exit Fullscreen';
-                    fullscreenBtn.querySelector('svg').innerHTML = '<path d="M8 3v3a2 2 0 0 1-2 2H3"></path><path d="M21 8h-3a2 2 0 0 1-2-2V3"></path><path d="M3 16h3a2 2 0 0 1 2 2v3"></path><path d="M16 21v-3a2 2 0 0 1 2-2h3"></path>';
-                } else {
-                    document.body.classList.remove('chat-fullscreen-mode');
-                    if (sidebar && sidebar.dataset.wasOpen === 'true') {
-                        sidebar.classList.remove('collapsed');
-                        sidebar.dataset.wasOpen = 'false';
-                    }
-                    fullscreenBtn.title = 'Fullscreen';
-                    fullscreenBtn.querySelector('svg').innerHTML = '<path d="M8 3H5a2 2 0 0 0-2 2v3"></path><path d="M21 8V5a2 2 0 0 0-2-2h-3"></path><path d="M3 16v3a2 2 0 0 0 2 2h3"></path><path d="M16 21h3a2 2 0 0 0 2-2v-3"></path>';
-                }
+                setChatZoomState(!document.body.classList.contains('chat-zoomed'));
+            });
+        }
+
+        if (chatZoomCloseBtn) {
+            chatZoomCloseBtn.addEventListener('click', () => {
+                setChatZoomState(false);
+            });
+        }
+
+        if (chatZoomOverlay) {
+            chatZoomOverlay.addEventListener('click', () => {
+                setChatZoomState(false);
             });
         }
 
@@ -2636,8 +2758,24 @@
         }
 
         function escHtml(text) {
-            return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-                .replace(/"/g, '&quot;').replace(/\n/g, '<br>');
+            let escaped = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+            
+            // Convert bold (**text**)
+            escaped = escaped.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+            
+            // Convert italic (*text*)
+            escaped = escaped.replace(/\*(.*?)\*/g, '<em>$1</em>');
+            
+            // Convert inline code (`text`)
+            escaped = escaped.replace(/`(.*?)`/g, '<code>$1</code>');
+            
+            // Convert newlines to <br>
+            escaped = escaped.replace(/\n/g, '<br>');
+            
+            // Convert bullet points (- or * at the beginning of a line or after a newline/<br>)
+            escaped = escaped.replace(/(^|<br>)\s*[-*]\s+/g, '$1&bull; ');
+            
+            return escaped;
         }
 
         function escHtmlTitle(text) {
