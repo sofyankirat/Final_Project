@@ -49,37 +49,7 @@ app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'your-secret-key-change-this'
 app.config['SESSION_TIMEOUT'] = 3600  # 1 hour
 app.config['MAX_CONTENT_LENGTH'] = 50 * 1024 * 1024  # 50 MB upload limit (5 base64 captures)
 
-@app.route('/db-debug')
-def db_debug():
-    try:
-        conn = get_db_connection()
-        if not conn:
-            return jsonify({'success': False, 'message': 'No database connection returned.'})
-        
-        conn_type = str(type(conn))
-        cursor = conn.cursor()
-        
-        cursor.execute("SELECT id, email FROM users")
-        users = cursor.fetchall()
-        
-        sqlite_tables = []
-        if "sqlite" in conn_type.lower():
-            cursor.execute("SELECT name FROM sqlite_master WHERE type='table'")
-            sqlite_tables = cursor.fetchall()
-            
-        cursor.close()
-        conn.close()
-        
-        return jsonify({
-            'success': True,
-            'connection_type': conn_type,
-            'users': users,
-            'sqlite_tables': sqlite_tables,
-            'supabase_url_present': os.getenv('SUPABASE_URL') is not None,
-            'supa_pass_present': os.getenv('SUPA_PASS') is not None
-        })
-    except Exception as e:
-        return jsonify({'success': False, 'error': str(e)})
+
 
 ALLOWED_CHAT_UPLOAD_EXTENSIONS = {
     'pdf', 'doc', 'docx', 'ppt', 'pptx', 'xls', 'xlsx', 'txt', 'csv',
