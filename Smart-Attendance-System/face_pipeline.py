@@ -82,11 +82,8 @@ def load_models():
     #                         providers=['CPUExecutionProvider'])   # Load ArcFace embedding model
     # print("  ✅ ArcFace (buffalo_sc) loaded")
 
- 
-    with open(config.DATABASE_PATH, "rb") as f:
-        database = pickle.load(f)
-    database = {name: np.array(emb).flatten() for name, emb in database.items()}
-    print(f"  ✅ Database loaded → {len(database)} persons") # Load embedding database
+    from db_sync import load_db_with_sync
+    database = load_db_with_sync()
 
     return yolo_detection_model, face_app_embedding, database
 #--------------

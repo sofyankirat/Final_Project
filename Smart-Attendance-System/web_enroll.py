@@ -24,6 +24,7 @@ from ultralytics import YOLO
 _DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, _DIR)
 import config
+from db_sync import save_embedding_to_db
 
 
 def _resolve(p):
@@ -288,6 +289,9 @@ def process_images(name, paths):
 
     db[name] = avg
     save_db(db)
+    
+    # Sync with Supabase database
+    save_embedding_to_db(name, avg)
 
     action = "updated" if overwritten else "enrolled"
     return {

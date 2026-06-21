@@ -59,24 +59,8 @@ def _extract_embedding(face_112):
     return arc_session.run(None, {arc_input: img})[0].flatten()
 
 def _load_db():
-    p = _resolve(config.DATABASE_PATH)
-    if not os.path.exists(p):
-        return {}
-    try:
-        with open(p, "rb") as f:
-            db = pickle.load(f)
-        return {name: np.array(emb, dtype=np.float32).flatten() for name, emb in db.items()}
-    except Exception as e:
-        print(f"⚠️ Error loading database in recognize: {e}")
-        backup = p + ".bak"
-        if os.path.exists(backup):
-            try:
-                with open(backup, "rb") as f:
-                    bdb = pickle.load(f)
-                return {name: np.array(emb, dtype=np.float32).flatten() for name, emb in bdb.items()}
-            except Exception:
-                pass
-        return {}
+    from db_sync import load_db_with_sync
+    return load_db_with_sync()
 
 def _find_match(query_emb, database):
     query = query_emb / np.linalg.norm(query_emb)

@@ -11,6 +11,7 @@
 import pickle
 import os
 import config
+from db_sync import delete_embedding_from_db, clear_all_embeddings_from_db
 
 def manage_db():
     # Check database exists
@@ -55,6 +56,8 @@ def manage_db():
                     del database[target]
                     with open(config.DATABASE_PATH, "wb") as f:
                         pickle.dump(database, f)
+                    # Sync delete with Supabase
+                    delete_embedding_from_db(target)
                     print(f"  ✅ '{target}' deleted successfully.")
                 else:
                     print("  Cancelled.")
@@ -69,6 +72,8 @@ def manage_db():
                 database = {}
                 with open(config.DATABASE_PATH, "wb") as f:
                     pickle.dump(database, f)
+                # Sync clear with Supabase
+                clear_all_embeddings_from_db()
                 print("  ✅ Database cleared.")
             else:
                 print("  Cancelled.")

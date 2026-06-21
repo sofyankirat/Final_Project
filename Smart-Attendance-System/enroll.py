@@ -12,6 +12,7 @@ import sys
 import onnxruntime as ort
 from ultralytics import YOLO
 import config
+from db_sync import save_embedding_to_db
 
 
 def _resolve_model_path(path):
@@ -323,6 +324,9 @@ def enroll_student():
     # Save to database
     database[name] = avg_embedding
     save_database(database)
+    
+    # Sync with Supabase database
+    save_embedding_to_db(name, avg_embedding)
 
     print(f"\n{'='*50}")
     print(f"✅ '{name}' enrolled successfully!")
