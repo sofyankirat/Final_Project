@@ -2547,7 +2547,7 @@ def get_attendance_records(user_id: int) -> list[dict[str, Any]]:
         dt_obj = None
         if created_at:
             if isinstance(created_at, datetime):
-                dt_obj = created_at
+                dt_obj = created_at.replace(tzinfo=None)
             elif isinstance(created_at, str):
                 try:
                     if ' ' in created_at:
@@ -2561,7 +2561,7 @@ def get_attendance_records(user_id: int) -> list[dict[str, Any]]:
             if not att_date:
                 continue
             if isinstance(att_date, datetime):
-                dt_obj = att_date
+                dt_obj = att_date.replace(tzinfo=None)
             elif isinstance(att_date, date):
                 dt_obj = datetime.combine(att_date, time.min)
             elif isinstance(att_date, str):
@@ -3237,7 +3237,7 @@ def get_notifications_api():
                 dt_obj = None
                 if created_at:
                     if isinstance(created_at, datetime):
-                        dt_obj = created_at
+                        dt_obj = created_at.replace(tzinfo=None)
                     elif isinstance(created_at, str):
                         try:
                             if ' ' in created_at:
@@ -3252,8 +3252,9 @@ def get_notifications_api():
                     date_str = dt_obj.strftime('%Y-%m-%d')
                 else:
                     if isinstance(att_date, datetime):
-                        time_str = att_date.strftime('%I:%M %p')
-                        date_str = att_date.strftime('%Y-%m-%d')
+                        dt_obj = att_date.replace(tzinfo=None)
+                        time_str = dt_obj.strftime('%I:%M %p')
+                        date_str = dt_obj.strftime('%Y-%m-%d')
                     elif isinstance(att_date, date):
                         time_str = "—"
                         date_str = att_date.strftime('%Y-%m-%d')
