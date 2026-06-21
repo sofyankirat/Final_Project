@@ -3,7 +3,7 @@ import requests
 import sqlite3
 
 # URL of your local or live server
-URL = 'http://localhost:5000/stream/frame'
+DEFAULT_URL = 'http://localhost:5000/stream/frame'
 
 # Path to your face photo (put your photo here)
 IMAGE_PATH = 'my_face.jpg'
@@ -33,12 +33,30 @@ def main():
         print("Please copy a photo of your face to this directory and rename it to 'my_face.jpg'.")
         return
 
+    # Try to load environment variables from dotenv if available
+    try:
+        from dotenv import load_dotenv
+        load_dotenv(os.path.join('front-end', '.env'))
+        load_dotenv('.env')
+    except Exception:
+        pass
+
+    env_url = os.getenv('LIVE_SERVER_URL')
+    url = env_url if env_url else DEFAULT_URL
+
+    print("\n--- Smart Attendance Simulator ---")
+    print(f"Current Target Server URL: {url}")
+    change_url = input("Do you want to use a different URL (e.g. Railway URL)? (y/N): ").strip().lower()
+    if change_url == 'y':
+        custom_url = input("Enter server URL (e.g. https://your-app.up.railway.app/stream/frame): ").strip()
+        if custom_url:
+            url = custom_url
+
     users = get_registered_users()
     test_user_id = None
 
     if users:
-        print("\n--- Smart Attendance Simulator ---")
-        print("Select which registered user to simulate attendance for:")
+        print("\nSelect which registered user to simulate attendance for:")
         for idx, (uid, email) in enumerate(users):
             print(f"[{idx + 1}] {email} (ID: {uid})")
         print(f"[{len(users) + 1}] Do not override (use face recognition name directly)")
@@ -59,9 +77,9 @@ def main():
         print("\nNote: Local database not found or empty. Using standard face recognition matching.")
 
     # Construct request URL
-    request_url = URL
+    request_url = url
     if test_user_id:
-        request_url = f"{URL}?test_user_id={test_user_id}"
+        request_url = f"{url}?test_user_id={test_user_id}"
 
     print(f"\nSending '{IMAGE_PATH}' to {request_url}...")
     try:

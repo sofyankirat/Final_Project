@@ -3084,15 +3084,15 @@ def receive_stream_frame():
 
         test_user_id = to_int_value(request.args.get('test_user_id'))
         recognized_names = []
-        if result and result.get('success'):
-            faces = result.get('faces', [])
-            for face in faces:
-                name = face.get('name')
-                if name and name != "Unknown":
-                    recognized_names.append(name)
-
-        if test_user_id and not recognized_names:
+        if test_user_id:
             recognized_names = [f"user_{test_user_id}"]
+        else:
+            if result and result.get('success'):
+                faces = result.get('faces', [])
+                for face in faces:
+                    name = face.get('name')
+                    if name and name != "Unknown":
+                        recognized_names.append(name)
 
         if not recognized_names and (not result or not result.get('success')):
             err_msg = result.get('message', 'Recognition failed') if result else 'No recognition result output'
