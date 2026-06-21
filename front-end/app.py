@@ -2331,17 +2331,9 @@ To restore AI Agent functionality, please follow these steps:
                 retry_delay *= 2
 
         if rate_limit_exceeded:
-            return """⚠️ **Gemini API Free Tier Quota Exceeded (429 Rate Limit):** 
-You have exceeded the current rate limit of 20 requests per minute/day on the Gemini API Free Tier.
-
-To restore functionality:
-1. Please wait a few seconds/minutes before sending another message.
-2. If this continues, check your Google AI Studio account and billing options, or create/rotate to a new API key."""
+            return "⚠️ **AI service temporarily out of credits or rate-limited.** Please wait a moment and try again."
         
-        return """⚠️ **AI Service Temporarily Unavailable:**
-The AI Agent was unable to process your request. This can happen due to a server connection failure or temporary API issues.
-
-Please try again in a few moments."""
+        return "⚠️ **AI service temporarily unavailable.** Please try again in a few moments."
 
     # Check if attachment is an image or PDF
     is_image = mime_type.startswith('image/') if mime_type else False
