@@ -50,7 +50,15 @@ def main():
     if change_url == 'y':
         custom_url = input("Enter server URL (e.g. https://your-app.up.railway.app/stream/frame): ").strip()
         if custom_url:
-            url = custom_url
+            # Auto-prepend scheme if missing
+            if not (custom_url.startswith("http://") or custom_url.startswith("https://")):
+                custom_url = "https://" + custom_url
+            
+            # Auto-append endpoint if missing
+            parsed_url = custom_url.rstrip("/")
+            if not parsed_url.endswith("/stream/frame"):
+                parsed_url = parsed_url + "/stream/frame"
+            url = parsed_url
 
     users = get_registered_users()
     test_user_id = None
@@ -100,7 +108,7 @@ def main():
             
     except Exception as e:
         print(f"Connection error: {e}")
-        print(f"Make sure the server at {URL} is running.")
+        print(f"Make sure the server at {url} is running.")
 
 if __name__ == '__main__':
     main()
