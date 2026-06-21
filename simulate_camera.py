@@ -67,22 +67,40 @@ def main():
         print("\nSelect which registered user to simulate attendance for:")
         for idx, (uid, email) in enumerate(users):
             print(f"[{idx + 1}] {email} (ID: {uid})")
-        print(f"[{len(users) + 1}] Do not override (use face recognition name directly)")
+        print(f"[{len(users) + 1}] Enter custom User ID manually (for live Railway server)")
+        print(f"[{len(users) + 2}] Do not override (use face recognition name directly)")
         
         try:
-            choice = input(f"\nEnter choice [1-{len(users) + 1}] (default: 1): ").strip()
+            choice = input(f"\nEnter choice [1-{len(users) + 2}] (default: 1): ").strip()
             if not choice:
                 choice = "1"
             choice_idx = int(choice) - 1
             if 0 <= choice_idx < len(users):
                 test_user_id = users[choice_idx][0]
                 print(f"Simulating attendance for: {users[choice_idx][1]} (ID: {test_user_id})")
+            elif choice_idx == len(users):
+                custom_id = input("Enter custom User ID: ").strip()
+                if custom_id:
+                    test_user_id = int(custom_id)
+                    print(f"Simulating attendance for custom User ID: {test_user_id}")
             else:
                 print("Using standard face recognition name matching.")
         except Exception:
             print("Using standard face recognition name matching.")
     else:
-        print("\nNote: Local database not found or empty. Using standard face recognition matching.")
+        # Prompt for manual ID even if local database is not found
+        print("\nNote: Local database not found or empty.")
+        use_manual = input("Do you want to enter a custom User ID manually? (y/N): ").strip().lower()
+        if use_manual == 'y':
+            custom_id = input("Enter custom User ID: ").strip()
+            if custom_id:
+                try:
+                    test_user_id = int(custom_id)
+                    print(f"Simulating attendance for custom User ID: {test_user_id}")
+                except ValueError:
+                    print("Invalid ID. Using standard face recognition matching.")
+        else:
+            print("Using standard face recognition matching.")
 
     # Construct request URL
     request_url = url
