@@ -41,24 +41,9 @@ def main():
     except Exception:
         pass
 
-    env_url = os.getenv('LIVE_SERVER_URL')
-    url = env_url if env_url else DEFAULT_URL
-
+    url = "https://finalproject-production-aa41.up.railway.app/stream/frame"
     print("\n--- Smart Attendance Simulator ---")
-    print(f"Current Target Server URL: {url}")
-    change_url = input("Do you want to use a different URL (e.g. Railway URL)? (y/N): ").strip().lower()
-    if change_url == 'y':
-        custom_url = input("Enter server URL (e.g. https://your-app.up.railway.app/stream/frame): ").strip()
-        if custom_url:
-            # Auto-prepend scheme if missing
-            if not (custom_url.startswith("http://") or custom_url.startswith("https://")):
-                custom_url = "https://" + custom_url
-            
-            # Auto-append endpoint if missing
-            parsed_url = custom_url.rstrip("/")
-            if not parsed_url.endswith("/stream/frame"):
-                parsed_url = parsed_url + "/stream/frame"
-            url = parsed_url
+    print(f"Target Server URL: {url}")
 
     users = get_registered_users()
     test_user_id = None

@@ -198,8 +198,8 @@ def mark_attendance(student_id: int, weekday: int):
             if cursor.fetchone() is None:
                 today_datetime = target_date.strftime("%Y-%m-%d %H:%M:%S")
                 cursor.execute(
-                    "INSERT INTO attendance (user_id, course_id, attendance_date, status) VALUES (%s, %s, %s, TRUE)",
-                    (student_id, matching_course_id, today_datetime)
+                    "INSERT INTO attendance (user_id, course_id, attendance_date, status, created_at) VALUES (%s, %s, %s, TRUE, %s)",
+                    (student_id, matching_course_id, today_datetime, today_datetime)
                 )
                 connection.commit()
             cursor.close()
@@ -2505,7 +2505,7 @@ def get_attendance_records(user_id: int) -> list[dict[str, Any]]:
         schedules = cursor.fetchall()
         
         cursor.execute(
-            "SELECT id, course_id, attendance_date, status FROM attendance WHERE user_id = %s",
+            "SELECT id, course_id, attendance_date, status, created_at FROM attendance WHERE user_id = %s",
             (user_id,)
         )
         attendance_rows = cursor.fetchall()
@@ -2542,24 +2542,38 @@ def get_attendance_records(user_id: int) -> list[dict[str, Any]]:
         course_id = row[1]
         att_date = row[2]
         status = row[3]
+        created_at = row[4] if len(row) > 4 else None
         
-        if not att_date:
-            continue
-        
-        if isinstance(att_date, datetime):
-            dt_obj = att_date
-        elif isinstance(att_date, date):
-            dt_obj = datetime.combine(att_date, time.min)
-        elif isinstance(att_date, str):
-            try:
-                if ' ' in att_date:
-                    dt_obj = datetime.strptime(att_date, "%Y-%m-%d %H:%M:%S")
-                else:
-                    dt_obj = datetime.strptime(att_date, "%Y-%m-%d")
-            except ValueError:
+        dt_obj = None
+        if created_at:
+            if isinstance(created_at, datetime):
+                dt_obj = created_at
+            elif isinstance(created_at, str):
+                try:
+                    if ' ' in created_at:
+                        dt_obj = datetime.strptime(created_at, "%Y-%m-%d %H:%M:%S")
+                    else:
+                        dt_obj = datetime.strptime(created_at, "%Y-%m-%d")
+                except ValueError:
+                    pass
+                    
+        if not dt_obj:
+            if not att_date:
                 continue
-        else:
-            continue
+            if isinstance(att_date, datetime):
+                dt_obj = att_date
+            elif isinstance(att_date, date):
+                dt_obj = datetime.combine(att_date, time.min)
+            elif isinstance(att_date, str):
+                try:
+                    if ' ' in att_date:
+                        dt_obj = datetime.strptime(att_date, "%Y-%m-%d %H:%M:%S")
+                    else:
+                        dt_obj = datetime.strptime(att_date, "%Y-%m-%d")
+                except ValueError:
+                    continue
+            else:
+                continue
             
         dt_date = dt_obj.date()
         
@@ -2903,8 +2917,8 @@ def process_frame_async(fpath):
 
                         today_datetime = get_local_now().strftime("%Y-%m-%d %H:%M:%S")
                         cursor.execute(
-                            "INSERT INTO attendance (user_id, course_id, attendance_date, status) VALUES (%s, %s, %s, TRUE)",
-                            (user_id, None, today_datetime)
+                            "INSERT INTO attendance (user_id, course_id, attendance_date, status, created_at) VALUES (%s, %s, %s, TRUE, %s)",
+                            (user_id, None, today_datetime, today_datetime)
                         )
                         ws_recognized_users.add(user_id)
                         logged_count += 1
@@ -3143,8 +3157,8 @@ def receive_stream_frame():
                     if not is_duplicate:
                         today_datetime = get_local_now().strftime("%Y-%m-%d %H:%M:%S")
                         cursor.execute(
-                            "INSERT INTO attendance (user_id, course_id, attendance_date, status) VALUES (%s, %s, %s, TRUE)",
-                            (user_id, user_course_id, today_datetime)
+                            "INSERT INTO attendance (user_id, course_id, attendance_date, status, created_at) VALUES (%s, %s, %s, TRUE, %s)",
+                            (user_id, user_course_id, today_datetime, today_datetime)
                         )
                         logged_count += 1
                 
@@ -3202,7 +3216,7 @@ def get_notifications_api():
             cursor = connection.cursor()
             cursor.execute(
                 """
-                SELECT a.attendance_date, c.course_name 
+                SELECT a.attendance_date, c.course_name, a.created_at 
                 FROM attendance a
                 LEFT JOIN user_course_schedule c ON a.course_id = c.id
                 WHERE a.user_id = %s
@@ -3218,27 +3232,45 @@ def get_notifications_api():
             for row in rows:
                 att_date = row[0]
                 course_name = to_clean_string(row[1]) if row[1] else "General Class"
+                created_at = row[2] if len(row) > 2 else None
                 
-                if isinstance(att_date, datetime):
-                    time_str = att_date.strftime('%I:%M %p')
-                    date_str = att_date.strftime('%Y-%m-%d')
-                elif isinstance(att_date, date):
-                    time_str = "—"
-                    date_str = att_date.strftime('%Y-%m-%d')
-                elif isinstance(att_date, str):
-                    try:
-                        if ' ' in att_date:
-                            dt_obj = datetime.strptime(att_date, "%Y-%m-%d %H:%M:%S")
-                        else:
-                            dt_obj = datetime.strptime(att_date, "%Y-%m-%d")
-                        time_str = dt_obj.strftime('%I:%M %p')
-                        date_str = dt_obj.strftime('%Y-%m-%d')
-                    except ValueError:
-                        time_str = "Recent"
-                        date_str = to_clean_string(att_date)
+                dt_obj = None
+                if created_at:
+                    if isinstance(created_at, datetime):
+                        dt_obj = created_at
+                    elif isinstance(created_at, str):
+                        try:
+                            if ' ' in created_at:
+                                dt_obj = datetime.strptime(created_at, "%Y-%m-%d %H:%M:%S")
+                            else:
+                                dt_obj = datetime.strptime(created_at, "%Y-%m-%d")
+                        except ValueError:
+                            pass
+                
+                if dt_obj:
+                    time_str = dt_obj.strftime('%I:%M %p')
+                    date_str = dt_obj.strftime('%Y-%m-%d')
                 else:
-                    time_str = "Recent"
-                    date_str = "Today"
+                    if isinstance(att_date, datetime):
+                        time_str = att_date.strftime('%I:%M %p')
+                        date_str = att_date.strftime('%Y-%m-%d')
+                    elif isinstance(att_date, date):
+                        time_str = "—"
+                        date_str = att_date.strftime('%Y-%m-%d')
+                    elif isinstance(att_date, str):
+                        try:
+                            if ' ' in att_date:
+                                dt_obj = datetime.strptime(att_date, "%Y-%m-%d %H:%M:%S")
+                            else:
+                                dt_obj = datetime.strptime(att_date, "%Y-%m-%d")
+                            time_str = dt_obj.strftime('%I:%M %p')
+                            date_str = dt_obj.strftime('%Y-%m-%d')
+                        except ValueError:
+                            time_str = "Recent"
+                            date_str = to_clean_string(att_date)
+                    else:
+                        time_str = "Recent"
+                        date_str = "Today"
                 
                 notifications.append({
                     'title': 'Attendance Marked',
@@ -3315,8 +3347,8 @@ def receive_session_attendance():
             if cursor.fetchone() is None:
                 today_datetime = get_local_now().strftime("%Y-%m-%d %H:%M:%S")
                 cursor.execute(
-                    "INSERT INTO attendance (user_id, course_id, attendance_date, status) VALUES (%s, %s, %s, TRUE)",
-                    (user_id, course_id, today_datetime)
+                    "INSERT INTO attendance (user_id, course_id, attendance_date, status, created_at) VALUES (%s, %s, %s, TRUE, %s)",
+                    (user_id, course_id, today_datetime, today_datetime)
                 )
                 logged_count += 1
 
