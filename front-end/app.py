@@ -2082,13 +2082,28 @@ def save_ai_chat_state():
 
     try:
         cursor = connection.cursor()
-        cursor.execute(
-            """
-            INSERT OR REPLACE INTO user_ai_chat_state (user_id, chat_data, chat_counter, current_chat_id)
-            VALUES (%s, %s, %s, %s)
-            """,
-            (user_id, json.dumps(chats), chat_counter, current_chat_id)
-        )
+        is_postgres = connection.__class__.__name__ == 'PostgresConnectionWrapper'
+        
+        if is_postgres:
+            cursor.execute(
+                """
+                INSERT INTO user_ai_chat_state (user_id, chat_data, chat_counter, current_chat_id)
+                VALUES (%s, %s, %s, %s)
+                ON CONFLICT (user_id) DO UPDATE SET
+                    chat_data = EXCLUDED.chat_data,
+                    chat_counter = EXCLUDED.chat_counter,
+                    current_chat_id = EXCLUDED.current_chat_id
+                """,
+                (user_id, json.dumps(chats), chat_counter, current_chat_id)
+            )
+        else:
+            cursor.execute(
+                """
+                INSERT OR REPLACE INTO user_ai_chat_state (user_id, chat_data, chat_counter, current_chat_id)
+                VALUES (%s, %s, %s, %s)
+                """,
+                (user_id, json.dumps(chats), chat_counter, current_chat_id)
+            )
         connection.commit()
         cursor.close()
         return jsonify({'success': True})
