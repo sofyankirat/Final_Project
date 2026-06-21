@@ -1102,7 +1102,7 @@
                                 {% endif %}
                             </div>
                             <div class="header-profile-info">
-                                <span class="header-profile-name">{{ username }}</span>
+                                <span class="header-profile-name">{{ username }} (ID: {{ session.get('user_id') }})</span>
                                 <span class="header-profile-email">{{ email }}</span>
                             </div>
                         </a>
