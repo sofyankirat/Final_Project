@@ -287,7 +287,7 @@
                                 {% endif %}
                             </div>
                             <div class="header-profile-info">
-                                <span class="header-profile-name">{{ username }} (ID: {{ session.get('user_id') }})</span>
+                                <span class="header-profile-name">{{ username }}</span>
                                 <span class="header-profile-email">{{ email }}</span>
                             </div>
                         </a>
@@ -572,6 +572,7 @@
                         </div>
                         <div class="course-bars-area">
                             {% for course in courses %}
+                            {% if course.name != 'General Class' %}
                             <div class="course-bar-row">
                                 <span class="course-bar-label">{{ course.name }}</span>
                                 <div class="course-bar-track">
@@ -580,6 +581,7 @@
                                 </div>
                                 <span class="course-bar-pct">{{ course.pct }}%</span>
                             </div>
+                            {% endif %}
                             {% endfor %}
                         </div>
                     </div>

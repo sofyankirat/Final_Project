@@ -30,6 +30,7 @@ Thumbs.db
 
 # Databases
 *.db
+!student_system.db
 *.sqlite
 
 # User uploads (created locally on each machine)

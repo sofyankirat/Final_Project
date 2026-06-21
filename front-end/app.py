@@ -3131,20 +3131,26 @@ def receive_stream_frame():
                     if not user_course_id:
                         user_course_id = find_matching_course(user_id)
 
-                    ten_seconds_ago = (get_local_now() - timedelta(seconds=10)).strftime("%Y-%m-%d %H:%M:%S")
+                    # Bypass duplicate check if simulating (request contains test_user_id)
+                    bypass_check = (request.args.get('test_user_id') is not None)
+                    is_duplicate = False
 
-                    if user_course_id:
-                        cursor.execute(
-                            "SELECT 1 FROM attendance WHERE user_id = %s AND course_id = %s AND attendance_date >= %s LIMIT 1",
-                            (user_id, user_course_id, ten_seconds_ago)
-                        )
-                    else:
-                        cursor.execute(
-                            "SELECT 1 FROM attendance WHERE user_id = %s AND course_id IS NULL AND attendance_date >= %s LIMIT 1",
-                            (user_id, ten_seconds_ago)
-                        )
+                    if not bypass_check:
+                        ten_seconds_ago = (get_local_now() - timedelta(seconds=10)).strftime("%Y-%m-%d %H:%M:%S")
+                        if user_course_id:
+                            cursor.execute(
+                                "SELECT 1 FROM attendance WHERE user_id = %s AND course_id = %s AND attendance_date >= %s LIMIT 1",
+                                (user_id, user_course_id, ten_seconds_ago)
+                            )
+                        else:
+                            cursor.execute(
+                                "SELECT 1 FROM attendance WHERE user_id = %s AND course_id IS NULL AND attendance_date >= %s LIMIT 1",
+                                (user_id, ten_seconds_ago)
+                            )
+                        if cursor.fetchone() is not None:
+                            is_duplicate = True
 
-                    if cursor.fetchone() is None:
+                    if not is_duplicate:
                         today_datetime = get_local_now().strftime("%Y-%m-%d %H:%M:%S")
                         cursor.execute(
                             "INSERT INTO attendance (user_id, course_id, attendance_date, status) VALUES (%s, %s, %s, TRUE)",
