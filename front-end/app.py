@@ -3135,24 +3135,21 @@ def receive_stream_frame():
                     if not user_course_id:
                         user_course_id = find_matching_course(user_id)
 
-                    # Bypass duplicate check if simulating (request contains test_user_id)
-                    bypass_check = (request.args.get('test_user_id') is not None)
+                    # Check if already present today for this course to prevent duplicates
                     is_duplicate = False
-
-                    if not bypass_check:
-                        ten_seconds_ago = (get_local_now() - timedelta(seconds=10)).strftime("%Y-%m-%d %H:%M:%S")
-                        if user_course_id:
-                            cursor.execute(
-                                "SELECT 1 FROM attendance WHERE user_id = %s AND course_id = %s AND attendance_date >= %s LIMIT 1",
-                                (user_id, user_course_id, ten_seconds_ago)
-                            )
-                        else:
-                            cursor.execute(
-                                "SELECT 1 FROM attendance WHERE user_id = %s AND course_id IS NULL AND attendance_date >= %s LIMIT 1",
-                                (user_id, ten_seconds_ago)
-                            )
-                        if cursor.fetchone() is not None:
-                            is_duplicate = True
+                    today = get_local_now().strftime("%Y-%m-%d")
+                    if user_course_id:
+                        cursor.execute(
+                            "SELECT 1 FROM attendance WHERE user_id = %s AND course_id = %s AND date(attendance_date) = %s LIMIT 1",
+                            (user_id, user_course_id, today)
+                        )
+                    else:
+                        cursor.execute(
+                            "SELECT 1 FROM attendance WHERE user_id = %s AND course_id IS NULL AND date(attendance_date) = %s LIMIT 1",
+                            (user_id, today)
+                        )
+                    if cursor.fetchone() is not None:
+                        is_duplicate = True
 
                     if not is_duplicate:
                         today_datetime = get_local_now().strftime("%Y-%m-%d %H:%M:%S")
@@ -3331,18 +3328,17 @@ def receive_session_attendance():
             if cursor.fetchone() is None:
                 continue
 
-            ten_seconds_ago = (get_local_now() - timedelta(seconds=10)).strftime("%Y-%m-%d %H:%M:%S")
-
-            # Check if already present in the last 10 seconds for this course to prevent duplicates
+            # Check if already present today for this course to prevent duplicates
+            today = get_local_now().strftime("%Y-%m-%d")
             if course_id:
                 cursor.execute(
-                    "SELECT 1 FROM attendance WHERE user_id = %s AND course_id = %s AND attendance_date >= %s LIMIT 1",
-                    (user_id, course_id, ten_seconds_ago)
+                    "SELECT 1 FROM attendance WHERE user_id = %s AND course_id = %s AND date(attendance_date) = %s LIMIT 1",
+                    (user_id, course_id, today)
                 )
             else:
                 cursor.execute(
-                    "SELECT 1 FROM attendance WHERE user_id = %s AND course_id IS NULL AND attendance_date >= %s LIMIT 1",
-                    (user_id, ten_seconds_ago)
+                    "SELECT 1 FROM attendance WHERE user_id = %s AND course_id IS NULL AND date(attendance_date) = %s LIMIT 1",
+                    (user_id, today)
                 )
 
             if cursor.fetchone() is None:
