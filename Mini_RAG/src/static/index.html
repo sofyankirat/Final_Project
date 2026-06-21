@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Mini RAG — Intelligent document Q&A powered by Retrieval-Augmented Generation" />
+  <title>Mini RAG — Chat</title>
+  <link rel="stylesheet" href="/static/style.css?v=3" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🤖</text></svg>" />
+</head>
+<body>
+
+  <div class="app">
+
+    <!-- ── Header ── -->
+    <header class="header">
+      <div class="header-brand">
+        <div class="header-logo">🤖</div>
+        <div class="header-info">
+          <h1>Mini RAG</h1>
+          <p>Retrieval-Augmented Generation</p>
+        </div>
+      </div>
+      <div class="header-status">
+        <span class="status-dot"></span>
+        Online
+      </div>
+    </header>
+
+    <!-- ── Chat Area ── -->
+    <main class="chat-area" id="chatArea">
+
+      <!-- Welcome Screen -->
+      <div class="welcome" id="welcomeScreen">
+        <div class="welcome-icon">🧠</div>
+        <h2>What can I help you with?</h2>
+        <p>Upload your documents and ask questions. I'll find the answers using AI-powered retrieval.</p>
+        <div class="welcome-hints">
+          <button class="hint-chip">Summarize the document</button>
+          <button class="hint-chip">What are the key points?</button>
+          <button class="hint-chip">Explain this in simple terms</button>
+        </div>
+      </div>
+
+      <!-- Typing Indicator (hidden by default) -->
+      <div class="typing-indicator" id="typingIndicator">
+        <div class="message-avatar">🤖</div>
+        <div class="typing-dots">
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
+      </div>
+
+    </main>
+
+    <!-- ── Input Area ── -->
+    <footer class="input-area">
+      <div class="file-chips" id="fileChips"></div>
+      <div class="input-bar">
+        <button class="btn-attach" id="attachBtn" title="Upload a file">
+          📎
+        </button>
+        <textarea
+          id="messageInput"
+          placeholder="Ask a question about your documents…"
+          rows="1"
+        ></textarea>
+        <button class="btn-send" id="sendBtn" title="Send message">
+          ➤
+        </button>
+      </div>
+      <input type="file" id="fileInput" />
+    </footer>
+
+  </div>
+
+  <!-- Toast Notifications -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- Markdown Parser -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="/static/app.js?v=4"></script>
+</body>
+</html>
