@@ -2615,6 +2615,8 @@ def get_attendance_records(user_id: int) -> list[dict[str, Any]]:
             else:
                 continue
             
+        if dt_obj:
+            dt_obj = dt_obj + timedelta(hours=1)
         dt_date = dt_obj.date()
         
         matched_course_name = "General Class"
@@ -3284,28 +3286,26 @@ def get_notifications_api():
                         except ValueError:
                             pass
                 
-                if dt_obj:
-                    time_str = dt_obj.strftime('%I:%M %p')
-                    date_str = dt_obj.strftime('%Y-%m-%d')
-                else:
+                if not dt_obj:
                     if isinstance(att_date, datetime):
                         dt_obj = att_date.replace(tzinfo=None)
-                        time_str = dt_obj.strftime('%I:%M %p')
-                        date_str = dt_obj.strftime('%Y-%m-%d')
-                    elif isinstance(att_date, date):
-                        time_str = "—"
-                        date_str = att_date.strftime('%Y-%m-%d')
                     elif isinstance(att_date, str):
                         try:
                             if ' ' in att_date:
                                 dt_obj = datetime.strptime(att_date, "%Y-%m-%d %H:%M:%S")
                             else:
                                 dt_obj = datetime.strptime(att_date, "%Y-%m-%d")
-                            time_str = dt_obj.strftime('%I:%M %p')
-                            date_str = dt_obj.strftime('%Y-%m-%d')
                         except ValueError:
-                            time_str = "Recent"
-                            date_str = to_clean_string(att_date)
+                            pass
+
+                if dt_obj:
+                    dt_obj = dt_obj + timedelta(hours=1)
+                    time_str = dt_obj.strftime('%I:%M %p')
+                    date_str = dt_obj.strftime('%Y-%m-%d')
+                else:
+                    if isinstance(att_date, date):
+                        time_str = "—"
+                        date_str = att_date.strftime('%Y-%m-%d')
                     else:
                         time_str = "Recent"
                         date_str = "Today"
