@@ -2143,6 +2143,7 @@
         }
 
         let attachedFile = null;
+        let isGenerating = false;
         const userInitials = "{{ username[0] | upper }}";
         const profilePhoto = "{{ profile_photo or '' }}";
 
@@ -2150,23 +2151,29 @@
         chatInput.addEventListener('input', () => {
             chatInput.style.height = 'auto';
             chatInput.style.height = Math.min(chatInput.scrollHeight, 96) + 'px';
-            sendBtn.disabled = chatInput.value.trim().length === 0 && !attachedFile;
+            sendBtn.disabled = isGenerating || (chatInput.value.trim().length === 0 && !attachedFile);
         });
 
         // Send on Enter (Shift+Enter = newline)
         chatInput.addEventListener('keydown', e => {
             if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
-                if (!sendBtn.disabled) sendMessage();
+                if (!sendBtn.disabled && !isGenerating) sendMessage();
             }
         });
 
-        sendBtn.addEventListener('click', sendMessage);
+        sendBtn.addEventListener('click', () => {
+            if (!isGenerating) sendMessage();
+        });
 
         // File attach
-        attachBtn.addEventListener('click', () => fileInput.click());
+        attachBtn.addEventListener('click', () => {
+            if (isGenerating) return;
+            fileInput.click();
+        });
 
         fileInput.addEventListener('change', () => {
+            if (isGenerating) return;
             const file = fileInput.files[0];
             if (!file) return;
             attachedFile = file;
@@ -2177,11 +2184,14 @@
         });
 
         fileRemoveBtn.addEventListener('click', () => {
+            if (isGenerating) return;
             attachedFile = null;
             filePreviewBar.classList.remove('active');
+            chatInput.dispatchEvent(new Event('input'));
         });
 
         function handleClipboardImagePaste(event) {
+            if (isGenerating) return false;
             const items = event.clipboardData && event.clipboardData.items ? Array.from(event.clipboardData.items) : [];
             const imageItem = items.find(item => item.kind === 'file' && item.type && item.type.startsWith('image/'));
             if (!imageItem) return false;
@@ -2201,6 +2211,10 @@
         }
 
         chatInput.addEventListener('paste', event => {
+            if (isGenerating) {
+                event.preventDefault();
+                return;
+            }
             if (handleClipboardImagePaste(event)) {
                 event.preventDefault();
                 chatInput.dispatchEvent(new Event('input'));
@@ -2210,6 +2224,7 @@
 
         // Clear chat
         clearBtn.addEventListener('click', () => {
+            if (isGenerating) return;
             activeResponseToken++;
             removeTyping();
 
@@ -3044,8 +3059,16 @@
         let responseIndex = 0;
 
         async function sendMessage() {
+            if (isGenerating) return;
             const text = chatInput.value.trim();
             if (!text && !attachedFile) return;
+
+            isGenerating = true;
+            chatInput.disabled = true;
+            sendBtn.disabled = true;
+            attachBtn.style.opacity = '0.5';
+            attachBtn.style.pointerEvents = 'none';
+
             const responseChatId = currentChatId;
             const responseToken = ++activeResponseToken;
 
@@ -3060,6 +3083,7 @@
                     mimeType = uploadedAttachment.mimeType;
                 } catch (error) {
                     alert(error.message || 'Could not upload the file. Please try again.');
+                    cleanupGeneratingState();
                     return;
                 }
             }
@@ -3073,7 +3097,6 @@
 
             chatInput.value = '';
             chatInput.style.height = 'auto';
-            sendBtn.disabled = true;
 
             appendTyping();
 
@@ -3093,6 +3116,7 @@
 
                 if (responseToken !== activeResponseToken || responseChatId !== currentChatId) {
                     removeTyping();
+                    cleanupGeneratingState();
                     return;
                 }
 
@@ -3102,6 +3126,7 @@
                     const data = await chatResponse.json();
                     if (data.success && data.answer) {
                         appendMessage(data.answer, 'ai');
+                        cleanupGeneratingState();
                         return;
                     }
                 }
@@ -3113,16 +3138,29 @@
             } catch (error) {
                 if (responseToken !== activeResponseToken || responseChatId !== currentChatId) {
                     removeTyping();
+                    cleanupGeneratingState();
                     return;
                 }
                 removeTyping();
                 appendMessage('⚠️ Connection error. Please make sure the server is reachable.', 'ai');
+            } finally {
+                cleanupGeneratingState();
             }
+        }
+
+        function cleanupGeneratingState() {
+            isGenerating = false;
+            chatInput.disabled = false;
+            attachBtn.style.opacity = '1';
+            attachBtn.style.pointerEvents = 'auto';
+            chatInput.dispatchEvent(new Event('input'));
+            setTimeout(() => chatInput.focus(), 50);
         }
 
         // ─── Common Questions ─────────────────────────────────────────
         document.querySelectorAll('.qs-chip').forEach(chip => {
             chip.addEventListener('click', () => {
+                if (isGenerating) return;
                 const q = chip.getAttribute('data-q');
                 chatInput.value = q;
                 chatInput.dispatchEvent(new Event('input'));
@@ -3137,6 +3175,7 @@
 
         if (newChatBtn) {
             newChatBtn.addEventListener('click', () => {
+                if (isGenerating) return;
                 chatCounter++;
                 const newId = 'chat_' + chatCounter;
                 chats[newId] = [];
