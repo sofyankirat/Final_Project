@@ -111,11 +111,14 @@ async def main():
         # Step 2: Process file into chunks (always reset for re-seeding)
         existing_chunks_count = await chunk_model.get_total_chunks_count(project_id=project.project_id)
         if existing_chunks_count > 0:
-            print(f"Project already has {existing_chunks_count} chunks in database. Resetting chunks...")
-            _ = await chunk_model.delete_chunks_by_project_id(project_id=project.project_id)
+            print(f"Project already has {existing_chunks_count} chunks in database. Resetting...")
+            # Delete vector collection FIRST (it has FK references to chunks)
             collection_name = nlp_controller.create_collection_name(project_id=project.project_id)
             _ = await vectordb_client.delete_collection(collection_name=collection_name)
-            print("Deleted old chunks and collections.")
+            print("Deleted vector collection.")
+            # Now safe to delete chunks
+            _ = await chunk_model.delete_chunks_by_project_id(project_id=project.project_id)
+            print("Deleted old chunks.")
 
         print(f"Processing '{filename}' into chunks...")
         process_controller = ProcessController(project_id=str(project_id))
