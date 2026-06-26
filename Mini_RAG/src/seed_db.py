@@ -108,45 +108,49 @@ async def main():
             asset_record = await asset_model.create_asset(asset=asset_resource)
             print(f"Registered with asset_id: {asset_record.asset_id}")
             
-        # Step 2: Process file into chunks (skip if already inserted)
+        # Step 2: Process file into chunks (always reset for re-seeding)
         existing_chunks_count = await chunk_model.get_total_chunks_count(project_id=project.project_id)
         if existing_chunks_count > 0:
-            print(f"Project already has {existing_chunks_count} chunks in database. Resuming and skipping chunk insertion.")
-        else:
-            print(f"Processing '{filename}' into chunks...")
-            process_controller = ProcessController(project_id=str(project_id))
-            file_content = process_controller.get_file_content(file_id=filename)
+            print(f"Project already has {existing_chunks_count} chunks in database. Resetting chunks...")
+            _ = await chunk_model.delete_chunks_by_project_id(project_id=project.project_id)
+            collection_name = nlp_controller.create_collection_name(project_id=project.project_id)
+            _ = await vectordb_client.delete_collection(collection_name=collection_name)
+            print("Deleted old chunks and collections.")
+
+        print(f"Processing '{filename}' into chunks...")
+        process_controller = ProcessController(project_id=str(project_id))
+        file_content = process_controller.get_file_content(file_id=filename)
+        
+        if not file_content:
+            print(f"Failed to read file content for {filename}.")
+            continue
             
-            if not file_content:
-                print(f"Failed to read file content for {filename}.")
-                continue
-                
-            file_chunks = process_controller.process_file_content(
-                file_content=file_content,
-                file_id=filename,
-                chunk_size=100, # Same chunk size as frontend
-                overlap_size=20
+        file_chunks = process_controller.process_file_content(
+            file_content=file_content,
+            file_id=filename,
+            chunk_size=1000,
+            overlap_size=200
+        )
+        
+        if not file_chunks:
+            print(f"Failed to split file {filename} into chunks.")
+            continue
+            
+        print(f"Split into {len(file_chunks)} chunks.")
+        
+        file_chunks_records = [
+            DataChunk(
+                chunk_text=chunk.page_content,
+                chunk_metadata=chunk.metadata,
+                chunk_order=i+1,
+                chunk_project_id=project.project_id,
+                chunk_asset_id=asset_record.asset_id
             )
-            
-            if not file_chunks:
-                print(f"Failed to split file {filename} into chunks.")
-                continue
-                
-            print(f"Split into {len(file_chunks)} chunks.")
-            
-            file_chunks_records = [
-                DataChunk(
-                    chunk_text=chunk.page_content,
-                    chunk_metadata=chunk.metadata,
-                    chunk_order=i+1,
-                    chunk_project_id=project.project_id,
-                    chunk_asset_id=asset_record.asset_id
-                )
-                for i, chunk in enumerate(file_chunks)
-            ]
-            
-            inserted_chunks_count = await chunk_model.insert_many_chunks(chunks=file_chunks_records)
-            print(f"Successfully inserted {inserted_chunks_count} chunks into 'chunks' table.")
+            for i, chunk in enumerate(file_chunks)
+        ]
+        
+        inserted_chunks_count = await chunk_model.insert_many_chunks(chunks=file_chunks_records)
+        print(f"Successfully inserted {inserted_chunks_count} chunks into 'chunks' table.")
         
         # Step 3: Index chunks into Vector DB (pgvector)
         print("Embedding and indexing chunks into Vector DB...")

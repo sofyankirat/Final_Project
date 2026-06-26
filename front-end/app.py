@@ -2368,8 +2368,8 @@ To restore AI Agent functionality, please follow these steps:
                 process_url = f"{mini_rag_url}/api/v1/data/process/{project_id}"
                 proc_payload = {
                     "file_id": file_id,
-                    "chunk_size": 100,
-                    "overlap_size": 20,
+                    "chunk_size": 1000,
+                    "overlap_size": 200,
                     "do_reset": 0
                 }
                 proc_res = requests.post(process_url, json=proc_payload, timeout=20)

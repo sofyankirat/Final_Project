@@ -13,7 +13,7 @@ system_prompt = Template("\n".join([
     "You have to generate response in the same language as the user's query.",
     "Be polite and respectful to the user.",
     "If the user's query relies missing variables, do not answer using generic info or assume their context.",
-    "Instead, politely ask the user to clarify the missing details."
+    "Instead, politely ask the user to clarify the missing details.",
     "Be precise and concise in your response. Avoid unnecessary information.",
 ]))
 

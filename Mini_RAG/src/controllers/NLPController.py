@@ -19,13 +19,38 @@ class NLPController(BaseController):
 
     def create_collection_name(self, project_id: str):
         return f"collection_{self.vectordb_client.default_vector_size}_{project_id}".strip()
+
+    async def resolve_collection_name(self, project_id: str):
+        """Find the best existing collection name for a project.
+
+        This keeps restored backups usable even if the current embedding size
+        differs from the size that was used when the backup was created.
+        """
+        preferred_name = self.create_collection_name(project_id=project_id)
+
+        try:
+            collections = await self.vectordb_client.list_all_collections()
+        except Exception:
+            collections = []
+
+        if preferred_name in collections:
+            return preferred_name
+
+        project_matches = [name for name in collections if str(project_id) in str(name)]
+        if project_matches:
+            suffix_matches = [name for name in project_matches if str(name).endswith(f"_{project_id}")]
+            if suffix_matches:
+                return sorted(suffix_matches)[0]
+            return sorted(project_matches)[0]
+
+        return preferred_name
     
     async def reset_vector_db_collection(self, project: Project):
-        collection_name = self.create_collection_name(project_id=project.project_id)
+        collection_name = await self.resolve_collection_name(project_id=project.project_id)
         return await self.vectordb_client.delete_collection(collection_name=collection_name)
     
     async def get_vector_db_collection_info(self, project: Project):
-        collection_name = self.create_collection_name(project_id=project.project_id)
+        collection_name = await self.resolve_collection_name(project_id=project.project_id)
         collection_info = await self.vectordb_client.get_collection_info(collection_name=collection_name)
 
         return json.loads(
@@ -37,7 +62,7 @@ class NLPController(BaseController):
                                    do_reset: bool = False):
         
         # step 1: get collection name
-        collection_name = self.create_collection_name(project_id=project.project_id)
+        collection_name = await self.resolve_collection_name(project_id=project.project_id)
 
         # step 2: manage items
         texts = [ c.chunk_text for c in chunks ]
@@ -77,7 +102,7 @@ class NLPController(BaseController):
 
         # step1: get collection name
         query_vector = None
-        collection_name = self.create_collection_name(project_id=project.project_id)
+        collection_name = await self.resolve_collection_name(project_id=project.project_id)
 
         # step2: get text embedding vector
         vectors = self.embedding_client.embed_text(text=text, 
@@ -129,6 +154,10 @@ class NLPController(BaseController):
             for idx, doc in enumerate(retrieved_documents)
         ])
 
+        # If no documents are available, avoid generating a generic response.
+        if not documents_prompts.strip():
+            return answer, full_prompt, parsed_chat_history
+
         footer_prompt = self.template_parser.get("rag", "footer_prompt", {
             "query": query
         })
@@ -166,7 +195,7 @@ class NLPController(BaseController):
                     )
                 )
 
-        full_prompt = "\n\n".join([ documents_prompts,  footer_prompt])
+        full_prompt = "\n\n".join([system_prompt, documents_prompts, footer_prompt])
 
         # step4: Retrieve the Answer
         answer = self.generation_client.generate_text(

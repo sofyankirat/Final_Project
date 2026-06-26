@@ -7,6 +7,7 @@ from typing import List
 from dataclasses import dataclass
 import os
 import re
+import unicodedata
 
 @dataclass
 class Document:
@@ -61,7 +62,7 @@ class ProcessController(BaseController):
         # )
 
         file_content_texts = [
-            rec.page_content
+            unicodedata.normalize('NFKC', rec.page_content)
             for rec in file_content
         ]
 

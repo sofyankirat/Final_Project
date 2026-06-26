@@ -39,6 +39,26 @@ cd docker
 docker compose up --build -d
 ```
 
+> **Storage note:** Docker named volumes are managed by Docker Desktop, not by the project folder itself. On Windows, this means the runtime data is not stored in `Mini_RAG` directly. If you need the volume data to live on `D:`, Docker Desktop must be configured to use a data root on `D:` before creating the volumes.
+
+### 2.1 Restore the provided backups
+
+If you already have the backups in `Volumes/`, restore them after the volumes are created:
+
+```powershell
+cd <path-to-project>/Mini_RAG/Volumes
+docker compose -f ..\docker\docker-compose.yml up -d
+docker compose -f ..\docker\docker-compose.yml down
+
+docker run --rm -v docker_pgvector_data:/data -v ${PWD}:/backup alpine sh -c "rm -rf /data/* && tar xzf /backup/pgvector_backup.tar.gz -C /data"
+docker run --rm -v docker_fastapi_data:/data -v ${PWD}:/backup alpine sh -c "rm -rf /data/* && tar xzf /backup/fastapi_backup.tar.gz -C /data"
+docker run --rm -v docker_qdrant_data:/data -v ${PWD}:/backup alpine sh -c "rm -rf /data/* && tar xzf /backup/qdrant_backup.tar.gz -C /data"
+
+docker compose -f ..\docker\docker-compose.yml up -d
+```
+
+The most important backup for RAG answers is `pgvector_backup.tar.gz` because it contains the vector index data used for retrieval.
+
 To start only specific services:
 
 ```bash
