@@ -568,16 +568,16 @@ def send_help_request_email(user_name: str, user_email: str, subject: str, messa
         body = f"""
         <!DOCTYPE html>
         <html>
-        <body style=\"font-family: Arial, sans-serif; color: #111827;\">
-            <h2 style=\"margin-bottom: 8px;\">New Help Request</h2>
-            <p style=\"margin: 0 0 14px; color: #4b5563;\">A new message was submitted from the Help page.</p>
+        <body style="font-family: Arial, sans-serif; color: #111827;">
+            <h2 style="margin-bottom: 8px;">New Help Request</h2>
+            <p style="margin: 0 0 14px; color: #4b5563;">A new message was submitted from the Help page.</p>
 
-            <table cellpadding=\"8\" cellspacing=\"0\" style=\"border-collapse: collapse; width: 100%; max-width: 640px;\">
-                <tr><td style=\"font-weight:700; border:1px solid #e5e7eb; width:150px;\">Name</td><td style=\"border:1px solid #e5e7eb;\">{safe_name}</td></tr>
-                <tr><td style=\"font-weight:700; border:1px solid #e5e7eb;\">Email</td><td style=\"border:1px solid #e5e7eb;\">{safe_email}</td></tr>
-                <tr><td style=\"font-weight:700; border:1px solid #e5e7eb;\">Subject</td><td style=\"border:1px solid #e5e7eb;\">{safe_subject}</td></tr>
-                <tr><td style=\"font-weight:700; border:1px solid #e5e7eb;\">Submitted at</td><td style=\"border:1px solid #e5e7eb;\">{submitted_at}</td></tr>
-                <tr><td style=\"font-weight:700; border:1px solid #e5e7eb; vertical-align:top;\">Message</td><td style=\"border:1px solid #e5e7eb;\">{safe_message}</td></tr>
+            <table cellpadding="8" cellspacing="0" style="border-collapse: collapse; width: 100%; max-width: 640px;">
+                <tr><td style="font-weight:700; border:1px solid #e5e7eb; width:150px;">Name</td><td style="border:1px solid #e5e7eb;">{safe_name}</td></tr>
+                <tr><td style="font-weight:700; border:1px solid #e5e7eb;">Email</td><td style="border:1px solid #e5e7eb;">{safe_email}</td></tr>
+                <tr><td style="font-weight:700; border:1px solid #e5e7eb;">Subject</td><td style="border:1px solid #e5e7eb;">{safe_subject}</td></tr>
+                <tr><td style="font-weight:700; border:1px solid #e5e7eb;">Submitted at</td><td style="border:1px solid #e5e7eb;">{submitted_at}</td></tr>
+                <tr><td style="font-weight:700; border:1px solid #e5e7eb; vertical-align:top;">Message</td><td style="border:1px solid #e5e7eb;">{safe_message}</td></tr>
             </table>
         </body>
         </html>
@@ -2755,6 +2755,30 @@ def records():
     return render_template('records.html', username=username, email=email,
                            profile_photo=_get_profile_photo(user_id),
                            records=attendance_records)
+
+
+@app.route('/live-cam')
+@login_required
+def live_cam():
+    """Live camera feed page."""
+    user_id = to_int_value(session.get('user_id'))
+    email = session.get('email', '')
+    username = email.split('@')[0].capitalize() if email else 'User'
+    try:
+        connection = get_db_connection()
+        if connection:
+            cursor = connection.cursor()
+            cursor.execute("SELECT first_name FROM user_additional_info WHERE user_id = %s", (user_id,))
+            result = cursor.fetchone()
+            if result and result[0]:
+                username = to_clean_string(result[0])
+            cursor.close()
+            connection.close()
+    except Exception as e:
+        print(f"Error fetching user name: {e}")
+
+    return render_template('live_cam.html', username=username, email=email,
+                           profile_photo=_get_profile_photo(user_id))
 
 
 @app.route('/api/attendance/enroll', methods=['POST'])
