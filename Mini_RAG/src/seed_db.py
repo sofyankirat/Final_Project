@@ -8,7 +8,9 @@ from sqlalchemy.orm import sessionmaker
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from helpers.config import get_settings
-from models import ProjectModel, AssetModel, ChunkModel
+from models.ProjectModel import ProjectModel
+from models.AssetModel import AssetModel
+from models.ChunkModel import ChunkModel
 from models.db_schemas import Project, Asset, DataChunk
 from models.enums.AssetTypeEnums import AssetTypeEnums
 from controllers import ProcessController, NLPController
