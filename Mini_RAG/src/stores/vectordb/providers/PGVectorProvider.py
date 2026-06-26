@@ -170,7 +170,10 @@ class PGVectorProvider(VectorDBInterface):
                                             f'USING {index_type} ({PgVectorTableSchemeEnums.VECTOR.value} {self.distance_method})'
                                           )
 
-                await session.execute(create_idx_sql)
+                try:
+                    await session.execute(create_idx_sql)
+                except Exception as e:
+                    self.logger.warning(f"Could not create vector index: {e}. Falling back to flat search.")
 
                 self.logger.info(f"END: Created vector index for collection: {collection_name}")
 
