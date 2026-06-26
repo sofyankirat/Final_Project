@@ -14,6 +14,8 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
     <script src="https://cdn.jsdelivr.net/npm/tsparticles@2.12.0/tsparticles.bundle.min.js"></script>
+    <!-- marked.js for markdown rendering -->
+    <script src="https://cdn.jsdelivr.net/npm/marked@9.1.6/marked.min.js"></script>
     <style>
         /* ===== AI AGENT PAGE STYLES ===== */
         .ai-intro-card {
@@ -553,6 +555,104 @@
             background: rgba(30, 35, 80, 0.9);
             color: #e2e8f0;
             border-color: rgba(99, 102, 241, 0.15);
+        }
+
+        /* ===== MARKDOWN RENDERING IN AI BUBBLE ===== */
+        .msg-bubble.ai-bubble {
+            direction: rtl;
+            text-align: right;
+            unicode-bidi: plaintext;
+        }
+
+        .msg-bubble.ai-bubble p {
+            margin: 0 0 8px 0;
+            line-height: 1.65;
+            direction: rtl;
+            unicode-bidi: plaintext;
+        }
+
+        .msg-bubble.ai-bubble p:last-child {
+            margin-bottom: 0;
+        }
+
+        .msg-bubble.ai-bubble ul,
+        .msg-bubble.ai-bubble ol {
+            margin: 6px 0 8px 0;
+            padding-right: 22px;
+            padding-left: 0;
+            direction: rtl;
+        }
+
+        .msg-bubble.ai-bubble li {
+            margin-bottom: 4px;
+            line-height: 1.6;
+            direction: rtl;
+            unicode-bidi: plaintext;
+        }
+
+        .msg-bubble.ai-bubble ol {
+            list-style-position: inside;
+        }
+
+        .msg-bubble.ai-bubble strong {
+            font-weight: 700;
+        }
+
+        .msg-bubble.ai-bubble em {
+            font-style: italic;
+        }
+
+        .msg-bubble.ai-bubble code {
+            background: rgba(0,0,0,0.07);
+            border-radius: 4px;
+            padding: 1px 5px;
+            font-size: 12.5px;
+            font-family: 'Courier New', monospace;
+            direction: ltr;
+            unicode-bidi: isolate;
+        }
+
+        body.dark-mode .msg-bubble.ai-bubble code {
+            background: rgba(255,255,255,0.1);
+        }
+
+        .msg-bubble.ai-bubble pre {
+            background: rgba(0,0,0,0.06);
+            border-radius: 8px;
+            padding: 10px 14px;
+            overflow-x: auto;
+            margin: 8px 0;
+            direction: ltr;
+        }
+
+        body.dark-mode .msg-bubble.ai-bubble pre {
+            background: rgba(255,255,255,0.06);
+        }
+
+        .msg-bubble.ai-bubble pre code {
+            background: none;
+            padding: 0;
+        }
+
+        .msg-bubble.ai-bubble h1,
+        .msg-bubble.ai-bubble h2,
+        .msg-bubble.ai-bubble h3 {
+            font-weight: 700;
+            margin: 10px 0 6px 0;
+            line-height: 1.4;
+        }
+
+        .msg-bubble.ai-bubble blockquote {
+            border-right: 3px solid rgba(255, 107, 53, 0.5);
+            border-left: none;
+            padding-right: 12px;
+            padding-left: 0;
+            margin: 6px 0;
+            opacity: 0.8;
+        }
+
+        body.dark-mode .msg-bubble.ai-bubble blockquote {
+            border-right-color: rgba(99, 102, 241, 0.5);
         }
 
         .msg-bubble.user-bubble {
@@ -2635,7 +2735,7 @@
                 ${avatarHtml}
                 <div style="display: flex; flex-direction: column; max-width: 82%; ${alignStyle}">
                     ${attachmentWrapHtml}
-                    ${text ? `<div class="msg-bubble ${bubbleClass}">${escHtml(text)}</div>` : ''}
+                    ${text ? `<div class="msg-bubble ${bubbleClass}">${sender === 'ai' ? renderMarkdown(text) : escHtml(text)}</div>` : ''}
                     ${actionsHtml}
                     <span class="msg-time">${msgTime}</span>
                 </div>`;
@@ -2721,6 +2821,18 @@
         function removeTyping() {
             const row = document.getElementById('typingRow');
             if (row) row.remove();
+        }
+
+        function renderMarkdown(text) {
+            if (typeof marked === 'undefined') return escHtml(text);
+            // Configure marked for safe rendering
+            marked.setOptions({
+                breaks: true,
+                gfm: true
+            });
+            // Sanitize the text first (escape only < > & in raw text, not inside markdown)
+            const rendered = marked.parse(text);
+            return rendered;
         }
 
         function escHtml(text) {
