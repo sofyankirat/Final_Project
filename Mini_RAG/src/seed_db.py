@@ -197,6 +197,7 @@ async def main():
             await chunk_model.mark_chunks_as_indexed(chunk_ids=chunks_ids)
             indexed_count += len(page_chunks)
             print(f"Indexed page {page_no} ({len(page_chunks)} chunks). Total indexed so far: {indexed_count}")
+            await asyncio.sleep(12)
             
         print(f"Successfully indexed all chunks into pgvector collection '{collection_name}'!")
         
