@@ -20,6 +20,8 @@ COPY src/requirements.txt .
 RUN uv pip install -r requirements.txt --system
 
 COPY src/ .
+RUN cp .env.example .env
+
 
 # Create directory structure for Alembic
 RUN mkdir -p /app/models/db_schemas/minirag/
