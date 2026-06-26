@@ -64,7 +64,7 @@ async def main():
     
     project_id = 1
     project = await project_model.get_project_or_create_one(project_id=project_id)
-    print(f"Project '{project.project_name}' (ID: {project.project_id}) resolved.")
+    print(f"Project (ID: {project.project_id}) resolved.")
     
     # Check assets directory for project_id = 1
     assets_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "assets", "files", str(project_id))
