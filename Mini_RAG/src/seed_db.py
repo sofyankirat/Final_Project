@@ -175,7 +175,7 @@ async def main():
         
         while has_records:
             page_chunks = await chunk_model.get_unindexed_project_chunks(
-                project_id=project.project_id, page_no=page_no
+                project_id=project.project_id, page_no=page_no, page_size=20
             )
             
             if not page_chunks:
@@ -197,7 +197,7 @@ async def main():
             await chunk_model.mark_chunks_as_indexed(chunk_ids=chunks_ids)
             indexed_count += len(page_chunks)
             print(f"Indexed page {page_no} ({len(page_chunks)} chunks). Total indexed so far: {indexed_count}")
-            await asyncio.sleep(12)
+            await asyncio.sleep(15)
             
         print(f"Successfully indexed all chunks into pgvector collection '{collection_name}'!")
         
