@@ -4,6 +4,8 @@ from models.enums.ResponseEnums import ResponseSignal
 from stores.llm.LLMEnums import DocumentTypeEnum
 from typing import List
 import json
+import re
+import logging
 
 class NLPController(BaseController):
 
@@ -98,14 +100,70 @@ class NLPController(BaseController):
 
         return True
 
+    def expand_arabic_query(self, query: str) -> str:
+        if not query:
+            return query
+        
+        expanded = query
+        
+        # Norms and mappings for levels/years
+        level_mappings = {
+            r'\b(سنة|سنه|المستوى)\s+(الاولى|الاول|أولى|اولى|1|١)\b': 'المستوى الأول',
+            r'\b(سنة|سنه|المستوى)\s+(الثانية|الثاني|ثانية|ثانيه|2|٢)\b': 'المستوى الثاني',
+            r'\b(سنة|سنه|المستوى)\s+(الثالثة|الثالث|ثالع|ثالثة|ثالثه|3|٣)\b': 'المستوى الثالث',
+            r'\b(سنة|سنه|المستوى)\s+(الرابعة|الرابع|رابعة|رابعه|4|٤)\b': 'المستوى الرابع',
+            r'\bسنه\b': 'سنة',
+            r'\bالسنه\b': 'السنة',
+            r'\bالاولى\b': 'الأولى',
+            r'\bالأولى\b': 'الاولى',
+        }
+        
+        # Norms and mappings for semesters
+        semester_mappings = {
+            r'\bالترم\s+(الاول|الأول|1|١)\b': 'الفصل الدراسي الأول',
+            r'\bالترم\s+(الثاني|2|٢)\b': 'الفصل الدراسي الثاني',
+            r'\bالفصل\s+(الاول|الأول|1|١)\b': 'الفصل الدراسي الأول',
+            r'\bالفصل\s+(الثاني|2|٢)\b': 'الفصل الدراسي الثاني',
+            r'\bالترم\b': 'الفصل الدراسي',
+        }
+        
+        # Norms and mappings for programs
+        program_mappings = {
+            r'\b(قسم|برنامج|تخصص)\s+رياضيات\b': 'برنامج الرياضيات',
+            r'\b(قسم|برنامج|تخصص)\s+إحصاء\b': 'برنامج الإحصاء وعلوم الحاسب',
+            r'\b(قسم|برنامج|تخصص)\s+احصاء\b': 'برنامج الإحصاء وعلوم الحاسب',
+            r'\b(قسم|برنامج|تخصص)\s+فيزياء\b': 'برنامج الفيزياء',
+            r'\b(قسم|برنامج|تخصص)\s+كيمياء\b': 'برنامج الكيمياء',
+            r'\b(قسم|برنامج|تخصص)\s+حاسب\b': 'برنامج علوم الحاسب',
+        }
+
+        # Apply regular expression replacements
+        for pattern, replacement in level_mappings.items():
+            expanded = re.sub(pattern, replacement, expanded, flags=re.IGNORECASE)
+        for pattern, replacement in semester_mappings.items():
+            expanded = re.sub(pattern, replacement, expanded, flags=re.IGNORECASE)
+        for pattern, replacement in program_mappings.items():
+            expanded = re.sub(pattern, replacement, expanded, flags=re.IGNORECASE)
+            
+        # Append expanded query to original search text
+        if expanded != query:
+            return f"{query} {expanded}"
+        
+        return query
+
     async def search_vector_db_collection(self, project: Project, text: str, limit: int = 3):
 
         # step1: get collection name
         query_vector = None
         collection_name = await self.resolve_collection_name(project_id=project.project_id)
 
+        # Preprocess/expand colloquial Arabic queries to official document terms
+        expanded_text = self.expand_arabic_query(text)
+        logger = logging.getLogger('uvicorn.error')
+        logger.info(f"RAG Search query: '{text}' -> Expanded to: '{expanded_text}'")
+
         # step2: get text embedding vector
-        vectors = self.embedding_client.embed_text(text=text, 
+        vectors = self.embedding_client.embed_text(text=expanded_text, 
                                                  document_type=DocumentTypeEnum.QUERY.value)
 
         if not vectors or len(vectors) == 0:

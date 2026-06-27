@@ -83,6 +83,18 @@ async def main():
         
     print(f"Found files to seed: {files}")
     
+    # Step 2: Process file into chunks (always reset for re-seeding)
+    existing_chunks_count = await chunk_model.get_total_chunks_count(project_id=project.project_id)
+    if existing_chunks_count > 0:
+        print(f"Project already has {existing_chunks_count} chunks in database. Resetting...")
+        # Delete vector collection FIRST (it has FK references to chunks)
+        collection_name = nlp_controller.create_collection_name(project_id=project.project_id)
+        _ = await vectordb_client.delete_collection(collection_name=collection_name)
+        print("Deleted vector collection.")
+        # Now safe to delete chunks
+        _ = await chunk_model.delete_chunks_by_project_id(project_id=project.project_id)
+        print("Deleted old chunks.")
+
     # For each file, upload, process, and index
     for filename in files:
         file_path = os.path.join(assets_dir, filename)
@@ -107,18 +119,6 @@ async def main():
             )
             asset_record = await asset_model.create_asset(asset=asset_resource)
             print(f"Registered with asset_id: {asset_record.asset_id}")
-            
-        # Step 2: Process file into chunks (always reset for re-seeding)
-        existing_chunks_count = await chunk_model.get_total_chunks_count(project_id=project.project_id)
-        if existing_chunks_count > 0:
-            print(f"Project already has {existing_chunks_count} chunks in database. Resetting...")
-            # Delete vector collection FIRST (it has FK references to chunks)
-            collection_name = nlp_controller.create_collection_name(project_id=project.project_id)
-            _ = await vectordb_client.delete_collection(collection_name=collection_name)
-            print("Deleted vector collection.")
-            # Now safe to delete chunks
-            _ = await chunk_model.delete_chunks_by_project_id(project_id=project.project_id)
-            print("Deleted old chunks.")
 
         print(f"Processing '{filename}' into chunks...")
         process_controller = ProcessController(project_id=str(project_id))

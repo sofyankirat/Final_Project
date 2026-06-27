@@ -55,12 +55,6 @@ class ProcessController(BaseController):
     def process_file_content(self, file_content: list, file_id: str,
                             chunk_size: int=1000, overlap_size: int=200):
         
-        # text_splitter = RecursiveCharacterTextSplitter(
-        #     chunk_size=chunk_size,
-        #     chunk_overlap=overlap_size,
-        #     length_function=len,
-        # )
-
         file_content_texts = [
             unicodedata.normalize('NFKC', rec.page_content)
             for rec in file_content
@@ -71,22 +65,18 @@ class ProcessController(BaseController):
             for rec in file_content
         ]
 
-        # chunks = text_splitter.create_documents(
-        #     file_content_texts,
-        #     metadatas=file_content_metadata
-        # )
-
-        chunks = self.process_simpler_splitter(
-            texts=file_content_texts,
-            metadatas=file_content_metadata,
-            chunk_size=chunk_size,
-            overlap_size=overlap_size,
-        )
-
-        # chunks = self.process_table_splitter(
-        #     texts=file_content_texts,
-        #     metadatas=file_content_metadata,
-        # )
+        if "courses_table" in file_id.lower():
+            chunks = self.process_table_splitter(
+                texts=file_content_texts,
+                metadatas=file_content_metadata,
+            )
+        else:
+            chunks = self.process_simpler_splitter(
+                texts=file_content_texts,
+                metadatas=file_content_metadata,
+                chunk_size=chunk_size,
+                overlap_size=overlap_size,
+            )
 
         return chunks
 
@@ -175,15 +165,22 @@ class ProcessController(BaseController):
             if not cleaned:
                 continue
 
-            title = ""
+            header_line = ""
             for line in cleaned.splitlines():
-                if line.startswith("##"):
-                    title = line.replace("##", "").strip()
+                if line.strip().startswith("##"):
+                    header_line = line.strip()
                     break
+
+            metadata = {"table_index": i}
+            if header_line:
+                header_meta = self.extract_metadata_from_header(header_line)
+                if header_meta:
+                    metadata.update(header_meta)
+                metadata["table_title"] = header_line.replace("##", "").strip()
 
             chunks.append(Document(
                 page_content=cleaned,
-                metadata={"table_index": i, "table_title": title}
+                metadata=metadata
             ))
         
         return chunks
