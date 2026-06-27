@@ -3297,9 +3297,20 @@ def camera_latest():
     global latest_esp_frame
     with latest_esp_frame_lock:
         frame = latest_esp_frame
-    if frame is None:
-        return jsonify({'success': False, 'message': 'No frame available. Ensure ESP32-CAM is connected.'}), 404
-    return Response(frame, mimetype='image/jpeg')
+    if frame is not None:
+        return Response(frame, mimetype='image/jpeg')
+
+    # Fallback/Proxy to the FastAPI Face Recognition app on port 7860
+    import requests
+    face_rec_url = os.getenv("FACE_REC_BACKEND_URL", "http://localhost:7860")
+    try:
+        res = requests.get(f"{face_rec_url}/api/camera/latest", timeout=1.0)
+        if res.status_code == 200:
+            return Response(res.content, mimetype='image/jpeg')
+    except Exception:
+        pass
+
+    return jsonify({'success': False, 'message': 'No frame available. Ensure ESP32-CAM is connected.'}), 404
 
 
 @app.route('/api/camera/faces')
@@ -3308,7 +3319,20 @@ def camera_faces():
     global latest_face_boxes
     with latest_face_boxes_lock:
         faces = list(latest_face_boxes)
-    return jsonify({'success': True, 'faces': faces})
+    if faces:
+        return jsonify({'success': True, 'faces': faces})
+
+    # Fallback/Proxy to the FastAPI Face Recognition app on port 7860
+    import requests
+    face_rec_url = os.getenv("FACE_REC_BACKEND_URL", "http://localhost:7860")
+    try:
+        res = requests.get(f"{face_rec_url}/api/camera/faces", timeout=1.0)
+        if res.status_code == 200:
+            return jsonify(res.json())
+    except Exception:
+        pass
+
+    return jsonify({'success': True, 'faces': []})
 
 
 @app.route('/api/attendance/stats', methods=['GET'])

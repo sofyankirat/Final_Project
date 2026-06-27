@@ -354,6 +354,9 @@ async def enroll_cancel(request: Request, name: Optional[str] = Form(None)):
 # REAL-TIME WEBSOCKET CAMERA STREAM
 # ============================================================
 
+latest_esp_frame = None
+latest_face_boxes = []
+
 @app.websocket("/ws/camera-stream")
 async def websocket_stream_endpoint(websocket: WebSocket):
     await websocket.accept()
@@ -361,6 +364,7 @@ async def websocket_stream_endpoint(websocket: WebSocket):
     
     course_id = websocket.query_params.get("course_id")
     session_attended_ids = set()
+    global latest_esp_frame, latest_face_boxes
     
     try:
         while True:
@@ -373,7 +377,8 @@ async def websocket_stream_endpoint(websocket: WebSocket):
             
             if frame is not None:
                 faces = detect_all_faces(frame)
-                for face_img, _, _ in faces:
+                current_faces = []
+                for face_img, bbox, conf in faces:
                     embedding = extract_embedding(face_img)
                     name, score = find_match(embedding)
                     
@@ -381,11 +386,36 @@ async def websocket_stream_endpoint(websocket: WebSocket):
                         session_attended_ids.add(name)
                         print(f"Recognized: {name} (score: {score:.3f})")
                         
+                    current_faces.append({
+                        "bbox": [int(x) for x in bbox],
+                        "name": name,
+                        "confidence": float(score)
+                    })
+                
+                latest_esp_frame = frame_bytes
+                latest_face_boxes = current_faces
+                        
     except WebSocketDisconnect:
         print("[DISCONNECT] Camera streaming WebSocket disconnected")
         if session_attended_ids:
             print(f"Reporting attendance for session: {list(session_attended_ids)}")
             await report_attendance_session(list(session_attended_ids), course_id)
+
+
+@app.get("/api/camera/latest")
+async def camera_latest():
+    global latest_esp_frame
+    if latest_esp_frame is None:
+        return JSONResponse(status_code=404, content={"success": False, "message": "No frame available"})
+    from fastapi import Response
+    return Response(content=latest_esp_frame, media_type="image/jpeg")
+
+
+@app.get("/api/camera/faces")
+async def camera_faces():
+    global latest_face_boxes
+    return {"success": True, "faces": latest_face_boxes}
+
 
 # ============================================================
 # OTHER ROUTES
