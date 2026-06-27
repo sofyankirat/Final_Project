@@ -388,9 +388,9 @@
                     <div class="cam-stream-wrap" id="camStreamWrap">
                         <div class="cam-stream-placeholder" id="camPlaceholder">
                             <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3.5L14.5 4z"/><circle cx="12" cy="13" r="3"/></svg>
-                            <span>Click "Start Camera" to begin streaming</span>
+                            <span id="camPlaceholderText">Waiting for ESP camera stream...</span>
                         </div>
-                        <video id="camVideo" autoplay playsinline muted style="display:none;"></video>
+                        <img id="espStreamImg" alt="ESP Camera Stream" style="display:none; width:100%; height:100%; object-fit:cover;">
                     </div>
 
                     <div class="cam-controls">
@@ -476,43 +476,47 @@
         document.addEventListener('click', () => document.querySelectorAll('.header-popup.open').forEach(p => p.classList.remove('open')));
 
         // ─── Camera Logic ────────────────────────────────────────────
-        let camStream = null;
-        const video = document.getElementById('camVideo');
+        let streamActive = false;
+        let streamInterval = null;
+        const streamImg = document.getElementById('espStreamImg');
         const placeholder = document.getElementById('camPlaceholder');
+        const placeholderText = document.getElementById('camPlaceholderText');
         const statusDot = document.getElementById('camStatusDot');
         const statusText = document.getElementById('camStatusText');
         const startBtn = document.getElementById('startCamBtn');
         const captureBtn = document.getElementById('captureBtn');
         const stopBtn = document.getElementById('stopCamBtn');
 
-        async function startCamera() {
-            try {
-                camStream = await navigator.mediaDevices.getUserMedia({
-                    video: { width: { ideal: 1280 }, height: { ideal: 720 }, facingMode: 'environment' },
-                    audio: false
-                });
-                video.srcObject = camStream;
-                video.style.display = 'block';
-                placeholder.style.display = 'none';
-                statusDot.className = 'cam-status-dot live';
-                statusText.textContent = 'Camera is live';
-                startBtn.style.display = 'none';
-                captureBtn.style.display = 'inline-flex';
-                stopBtn.style.display = 'inline-flex';
-            } catch (err) {
-                console.error('Camera error:', err);
-                statusDot.className = 'cam-status-dot error';
-                statusText.textContent = 'Camera access denied';
-                placeholder.querySelector('span').textContent = 'Please allow camera permissions and try again';
-            }
+        streamImg.onerror = function() {
+            if (!streamActive) return;
+            statusDot.className = 'cam-status-dot error';
+            statusText.textContent = 'No signal from ESP camera';
+        };
+
+        function startCamera() {
+            if (streamActive) return;
+            streamActive = true;
+            placeholder.style.display = 'none';
+            statusDot.className = 'cam-status-dot live';
+            statusText.textContent = 'Camera is live';
+            startBtn.style.display = 'none';
+            captureBtn.style.display = 'inline-flex';
+            stopBtn.style.display = 'inline-flex';
+            
+            streamImg.style.display = 'block';
+            streamInterval = setInterval(() => {
+                streamImg.src = '/api/camera/latest?t=' + Date.now();
+            }, 100);
         }
 
         function stopCamera() {
-            if (camStream) { camStream.getTracks().forEach(t => t.stop()); camStream = null; }
-            video.srcObject = null;
-            video.style.display = 'none';
+            streamActive = false;
+            clearInterval(streamInterval);
+            streamInterval = null;
+            streamImg.style.display = 'none';
+            streamImg.src = '';
             placeholder.style.display = 'flex';
-            placeholder.querySelector('span').textContent = 'Click "Start Camera" to begin streaming';
+            placeholderText.textContent = 'Waiting for ESP camera stream...';
             statusDot.className = 'cam-status-dot';
             statusText.textContent = 'Camera offline';
             startBtn.style.display = 'inline-flex';
@@ -521,14 +525,26 @@
         }
 
         function capturePhoto() {
-            if (!camStream) return;
-            const canvas = document.createElement('canvas');
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
-            canvas.getContext('2d').drawImage(video, 0, 0);
-            const dataUrl = canvas.toDataURL('image/png');
-            document.getElementById('capturedImage').src = dataUrl;
-            document.getElementById('capturedSection').style.display = 'block';
+            if (!streamActive) return;
+            statusDot.className = 'cam-status-dot live';
+            statusText.textContent = 'Capturing...';
+            fetch('/api/camera/latest')
+                .then(r => {
+                    if (!r.ok) throw new Error('No frame');
+                    return r.blob();
+                })
+                .then(blob => {
+                    const url = URL.createObjectURL(blob);
+                    document.getElementById('capturedImage').src = url;
+                    document.getElementById('capturedSection').style.display = 'block';
+                    setTimeout(() => URL.revokeObjectURL(url), 1000);
+                    statusText.textContent = 'Camera is live';
+                })
+                .catch(err => {
+                    console.error('Capture error:', err);
+                    statusDot.className = 'cam-status-dot error';
+                    statusText.textContent = 'Capture failed';
+                });
         }
     </script>
 </body>

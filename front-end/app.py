@@ -3,7 +3,7 @@ Main Flask Application
 Student Recommendation and Attendance System
 """
 
-from flask import Flask, render_template, request, jsonify, session, redirect, url_for, send_from_directory  # type: ignore[import]
+from flask import Flask, render_template, request, jsonify, session, redirect, url_for, send_from_directory, Response  # type: ignore[import]
 from werkzeug.security import generate_password_hash, check_password_hash  # type: ignore[import]
 from werkzeug.utils import secure_filename  # type: ignore[import]
 from datetime import datetime, timedelta, date, time
@@ -2913,9 +2913,13 @@ def attendance_test_recognize():
 
 
 import threading
+import time
 
 is_processing_frame = False
 ws_recognized_users = set()
+
+latest_esp_frame = None
+latest_esp_frame_lock = threading.Lock()
 
 def process_frame_async(fpath):
     global is_processing_frame, ws_recognized_users
@@ -3030,6 +3034,10 @@ def ws_camera_stream(ws):
                 break
                 
             if isinstance(data, bytes):
+                global latest_esp_frame
+                with latest_esp_frame_lock:
+                    latest_esp_frame = data
+                
                 if is_processing_frame:
                     continue
                 
@@ -3108,6 +3116,9 @@ def find_matching_course(user_id: int) -> int | None:
 def receive_stream_frame():
     """Receive raw JPEG bytes from ESP32-CAM, perform face recognition, and mark present."""
     img_bytes = request.data
+    global latest_esp_frame
+    with latest_esp_frame_lock:
+        latest_esp_frame = img_bytes
     if not img_bytes:
         if 'file' in request.files:
             img_bytes = request.files['file'].read()
@@ -3244,6 +3255,17 @@ def receive_stream_frame():
 
     except Exception as err:
         return jsonify({'success': False, 'message': f'Server error: {err}'}), 500
+
+
+@app.route('/api/camera/latest')
+@login_required
+def camera_latest():
+    global latest_esp_frame
+    with latest_esp_frame_lock:
+        frame = latest_esp_frame
+    if frame is None:
+        return jsonify({'success': False, 'message': 'No frame available. Ensure ESP32-CAM is connected.'}), 404
+    return Response(frame, mimetype='image/jpeg')
 
 
 @app.route('/api/attendance/stats', methods=['GET'])
