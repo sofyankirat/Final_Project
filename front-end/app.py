@@ -3283,9 +3283,7 @@ def receive_stream_frame():
         # Process the frame in-memory (no subprocess spawning or external HTTP calls!)
         result_faces = []
         try:
-            import numpy as np
-            nparr = np.frombuffer(img_bytes, np.uint8)
-            frame = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+            frame = cv2.imread(fpath)
             if frame is not None:
                 faces = flask_detect_all_faces(frame)
                 db = get_enrolled_database()
