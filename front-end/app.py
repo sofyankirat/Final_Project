@@ -2161,6 +2161,21 @@ def upload_ai_chat_attachment():
         return jsonify({'success': False, 'message': 'Failed to upload attachment'}), 500
 
 
+@app.route('/api/check-db', methods=['GET'])
+def check_db():
+    import requests
+    mini_rag_url = os.getenv("MINI_RAG_URL", "http://localhost:8000")
+    try:
+        info_res = requests.get(f"{mini_rag_url}/api/v1/nlp/index/info/1", timeout=10)
+        return jsonify({
+            'success': True,
+            'info_status': info_res.status_code,
+            'info_response': info_res.json() if info_res.status_code == 200 else info_res.text
+        })
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
 @app.route('/api/trigger-db-seed', methods=['GET'])
 def trigger_db_seed():
     import requests
