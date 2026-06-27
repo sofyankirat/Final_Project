@@ -213,7 +213,24 @@ async def process_endpoint(request: Request, project_id: int, process_request: P
 @data_router.get("/seed")
 async def trigger_seeding(request: Request):
     from seed_db import main as seed_main
+    import shutil
     try:
+        # Step 1: Copy files from backup_assets to assets/files/1
+        base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        backup_dir = os.path.join(base_dir, "backup_assets", "1")
+        target_dir = os.path.join(base_dir, "assets", "files", "1")
+
+        if os.path.exists(backup_dir):
+            os.makedirs(target_dir, exist_ok=True)
+            for f in os.listdir(backup_dir):
+                src_file = os.path.join(backup_dir, f)
+                dst_file = os.path.join(target_dir, f)
+                if os.path.isfile(src_file):
+                    shutil.copy2(src_file, dst_file)
+            logger.info(f"Copied backup assets to {target_dir}")
+        else:
+            logger.warning(f"Backup directory not found at {backup_dir}")
+
         logger.info("Starting database seeding process from API endpoint...")
         await seed_main()
         return JSONResponse(content={"success": True, "message": "Seeding completed successfully"})
