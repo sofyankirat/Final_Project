@@ -33,6 +33,22 @@ if _ATTENDANCE_ROOT not in sys.path:
 # Load environment variables
 load_dotenv()
 
+# Get base directory
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+app = Flask(
+    __name__,
+    template_folder=os.path.join(BASE_DIR, 'app', 'templates'),
+    static_folder=os.path.join(BASE_DIR, 'app', 'static'),
+    static_url_path='/static'
+)
+sock = Sock(app)
+app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'your-secret-key-change-this')
+app.config['SESSION_TIMEOUT'] = 3600  # 1 hour
+app.config['MAX_CONTENT_LENGTH'] = 50 * 1024 * 1024  # 50 MB upload limit (5 base64 captures)
+
+import recommendation_model
+
 # --- Load YOLO and ArcFace models in-memory inside Flask at startup ---
 print("[Flask] Pre-loading YOLO and ArcFace models...")
 flask_yolo_model = None
@@ -157,22 +173,6 @@ def flask_find_match(query_embedding, database):
     if best_score < 0.3:  # THRESHOLD
         return "Unknown", best_score
     return best_match, best_score
-
-import recommendation_model
-
-# Get base directory
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-
-app = Flask(
-    __name__,
-    template_folder=os.path.join(BASE_DIR, 'app', 'templates'),
-    static_folder=os.path.join(BASE_DIR, 'app', 'static'),
-    static_url_path='/static'
-)
-sock = Sock(app)
-app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'your-secret-key-change-this')
-app.config['SESSION_TIMEOUT'] = 3600  # 1 hour
-app.config['MAX_CONTENT_LENGTH'] = 50 * 1024 * 1024  # 50 MB upload limit (5 base64 captures)
 
 
 
