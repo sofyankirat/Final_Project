@@ -33,7 +33,7 @@ def main():
                     msg = response.json().get('message', '')
                     print(f"[Live Stream] Sent frame. Response: {msg}")
                 else:
-                    print(f"[Error] Server returned status: {response.status_code}")
+                    print(f"[Error] Server returned status: {response.status_code} - {response.text}")
             except Exception as e:
                 print(f"[Error] Connection error: {e}")
                 
