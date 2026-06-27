@@ -220,3 +220,31 @@ async def trigger_seeding(request: Request):
     except Exception as e:
         logger.error(f"Seeding failed: {e}")
         return JSONResponse(status_code=500, content={"success": False, "error": str(e)})
+
+
+@data_router.get("/check-details")
+async def check_details(request: Request):
+    try:
+        from models.AssetModel import AssetModel
+        from models.ChunkModel import ChunkModel
+        from helpers.config import get_settings
+        import os
+
+        settings = get_settings()
+        asset_model = await AssetModel.create_instance(db_client=request.app.db_client)
+        chunk_model = await ChunkModel.create_instance(db_client=request.app.db_client)
+
+        assets = await asset_model.get_all_project_assets(asset_project_id=1, asset_type=AssetTypeEnums.FILE.value)
+        chunks_count = await chunk_model.get_total_chunks_count(project_id=1)
+
+        assets_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "assets", "files", "1")
+        disk_files = os.listdir(assets_dir) if os.path.exists(assets_dir) else []
+
+        return JSONResponse(content={
+            "success": True,
+            "db_assets": [a.asset_name for a in assets],
+            "db_chunks_count": chunks_count,
+            "disk_files": disk_files
+        })
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"success": False, "error": str(e)})

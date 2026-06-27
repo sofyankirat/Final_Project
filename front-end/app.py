@@ -2167,10 +2167,13 @@ def check_db():
     mini_rag_url = os.getenv("MINI_RAG_URL", "http://localhost:8000")
     try:
         info_res = requests.get(f"{mini_rag_url}/api/v1/nlp/index/info/1", timeout=10)
+        details_res = requests.get(f"{mini_rag_url}/api/v1/data/check-details", timeout=10)
         return jsonify({
             'success': True,
             'info_status': info_res.status_code,
-            'info_response': info_res.json() if info_res.status_code == 200 else info_res.text
+            'info_response': info_res.json() if info_res.status_code == 200 else info_res.text,
+            'details_status': details_res.status_code,
+            'details_response': details_res.json() if details_res.status_code == 200 else details_res.text
         })
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
