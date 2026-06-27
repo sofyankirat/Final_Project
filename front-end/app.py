@@ -3290,15 +3290,15 @@ def receive_stream_frame():
                 return jsonify({'success': False, 'message': err_msg}), 200
             
             faces = flask_detect_all_faces(frame)
-                db = get_enrolled_database()
-                for face_img, (x1, y1, x2, y2), conf in faces:
-                    emb = flask_extract_embedding(face_img)
-                    name, score = flask_find_match(emb, db)
-                    result_faces.append({
-                        "name": name,
-                        "confidence": float(score),
-                        "bbox": [x1, y1, x2, y2]
-                    })
+            db = get_enrolled_database()
+            for face_img, (x1, y1, x2, y2), conf in faces:
+                emb = flask_extract_embedding(face_img)
+                name, score = flask_find_match(emb, db)
+                result_faces.append({
+                    "name": name,
+                    "confidence": float(score),
+                    "bbox": [x1, y1, x2, y2]
+                })
 
             with latest_face_boxes_lock:
                 latest_face_boxes = [
