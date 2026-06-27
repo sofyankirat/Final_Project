@@ -651,18 +651,19 @@
 
         .rec-selector-header {
             text-align: center;
-            margin-bottom: 40px;
-            max-width: 600px;
+            margin-bottom: 48px;
+            max-width: 800px;
         }
 
         .rec-selector-header h2 {
-            font-size: 28px;
+            font-size: 32px;
             font-weight: 800;
-            margin-bottom: 12px;
+            margin-bottom: 16px;
             background: linear-gradient(135deg, #ff6b35, #e85c20);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             letter-spacing: -0.5px;
+            text-align: center;
         }
 
         body.dark-mode .rec-selector-header h2 {
@@ -672,9 +673,10 @@
         }
 
         .rec-selector-header p {
-            font-size: 15px;
+            font-size: 16px;
             color: #5a4a3a;
             line-height: 1.6;
+            text-align: center;
         }
 
         body.dark-mode .rec-selector-header p {
@@ -682,11 +684,12 @@
         }
 
         .rec-selector-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
             gap: 40px;
             width: 100%;
-            max-width: 1080px;
+            max-width: 1200px;
             margin-bottom: 60px;
         }
 
@@ -694,7 +697,10 @@
             background: rgba(255, 255, 255, 0.45);
             border: 1px solid rgba(255, 107, 53, 0.15);
             border-radius: 24px;
-            padding: 44px 32px;
+            padding: 50px 40px;
+            width: 100%;
+            max-width: 480px;
+            min-height: 590px;
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
             cursor: pointer;
@@ -814,12 +820,12 @@
         }
 
         .rec-card-desc {
-            font-size: 14.5px;
+            font-size: 15.5px;
             line-height: 1.6;
             color: #5a4a3a;
             margin-bottom: 32px;
             flex-grow: 1;
-            max-width: 320px;
+            max-width: 380px;
         }
 
         body.dark-mode .rec-card-desc {
@@ -896,8 +902,8 @@
 
         .rec-card-img {
             width: 100%;
-            max-width: 360px;
-            height: 210px;
+            max-width: 400px;
+            height: 240px;
             border-radius: 14px;
             object-fit: cover;
             margin-bottom: 24px;
