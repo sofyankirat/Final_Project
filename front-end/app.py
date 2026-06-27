@@ -23,8 +23,6 @@ from typing import Any, cast
 from dotenv import load_dotenv  # type: ignore[import]
 from database import init_db, get_db_connection  # type: ignore[import]
 
-from flask_sock import Sock  # type: ignore[import]
-
 # Add Smart-Attendance-System to the Python path so web_enroll can be imported
 _ATTENDANCE_ROOT = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'Smart-Attendance-System'))
 if _ATTENDANCE_ROOT not in sys.path:
@@ -42,60 +40,13 @@ app = Flask(
     static_folder=os.path.join(BASE_DIR, 'app', 'static'),
     static_url_path='/static'
 )
-sock = Sock(app)
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'your-secret-key-change-this')
 app.config['SESSION_TIMEOUT'] = 3600  # 1 hour
 app.config['MAX_CONTENT_LENGTH'] = 50 * 1024 * 1024  # 50 MB upload limit (5 base64 captures)
 
 import recommendation_model
 
-# --- Load YOLO and ArcFace models in-memory inside Flask at startup ---
-print("[Flask] Pre-loading YOLO and ArcFace models...")
-flask_yolo_model = None
-flask_arc_session = None
-flask_arc_input = None
-flask_startup_error = None
 
-try:
-    import cv2
-    import numpy as np
-    import onnxruntime as ort
-    from ultralytics import YOLO
-    
-    # Resolve absolute paths
-    yolo_model_path = os.path.join(_ATTENDANCE_ROOT, "models", "yolov8s-face-lindevs.pt")
-    arcface_model_path = os.path.join(_ATTENDANCE_ROOT, "models", "w600k_mbf.onnx")
-    
-    if os.path.exists(yolo_model_path) and os.path.exists(arcface_model_path):
-        flask_yolo_model = YOLO(yolo_model_path)
-        flask_arc_session = ort.InferenceSession(
-            arcface_model_path,
-            providers=['CPUExecutionProvider']
-        )
-        flask_arc_input = flask_arc_session.get_inputs()[0].name
-        print("[Flask] Models loaded successfully!")
-    else:
-        flask_startup_error = f"Models not found. Paths searched:\nYOLO: {yolo_model_path} (exists: {os.path.exists(yolo_model_path)})\nArcFace: {arcface_model_path} (exists: {os.path.exists(arcface_model_path)})"
-        print(f"[Flask] {flask_startup_error}")
-except Exception as e:
-    import traceback
-    flask_startup_error = f"Exception: {e}\n{traceback.format_exc()}"
-    print(f"[Flask] Error loading models at startup: {flask_startup_error}")
-
-
-@app.route('/api/debug-models')
-def debug_models():
-    import glob
-    models_dir = os.path.join(_ATTENDANCE_ROOT, "models")
-    available_files = [os.path.basename(f) for f in glob.glob(os.path.join(models_dir, "*"))] if os.path.exists(models_dir) else []
-    return jsonify({
-        'yolo_loaded': flask_yolo_model is not None,
-        'arcface_loaded': flask_arc_session is not None,
-        'startup_error': flask_startup_error,
-        'attendance_root': _ATTENDANCE_ROOT,
-        'models_dir_exists': os.path.exists(models_dir),
-        'available_files': available_files
-    })
 
 
 def get_enrolled_database():
@@ -119,60 +70,6 @@ def get_enrolled_database():
                 except Exception:
                     pass
     return {}
-
-
-def flask_detect_all_faces(frame):
-    if flask_yolo_model is None:
-        return []
-    import cv2
-    results = flask_yolo_model(frame, verbose=False)
-    boxes   = results[0].boxes
-    if boxes is None or len(boxes) == 0:
-        return []
-    faces = []
-    h, w  = frame.shape[:2]
-    pad = 20  # PADDING
-    for box in boxes:
-        conf = float(box.conf[0])
-        if conf < 0.5:  # DETECTION_CONF
-            continue
-        x1, y1, x2, y2 = map(int, box.xyxy[0].tolist())
-        x1p = max(0, x1 - pad)
-        y1p = max(0, y1 - pad)
-        x2p = min(w, x2 + pad)
-        y2p = min(h, y2 + pad)
-        crop = frame[y1p:y2p, x1p:x2p]
-        if crop.size == 0:
-            continue
-        face = cv2.resize(crop, (112, 112))
-        faces.append((face, (x1, y1, x2, y2), conf))
-    return faces
-
-
-def flask_extract_embedding(face_img):
-    if flask_arc_session is None:
-        return None
-    import cv2
-    import numpy as np
-    img = cv2.cvtColor(face_img, cv2.COLOR_BGR2RGB).astype(np.float32)
-    img = (img - 127.5) / 127.5
-    img = np.transpose(img, (2, 0, 1))[np.newaxis, ...]
-    return flask_arc_session.run(None, {flask_arc_input: img})[0].flatten()
-
-
-def flask_find_match(query_embedding, database):
-    if not database or query_embedding is None:
-        return "Unknown", 0.0
-    import numpy as np
-    best_match, best_score = "Unknown", -1.0
-    query = query_embedding / np.linalg.norm(query_embedding)
-    for person, stored_emb in database.items():
-        sim = float(np.dot(query, stored_emb.flatten()))
-        if sim > best_score:
-            best_score, best_match = sim, person
-    if best_score < 0.3:  # THRESHOLD
-        return "Unknown", best_score
-    return best_match, best_score
 
 
 
@@ -2889,30 +2786,6 @@ def records():
                            records=attendance_records)
 
 
-@app.route('/live-cam')
-@login_required
-def live_cam():
-    """Live camera feed page."""
-    user_id = to_int_value(session.get('user_id'))
-    email = session.get('email', '')
-    username = email.split('@')[0].capitalize() if email else 'User'
-    try:
-        connection = get_db_connection()
-        if connection:
-            cursor = connection.cursor()
-            cursor.execute("SELECT first_name FROM user_additional_info WHERE user_id = %s", (user_id,))
-            result = cursor.fetchone()
-            if result and result[0]:
-                username = to_clean_string(result[0])
-            cursor.close()
-            connection.close()
-    except Exception as e:
-        print(f"Error fetching user name: {e}")
-
-    return render_template('live_cam.html', username=username, email=email,
-                           profile_photo=_get_profile_photo(user_id))
-
-
 @app.route('/api/attendance/enroll', methods=['POST'])
 @login_required
 def attendance_enroll():
@@ -3033,7 +2906,29 @@ def attendance_test_recognize():
         for line in (proc.stdout or '').splitlines():
             if line.startswith('__RESULT_JSON__'):
                 try:
-                    return jsonify(json.loads(line[len('__RESULT_JSON__'):]))
+                    res_data = json.loads(line[len('__RESULT_JSON__'):])
+                    if isinstance(res_data, dict) and res_data.get('success'):
+                        connection = get_db_connection()
+                        if connection:
+                            try:
+                                cursor = connection.cursor()
+                                for face in res_data.get('faces', []):
+                                    name_key = face.get('name')
+                                    if name_key and name_key.startswith('user_'):
+                                        try:
+                                            uid = int(name_key.split('_')[1])
+                                            cursor.execute("SELECT first_name FROM user_additional_info WHERE user_id = %s", (uid,))
+                                            row = cursor.fetchone()
+                                            if row and row[0]:
+                                                face['name'] = to_clean_string(row[0])
+                                        except (IndexError, ValueError):
+                                            pass
+                                cursor.close()
+                            except Exception as e:
+                                print(f"Error fetching recognized user name: {e}")
+                            finally:
+                                connection.close()
+                    return jsonify(res_data)
                 except json.JSONDecodeError:
                     pass
         error_detail = (proc.stderr or proc.stdout or 'Unknown error').strip()[-500:]
@@ -3043,419 +2938,6 @@ def attendance_test_recognize():
     except Exception as err:
         return jsonify({'success': False, 'message': f'Error: {err}'}), 500
 
-
-import threading
-import time
-
-is_processing_frame = False
-ws_recognized_users = set()
-
-latest_esp_frame = None
-latest_esp_frame_lock = threading.Lock()
-latest_face_boxes = []
-latest_face_boxes_lock = threading.Lock()
-
-def process_frame_async(fpath):
-    global is_processing_frame, ws_recognized_users
-    
-    script_path = os.path.join(_ATTENDANCE_ROOT, 'web_recognize.py')
-    venv_python = os.path.join(_ATTENDANCE_ROOT, 'venv', 'Scripts', 'python.exe')
-    if not os.path.exists(venv_python):
-        venv_python = sys.executable
-
-    try:
-        env = os.environ.copy()
-        env['PYTHONIOENCODING'] = 'utf-8'
-        proc = subprocess.run(
-            [venv_python, script_path, fpath],
-            cwd=_ATTENDANCE_ROOT,
-            capture_output=True, text=True, encoding='utf-8', errors='replace',
-            env=env, timeout=15,
-        )
-        
-        result = None
-        for line in (proc.stdout or '').splitlines():
-            if line.startswith('__RESULT_JSON__'):
-                try:
-                    result = json.loads(line[len('__RESULT_JSON__'):])
-                    break
-                except json.JSONDecodeError:
-                    pass
-
-        with latest_face_boxes_lock:
-            latest_face_boxes = []
-        if result and result.get('success'):
-            faces = result.get('faces', [])
-            recognized_names = []
-            for face in faces:
-                name = face.get('name')
-                if name and name != "Unknown":
-                    recognized_names.append(name)
-            
-            if recognized_names:
-                connection = get_db_connection()
-                if connection is not None:
-                    cursor = connection.cursor()
-                    logged_count = 0
-                    
-                    for key in recognized_names:
-                        user_id = None
-                        if key.startswith("user_"):
-                            try:
-                                user_id = int(key.split("_")[1])
-                            except (IndexError, ValueError):
-                                continue
-                        else:
-                            try:
-                                user_id = int(key)
-                            except ValueError:
-                                continue
-
-                        if user_id is None:
-                            continue
-
-                        cursor.execute("SELECT 1 FROM users WHERE id = %s LIMIT 1", (user_id,))
-                        if cursor.fetchone() is None:
-                            continue
-
-                        if user_id in ws_recognized_users:
-                            continue
-
-                        today_datetime = get_local_now().strftime("%Y-%m-%d %H:%M:%S")
-                        cursor.execute(
-                            "INSERT INTO attendance (user_id, course_id, attendance_date, status, created_at) VALUES (%s, %s, %s, TRUE, %s)",
-                            (user_id, None, today_datetime, today_datetime)
-                        )
-                        ws_recognized_users.add(user_id)
-                        logged_count += 1
-                        print(f"[WS] Automatically logged attendance for student user_{user_id}")
-                    
-                    if logged_count > 0:
-                        connection.commit()
-                    cursor.close()
-                    connection.close()
-            
-            with latest_face_boxes_lock:
-                latest_face_boxes = [
-                    {
-                        'bbox': face.get('bbox', []),
-                        'name': face.get('name', 'Unknown'),
-                        'confidence': face.get('confidence', 0)
-                    }
-                    for face in faces
-                ]
-    except Exception as ex:
-        print(f"[WS] Subprocess error during background frame processing: {ex}")
-    finally:
-        try:
-            if os.path.exists(fpath):
-                os.remove(fpath)
-        except Exception:
-            pass
-        is_processing_frame = False
-
-
-@sock.route('/ws/camera-stream')
-def ws_camera_stream(ws):
-    """WebSocket stream endpoint for ESP32-CAM to stream binary JPEG frames."""
-    global is_processing_frame, ws_recognized_users
-    print("[WS] ESP32-CAM connected via WebSocket!")
-    ws_recognized_users.clear()
-    
-    try:
-        ws.send("start")
-        print("[WS] Sent 'start' command to ESP32-CAM")
-    except Exception as e:
-        print(f"[WS] Error sending start command: {e}")
-        return
-
-    static_root = get_static_root()
-    test_dir = os.path.join(static_root, 'uploads', 'attendance', 'test')
-    os.makedirs(test_dir, exist_ok=True)
-
-    try:
-        while True:
-            data = ws.receive()
-            if data is None:
-                break
-                
-            if isinstance(data, bytes):
-                global latest_esp_frame
-                with latest_esp_frame_lock:
-                    latest_esp_frame = data
-                
-                if is_processing_frame:
-                    continue
-                
-                is_processing_frame = True
-                timestamp = get_local_now().strftime('%Y%m%d_%H%M%S_%f')
-                fpath = os.path.join(test_dir, f"ws_esp32_{timestamp}.jpg")
-                with open(fpath, 'wb') as fh:
-                    fh.write(data)
-
-                t = threading.Thread(target=process_frame_async, args=(fpath,))
-                t.daemon = True
-                t.start()
-            else:
-                pass
-    except Exception as e:
-        print(f"[WS] Connection error: {e}")
-    finally:
-        print("[WS] ESP32-CAM disconnected.")
-
-
-def find_matching_course(user_id: int) -> int | None:
-    """Find the course schedule entry ID that matches the current time and day of week exactly."""
-    now = get_local_now()
-    current_day = now.strftime("%A")  # e.g., "Monday"
-    current_time = now.time()
-    
-    try:
-        connection = get_db_connection()
-        if connection:
-            cursor = connection.cursor()
-            cursor.execute(
-                "SELECT id, start_time, end_time, days FROM user_course_schedule WHERE user_id = %s",
-                (user_id,)
-            )
-            rows = cursor.fetchall()
-            cursor.close()
-            connection.close()
-            
-            for row in rows:
-                course_sch_id = row[0]
-                start_val = row[1]
-                end_val = row[2]
-                day_val = to_clean_string(row[3])
-                
-                # Check if current day is in the scheduled days
-                days_list = [d.strip().lower() for d in day_val.split(',')]
-                if current_day.lower() not in days_list:
-                    continue
-                
-                def to_time_obj(t_val):
-                    if isinstance(t_val, str):
-                        try:
-                            parts = t_val.split(':')
-                            if len(parts) >= 2:
-                                return time(int(parts[0]), int(parts[1]))
-                        except ValueError:
-                            pass
-                    elif isinstance(t_val, time):
-                        return t_val
-                    elif hasattr(t_val, 'hour'):
-                        return time(t_val.hour, t_val.minute)
-                    return None
-                
-                start_time = to_time_obj(start_val)
-                end_time = to_time_obj(end_val)
-                
-                if start_time and end_time:
-                    if start_time <= current_time <= end_time:
-                        return course_sch_id
-    except Exception as e:
-        print(f"Error matching course: {e}")
-    return None
-
-
-@app.route('/stream/frame', methods=['POST'])
-def receive_stream_frame():
-    """Receive raw JPEG bytes from ESP32-CAM, perform face recognition, and mark present."""
-    img_bytes = request.data
-    global latest_esp_frame
-    with latest_esp_frame_lock:
-        latest_esp_frame = img_bytes
-    if not img_bytes:
-        if 'file' in request.files:
-            img_bytes = request.files['file'].read()
-        else:
-            return jsonify({'success': False, 'message': 'No image data received.'}), 400
-
-    static_root = get_static_root()
-    test_dir = os.path.join(static_root, 'uploads', 'attendance', 'test')
-    os.makedirs(test_dir, exist_ok=True)
-    timestamp = get_local_now().strftime('%Y%m%d_%H%M%S_%f')
-    fpath = os.path.join(test_dir, f'esp32_{timestamp}.jpg')
-    with open(fpath, 'wb') as fh:
-        fh.write(img_bytes)
-
-    try:
-        # Process the frame in-memory (no subprocess spawning or external HTTP calls!)
-        result_faces = []
-        try:
-            frame = cv2.imread(fpath)
-            if frame is None:
-                err_msg = f"cv2.imread returned None. fpath={fpath}, exists={os.path.exists(fpath)}, size={os.path.getsize(fpath) if os.path.exists(fpath) else 0}"
-                print(f"[Flask] {err_msg}")
-                return jsonify({'success': False, 'message': err_msg}), 200
-            
-            faces = flask_detect_all_faces(frame)
-            db = get_enrolled_database()
-            for face_img, (x1, y1, x2, y2), conf in faces:
-                emb = flask_extract_embedding(face_img)
-                name, score = flask_find_match(emb, db)
-                result_faces.append({
-                    "name": name,
-                    "confidence": float(score),
-                    "bbox": [x1, y1, x2, y2]
-                })
-
-            with latest_face_boxes_lock:
-                latest_face_boxes = [
-                    {
-                        'bbox': f.get('bbox', []),
-                        'name': f.get('name', 'Unknown'),
-                        'confidence': f.get('confidence', 0.0)
-                    }
-                    for f in result_faces
-                ]
-
-            if os.path.exists(fpath):
-                os.remove(fpath)
-        except Exception as ex:
-            print(f"[Flask] Error processing frame: {ex}")
-
-        test_user_id = to_int_value(request.args.get('test_user_id'))
-        recognized_names = []
-        if test_user_id:
-            recognized_names = [f"user_{test_user_id}"]
-        else:
-            for face in result_faces:
-                name = face.get('name')
-                if name and name != "Unknown":
-                    recognized_names.append(name)
-
-        if not recognized_names and not result_faces:
-            model_status = "loaded" if flask_yolo_model is not None else "failed to load (check /api/debug-models)"
-            return jsonify({
-                'success': False,
-                'recognized': [],
-                'faces': [],
-                'message': f'No faces detected (YOLO status: {model_status})'
-            }), 200
-
-        if recognized_names:
-            connection = get_db_connection()
-            if connection is not None:
-                cursor = connection.cursor()
-                today = get_local_now().strftime("%Y-%m-%d")
-                course_id = to_int_value(request.args.get('course_id')) or None
-                logged_count = 0
-                
-                for key in recognized_names:
-                    user_id = test_user_id
-                    if not user_id:
-                        if key.startswith("user_"):
-                            try:
-                                user_id = int(key.split("_")[1])
-                            except (IndexError, ValueError):
-                                continue
-                        else:
-                            try:
-                                user_id = int(key)
-                            except ValueError:
-                                continue
-
-                    if user_id is None:
-                        continue
-
-                    cursor.execute("SELECT 1 FROM users WHERE id = %s LIMIT 1", (user_id,))
-                    if cursor.fetchone() is None:
-                        continue
-
-                    user_course_id = course_id
-                    if not user_course_id:
-                        user_course_id = find_matching_course(user_id)
-
-                    # Check if already present today for this course to prevent duplicates
-                    is_duplicate = False
-                    today = get_local_now().strftime("%Y-%m-%d")
-                    if user_course_id:
-                        cursor.execute(
-                            "SELECT 1 FROM attendance WHERE user_id = %s AND course_id = %s AND date(attendance_date) = %s LIMIT 1",
-                            (user_id, user_course_id, today)
-                        )
-                    else:
-                        cursor.execute(
-                            "SELECT 1 FROM attendance WHERE user_id = %s AND course_id IS NULL AND date(attendance_date) = %s LIMIT 1",
-                            (user_id, today)
-                        )
-                    if cursor.fetchone() is not None:
-                        is_duplicate = True
-
-                    if not is_duplicate:
-                        today_datetime = get_local_now().strftime("%Y-%m-%d %H:%M:%S")
-                        cursor.execute(
-                            "INSERT INTO attendance (user_id, course_id, attendance_date, status, created_at) VALUES (%s, %s, %s, TRUE, %s)",
-                            (user_id, user_course_id, today_datetime, today_datetime)
-                        )
-                        logged_count += 1
-                
-                connection.commit()
-                cursor.close()
-                connection.close()
-
-                return jsonify({
-                    'success': True,
-                    'recognized': recognized_names,
-                    'marked_present_count': logged_count,
-                    'faces': result_faces,
-                    'message': f'Processed {len(recognized_names)} student(s). Marked {logged_count} new attendance.'
-                }), 200
-
-        return jsonify({
-            'success': True,
-            'recognized': [],
-            'faces': result_faces,
-            'message': 'No known students recognized in frame.'
-        }), 200
-
-    except Exception as err:
-        return jsonify({'success': False, 'message': f'Server error: {err}'}), 500
-
-
-@app.route('/api/camera/latest')
-@login_required
-def camera_latest():
-    global latest_esp_frame
-    with latest_esp_frame_lock:
-        frame = latest_esp_frame
-    if frame is not None:
-        return Response(frame, mimetype='image/jpeg')
-
-    # Fallback/Proxy to the FastAPI Face Recognition app on port 7860
-    import requests
-    face_rec_url = os.getenv("FACE_REC_BACKEND_URL", "http://localhost:7860")
-    try:
-        res = requests.get(f"{face_rec_url}/api/camera/latest", timeout=1.0)
-        if res.status_code == 200:
-            return Response(res.content, mimetype='image/jpeg')
-    except Exception:
-        pass
-
-    return jsonify({'success': False, 'message': 'No frame available. Ensure ESP32-CAM is connected.'}), 404
-
-
-@app.route('/api/camera/faces')
-@login_required
-def camera_faces():
-    global latest_face_boxes
-    with latest_face_boxes_lock:
-        faces = list(latest_face_boxes)
-    if faces:
-        return jsonify({'success': True, 'faces': faces})
-
-    # Fallback/Proxy to the FastAPI Face Recognition app on port 7860
-    import requests
-    face_rec_url = os.getenv("FACE_REC_BACKEND_URL", "http://localhost:7860")
-    try:
-        res = requests.get(f"{face_rec_url}/api/camera/faces", timeout=1.0)
-        if res.status_code == 200:
-            return jsonify(res.json())
-    except Exception:
-        pass
-
-    return jsonify({'success': True, 'faces': []})
 
 
 @app.route('/api/attendance/stats', methods=['GET'])
