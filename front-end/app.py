@@ -2336,18 +2336,21 @@ To restore AI Agent functionality, please follow these steps:
         return "⚠️ **AI service temporarily unavailable.** Please try again in a few moments."
 
     # Check if attachment is an image or PDF
-    is_image = mime_type.startswith('image/') if mime_type else False
-    is_pdf = (mime_type == 'application/pdf') if mime_type else (file_url.lower().endswith('.pdf'))
+    is_image = mime_type.startswith('image/') if mime_type else (file_url.lower().endswith(('.png', '.jpg', '.jpeg', '.gif', '.webp', '.bmp')) if file_url else False)
+    is_pdf = (mime_type == 'application/pdf') if mime_type else (file_url.lower().endswith('.pdf') if file_url else False)
     is_direct_gemini = is_image or is_pdf
 
     # 2. If it's an image/photo or PDF, we process it using Gemini directly
-    if is_direct_gemini and local_path and os.path.exists(local_path):
+    if is_direct_gemini:
+        if not local_path or not os.path.exists(local_path):
+            return jsonify({'success': False, 'message': 'The uploaded file could not be found. Please try uploading again.'}), 404
+        
         mtype = 'application/pdf' if is_pdf else mime_type
         response_text = call_gemini_direct(message, chat_history, local_path, mtype)
         if response_text:
             return jsonify({'success': True, 'answer': response_text})
         else:
-            return jsonify({'success': False, 'message': 'Failed to process attachment with Gemini'}), 500
+            return jsonify({'success': False, 'message': 'Failed to process attachment. The AI service may not support this file type, or the API key may be invalid.'}), 500
 
     # 3. Otherwise, try to call Mini_RAG service
     try:
