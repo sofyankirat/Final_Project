@@ -628,6 +628,130 @@ def send_help_request_email(user_name: str, user_email: str, subject: str, messa
         print(f"Error sending help request email: {error}")
         return False
 
+
+def send_session_report_email(students, course_id=None):
+    """Send a session report email containing recognized students and their IDs to sofyankirat123@gmail.com."""
+    recipient_email = "sofyankirat123@gmail.com"
+    try:
+        import requests
+    except ImportError:
+        requests = None
+
+    try:
+        subject = "AI Attendance System - Recognized Students Report"
+        
+        course_name = "N/A"
+        if course_id:
+            try:
+                connection = get_db_connection()
+                if connection:
+                    cursor = connection.cursor()
+                    cursor.execute("SELECT course_name FROM user_course_schedule WHERE id = %s LIMIT 1", (course_id,))
+                    row = cursor.fetchone()
+                    if row and row[0]:
+                        course_name = to_clean_string(row[0])
+                    cursor.close()
+                    connection.close()
+            except Exception as e:
+                print(f"Error fetching course name for email: {e}")
+        
+        sender_email = normalize_email_address(EMAIL_ADDRESS)
+        
+        rows_html = ""
+        for s in students:
+            rows_html += f"""
+            <tr>
+                <td style="padding: 8px; border: 1px solid #e5e7eb;">{s.get('id')}</td>
+                <td style="padding: 8px; border: 1px solid #e5e7eb;">{s.get('name')}</td>
+                <td style="padding: 8px; border: 1px solid #e5e7eb;">{s.get('email')}</td>
+            </tr>
+            """
+            
+        body = f"""
+        <!DOCTYPE html>
+        <html>
+        <body style="font-family: Arial, sans-serif; color: #333;">
+            <h2>Recognized Students Session Report</h2>
+            <p>The camera stream session has completed successfully. Below is the list of recognized students whose attendance data has been updated on the website:</p>
+            
+            <p><strong>Course/Class:</strong> {course_name}</p>
+            <p><strong>Date:</strong> {get_local_now().strftime("%Y-%m-%d %H:%M:%S")}</p>
+            
+            <table style="width: 100%; border-collapse: collapse; margin-top: 15px;">
+                <thead>
+                    <tr style="background-color: #f3f4f6;">
+                        <th style="padding: 8px; border: 1px solid #e5e7eb; text-align: left;">Student ID</th>
+                        <th style="padding: 8px; border: 1px solid #e5e7eb; text-align: left;">Name</th>
+                        <th style="padding: 8px; border: 1px solid #e5e7eb; text-align: left;">Email Address</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {rows_html if rows_html else '<tr><td colspan="3" style="padding: 8px; border: 1px solid #e5e7eb; text-align: center;">No students recognized.</td></tr>'}
+                </tbody>
+            </table>
+            
+            <p style="margin-top: 20px; font-size: 12px; color: #666;">This is an automated system notification.</p>
+        </body>
+        </html>
+        """
+        
+        # Try Brevo HTTP API
+        brevo_api_key = os.getenv('BREVO_API_KEY')
+        if not brevo_api_key and EMAIL_PASSWORD and (EMAIL_PASSWORD.startswith("xkeysib-") or len(EMAIL_PASSWORD) > 40):
+            brevo_api_key = EMAIL_PASSWORD
+
+        if brevo_api_key and requests:
+            headers = {
+                "accept": "application/json",
+                "api-key": brevo_api_key,
+                "content-type": "application/json"
+            }
+            payload = {
+                "sender": {
+                    "name": "Hamas",
+                    "email": sender_email
+                },
+                "to": [
+                    {
+                        "email": recipient_email
+                    }
+                ],
+                "subject": subject,
+                "htmlContent": body
+            }
+            try:
+                res = requests.post("https://api.brevo.com/v3/smtp/email", json=payload, headers=headers, timeout=8.0)
+                if res.status_code in [200, 201, 202]:
+                    print("Session report email sent successfully via Brevo.")
+                    return True
+                else:
+                    print(f"Brevo HTTP API failed for session report with status {res.status_code}: {res.text}")
+            except Exception as http_err:
+                print(f"Brevo HTTP API request failed for session report: {str(http_err)}")
+
+        # Fallback to standard SMTP
+        print("Falling back to SMTP for session report email...")
+        message = MIMEMultipart("alternative")
+        message["Subject"] = subject
+        message["From"] = f"Hamas <{sender_email}>"
+        message["To"] = recipient_email
+        
+        part = MIMEText(body, "html")
+        message.attach(part)
+        
+        with smtplib.SMTP(SMTP_SERVER, SMTP_PORT, timeout=5.0) as server:
+            server.set_debuglevel(1)
+            server.starttls()
+            server.login(EMAIL_ADDRESS, EMAIL_PASSWORD)
+            server.sendmail(sender_email, recipient_email, message.as_string())
+        
+        print("Session report email sent successfully via SMTP.")
+        return True
+    except Exception as e:
+        print(f"Error sending session report email: {str(e)}")
+        return False
+
+
 def login_required(f):
     """Decorator to check if user is logged in and completed setup flow"""
     @wraps(f)
@@ -3061,6 +3185,7 @@ def receive_session_attendance():
         today = get_local_now().strftime("%Y-%m-%d")
 
         logged_count = 0
+        recognized_students = []
         for key in student_keys:
             # Parse user_id
             user_id = None
@@ -3081,10 +3206,23 @@ def receive_session_attendance():
             if user_id is None:
                 continue
 
-            # Verify user exists in SQLite
-            cursor.execute("SELECT 1 FROM users WHERE id = %s LIMIT 1", (user_id,))
-            if cursor.fetchone() is None:
+            # Verify user exists in SQLite and get their email
+            cursor.execute("SELECT email FROM users WHERE id = %s LIMIT 1", (user_id,))
+            user_row = cursor.fetchone()
+            if user_row is None:
                 continue
+            user_email = user_row[0]
+
+            # Fetch first name or full name from user_additional_info
+            cursor.execute("SELECT first_name FROM user_additional_info WHERE user_id = %s LIMIT 1", (user_id,))
+            info_row = cursor.fetchone()
+            user_name = to_clean_string(info_row[0]) if info_row and info_row[0] else "N/A"
+
+            recognized_students.append({
+                "id": user_id,
+                "name": user_name,
+                "email": user_email
+            })
 
             # Check if already present today for this course to prevent duplicates
             today = get_local_now().strftime("%Y-%m-%d")
@@ -3110,6 +3248,16 @@ def receive_session_attendance():
         connection.commit()
         cursor.close()
         connection.close()
+
+        # Send report email in the background to avoid blocking API response
+        if recognized_students:
+            import threading
+            threading.Thread(
+                target=send_session_report_email,
+                args=(recognized_students, course_id),
+                daemon=True
+            ).start()
+
         return jsonify({'success': True, 'message': f'Logged {logged_count} students successfully'}), 200
 
     except Exception as e:
