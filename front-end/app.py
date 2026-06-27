@@ -2161,40 +2161,6 @@ def upload_ai_chat_attachment():
         return jsonify({'success': False, 'message': 'Failed to upload attachment'}), 500
 
 
-@app.route('/api/check-db', methods=['GET'])
-def check_db():
-    import requests
-    mini_rag_url = os.getenv("MINI_RAG_URL", "http://localhost:8000")
-    try:
-        info_res = requests.get(f"{mini_rag_url}/api/v1/nlp/index/info/1", timeout=10)
-        details_res = requests.get(f"{mini_rag_url}/api/v1/data/check-details", timeout=10)
-        return jsonify({
-            'success': True,
-            'info_status': info_res.status_code,
-            'info_response': info_res.json() if info_res.status_code == 200 else info_res.text,
-            'details_status': details_res.status_code,
-            'details_response': details_res.json() if details_res.status_code == 200 else details_res.text
-        })
-    except Exception as e:
-        return jsonify({'success': False, 'error': str(e)}), 500
-
-
-@app.route('/api/trigger-db-seed', methods=['GET'])
-def trigger_db_seed():
-    import requests
-    mini_rag_url = os.getenv("MINI_RAG_URL", "http://localhost:8000")
-    try:
-        # Call the new seeding endpoint in Mini_RAG
-        seed_res = requests.get(f"{mini_rag_url}/api/v1/data/seed", timeout=300)
-        return jsonify({
-            'success': seed_res.status_code == 200,
-            'status_code': seed_res.status_code,
-            'response': seed_res.json() if seed_res.status_code == 200 else seed_res.text
-        })
-    except Exception as e:
-        return jsonify({'success': False, 'error': str(e)}), 500
-
-
 @app.route('/api/ai-chat', methods=['POST'])
 @login_required
 def ai_chat():
