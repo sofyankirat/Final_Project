@@ -687,22 +687,23 @@
             display: flex;
             flex-wrap: wrap;
             justify-content: center;
-            gap: 40px;
+            gap: 48px;
             width: 100%;
-            max-width: 1200px;
+            max-width: 1300px;
+            margin-top: 24px;
             margin-bottom: 60px;
         }
 
         .rec-selector-card {
             background: rgba(255, 255, 255, 0.45);
             border: 1px solid rgba(255, 107, 53, 0.15);
-            border-radius: 24px;
-            padding: 50px 40px;
+            border-radius: 28px;
+            padding: 60px 48px;
             width: 100%;
-            max-width: 480px;
-            min-height: 590px;
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
+            max-width: 550px;
+            min-height: 680px;
+            backdrop-filter: blur(24px) saturate(180%);
+            -webkit-backdrop-filter: blur(24px) saturate(180%);
             cursor: pointer;
             transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
             position: relative;
@@ -711,13 +712,13 @@
             flex-direction: column;
             align-items: center;
             text-align: center;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.03);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.04);
         }
 
         body.dark-mode .rec-selector-card {
             background: rgba(15, 17, 58, 0.45);
             border-color: rgba(99, 102, 241, 0.15);
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+            box-shadow: 0 12px 50px rgba(0, 0, 0, 0.2);
         }
 
         .rec-selector-card::before {
@@ -808,9 +809,9 @@
         }
 
         .rec-card-title {
-            font-size: 22px;
+            font-size: 25px;
             font-weight: 800;
-            margin-bottom: 14px;
+            margin-bottom: 20px;
             color: #1a1a1a;
             letter-spacing: -0.3px;
         }
@@ -820,12 +821,12 @@
         }
 
         .rec-card-desc {
-            font-size: 15.5px;
-            line-height: 1.6;
+            font-size: 16px;
+            line-height: 1.7;
             color: #5a4a3a;
-            margin-bottom: 32px;
+            margin-bottom: 36px;
             flex-grow: 1;
-            max-width: 380px;
+            max-width: 460px;
         }
 
         body.dark-mode .rec-card-desc {
@@ -833,15 +834,16 @@
         }
 
         .rec-card-action-btn {
-            padding: 12px 28px;
-            border-radius: 12px;
+            padding: 14px 36px;
+            border-radius: 14px;
             background: linear-gradient(135deg, #ff6b35, #e85c20);
             color: white;
-            font-size: 14px;
+            font-size: 15px;
             font-weight: 700;
             transition: all 0.3s ease;
             box-shadow: 0 4px 15px rgba(255, 107, 53, 0.2);
             border: none;
+            letter-spacing: 0.3px;
         }
 
         .bloomready-card .rec-card-action-btn {
@@ -902,28 +904,28 @@
 
         .rec-card-img {
             width: 100%;
-            max-width: 400px;
-            height: 240px;
-            border-radius: 14px;
+            max-width: 480px;
+            height: 280px;
+            border-radius: 18px;
             object-fit: cover;
-            margin-bottom: 24px;
-            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+            margin-bottom: 28px;
+            box-shadow: 0 10px 35px rgba(0, 0, 0, 0.08);
             border: 1px solid rgba(0, 0, 0, 0.08);
             transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s ease;
         }
 
         body.dark-mode .rec-card-img {
             border-color: rgba(255, 255, 255, 0.12);
-            box-shadow: 0 8px 35px rgba(0, 0, 0, 0.35);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.35);
         }
 
         .rec-selector-card:hover .rec-card-img {
             transform: translateY(-4px) scale(1.02);
-            box-shadow: 0 12px 35px rgba(255, 107, 53, 0.18);
+            box-shadow: 0 14px 40px rgba(255, 107, 53, 0.2);
         }
 
         .rec-selector-card.bloomready-card:hover .rec-card-img {
-            box-shadow: 0 12px 35px rgba(20, 184, 166, 0.18);
+            box-shadow: 0 14px 40px rgba(20, 184, 166, 0.2);
         }
 
         /* ===== BLOOMREADY VIEW STYLES ===== */
@@ -1368,10 +1370,6 @@
 
                 <!-- ===== RECOMMENDATION SYSTEM SELECTOR ===== -->
                 <div class="rec-selector-container" id="recSystemSelector">
-                    <div class="rec-selector-header">
-                        <h2>Select Advising System</h2>
-                        <p>Evaluate your performance potential using historical data patterns, or choose the regulations-compliant model to verify your prerequisites and cognitive readiness.</p>
-                    </div>
                     <div class="rec-selector-grid">
                         <!-- Usual Recommendation Card -->
                         <div class="rec-selector-card usual-card" onclick="selectRecSystem('usual')">
