@@ -3284,8 +3284,12 @@ def receive_stream_frame():
         result_faces = []
         try:
             frame = cv2.imread(fpath)
-            if frame is not None:
-                faces = flask_detect_all_faces(frame)
+            if frame is None:
+                err_msg = f"cv2.imread returned None. fpath={fpath}, exists={os.path.exists(fpath)}, size={os.path.getsize(fpath) if os.path.exists(fpath) else 0}"
+                print(f"[Flask] {err_msg}")
+                return jsonify({'success': False, 'message': err_msg}), 200
+            
+            faces = flask_detect_all_faces(frame)
                 db = get_enrolled_database()
                 for face_img, (x1, y1, x2, y2), conf in faces:
                     emb = flask_extract_embedding(face_img)
