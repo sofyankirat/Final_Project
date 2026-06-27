@@ -894,6 +894,28 @@
             border-color: rgba(251, 146, 60, 0.25);
         }
 
+        .rec-card-img {
+            width: 100%;
+            max-width: 260px;
+            height: auto;
+            max-height: 150px;
+            border-radius: 12px;
+            object-fit: cover;
+            margin-bottom: 24px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            transition: transform 0.3s ease;
+        }
+
+        body.dark-mode .rec-card-img {
+            border-color: rgba(255, 255, 255, 0.1);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .rec-selector-card:hover .rec-card-img {
+            transform: scale(1.03);
+        }
+
         /* ===== BLOOMREADY VIEW STYLES ===== */
         .rec-bloomready-layout {
             width: 100%;
@@ -1316,7 +1338,7 @@
                 </div>
 
                 <!-- Welcome Heading -->
-                <div class="dash-welcome">
+                <div class="dash-welcome" id="recMainPageHeader">
                     <h1 class="dash-welcome-text">Course <span class="welcome-name">Recommendations</span></h1>
                     <p class="dash-welcome-sub">Let's figure out if this course is right for you! Fill in the quick
                         details below, and our recommendation system will give you personalized advice on whether it's a
@@ -1350,6 +1372,7 @@
                                 </svg>
                             </div>
                             <h3 class="rec-card-title">Usual Recommendation System</h3>
+                            <img src="{{ url_for('static', filename='images/Standard_Recommendation_page.jpg') }}" alt="Standard Recommendation System Preview" class="rec-card-img">
                             <p class="rec-card-desc">Predicts course success score and suitability based on weekly study hours, attendance, GPA, and professor matching algorithms.</p>
                             <span class="rec-card-action-btn">Launch System</span>
                         </div>
@@ -1364,6 +1387,7 @@
                                 </svg>
                             </div>
                             <h3 class="rec-card-title">BloomReady System</h3>
+                            <img src="{{ url_for('static', filename='images/Advanced_Recommendation_system.jpg') }}" alt="Advanced Recommendation System Preview" class="rec-card-img">
                             <p class="rec-card-desc">Validates credit-hour regulations compliance, builds NetworkX prerequisite charts, parses syllabi, and runs Bloom's Taxonomy self-assessments.</p>
                             <span class="rec-card-action-btn">Enter BloomReady</span>
                         </div>
@@ -1826,16 +1850,19 @@
             const usualLayout = document.querySelector('.rec-main-layout');
             const usualHeader = document.getElementById('recUsualHeader');
             const bloomReadyLayout = document.getElementById('recBloomReadyLayout');
+            const mainPageHeader = document.getElementById('recMainPageHeader');
             
             // Hide all layouts
             if (selector) selector.style.display = 'none';
             if (usualLayout) usualLayout.style.display = 'none';
             if (usualHeader) usualHeader.style.display = 'none';
             if (bloomReadyLayout) bloomReadyLayout.style.display = 'none';
+            if (mainPageHeader) mainPageHeader.style.display = 'none';
             
             if (systemName === 'usual') {
                 if (usualLayout) usualLayout.style.display = 'flex';
                 if (usualHeader) usualHeader.style.display = 'block';
+                if (mainPageHeader) mainPageHeader.style.display = 'block';
                 sessionStorage.setItem('rec_system_selection', 'usual');
                 // Force sidebar height recalculation once elements are visible
                 setTimeout(() => {
