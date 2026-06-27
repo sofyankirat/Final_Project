@@ -683,10 +683,10 @@
 
         .rec-selector-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
-            gap: 36px;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 40px;
             width: 100%;
-            max-width: 960px;
+            max-width: 1080px;
             margin-bottom: 60px;
         }
 
@@ -896,24 +896,28 @@
 
         .rec-card-img {
             width: 100%;
-            max-width: 260px;
-            height: auto;
-            max-height: 150px;
-            border-radius: 12px;
+            max-width: 360px;
+            height: 210px;
+            border-radius: 14px;
             object-fit: cover;
             margin-bottom: 24px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
             border: 1px solid rgba(0, 0, 0, 0.08);
-            transition: transform 0.3s ease;
+            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s ease;
         }
 
         body.dark-mode .rec-card-img {
-            border-color: rgba(255, 255, 255, 0.1);
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            border-color: rgba(255, 255, 255, 0.12);
+            box-shadow: 0 8px 35px rgba(0, 0, 0, 0.35);
         }
 
         .rec-selector-card:hover .rec-card-img {
-            transform: scale(1.03);
+            transform: translateY(-4px) scale(1.02);
+            box-shadow: 0 12px 35px rgba(255, 107, 53, 0.18);
+        }
+
+        .rec-selector-card.bloomready-card:hover .rec-card-img {
+            box-shadow: 0 12px 35px rgba(20, 184, 166, 0.18);
         }
 
         /* ===== BLOOMREADY VIEW STYLES ===== */
@@ -1366,11 +1370,6 @@
                         <!-- Usual Recommendation Card -->
                         <div class="rec-selector-card usual-card" onclick="selectRecSystem('usual')">
                             <div class="usual-badge">Standard Model</div>
-                            <div class="rec-card-icon-wrap">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
-                                </svg>
-                            </div>
                             <h3 class="rec-card-title">Usual Recommendation System</h3>
                             <img src="{{ url_for('static', filename='images/Standard_Recommendation_page.jpg') }}" alt="Standard Recommendation System Preview" class="rec-card-img">
                             <p class="rec-card-desc">Predicts course success score and suitability based on weekly study hours, attendance, GPA, and professor matching algorithms.</p>
@@ -1380,12 +1379,6 @@
                         <!-- BloomReady Card -->
                         <div class="rec-selector-card bloomready-card" onclick="selectRecSystem('bloomready')">
                             <div class="bloomready-badge">Advanced & AI</div>
-                            <div class="rec-card-icon-wrap">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                    <path d="M22 10v6M2 10l10-5 10 5-10 5z"></path>
-                                    <path d="M6 12v5c0 2 2 3 6 3s6-1 6-3v-5"></path>
-                                </svg>
-                            </div>
                             <h3 class="rec-card-title">BloomReady System</h3>
                             <img src="{{ url_for('static', filename='images/Advanced_Recommendation_system.jpg') }}" alt="Advanced Recommendation System Preview" class="rec-card-img">
                             <p class="rec-card-desc">Validates credit-hour regulations compliance, builds NetworkX prerequisite charts, parses syllabi, and runs Bloom's Taxonomy self-assessments.</p>
@@ -1850,19 +1843,16 @@
             const usualLayout = document.querySelector('.rec-main-layout');
             const usualHeader = document.getElementById('recUsualHeader');
             const bloomReadyLayout = document.getElementById('recBloomReadyLayout');
-            const mainPageHeader = document.getElementById('recMainPageHeader');
             
             // Hide all layouts
             if (selector) selector.style.display = 'none';
             if (usualLayout) usualLayout.style.display = 'none';
             if (usualHeader) usualHeader.style.display = 'none';
             if (bloomReadyLayout) bloomReadyLayout.style.display = 'none';
-            if (mainPageHeader) mainPageHeader.style.display = 'none';
             
             if (systemName === 'usual') {
                 if (usualLayout) usualLayout.style.display = 'flex';
                 if (usualHeader) usualHeader.style.display = 'block';
-                if (mainPageHeader) mainPageHeader.style.display = 'block';
                 sessionStorage.setItem('rec_system_selection', 'usual');
                 // Force sidebar height recalculation once elements are visible
                 setTimeout(() => {
