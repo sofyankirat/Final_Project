@@ -38,6 +38,7 @@ print("[Flask] Pre-loading YOLO and ArcFace models...")
 flask_yolo_model = None
 flask_arc_session = None
 flask_arc_input = None
+flask_startup_error = None
 
 try:
     import cv2
@@ -58,9 +59,27 @@ try:
         flask_arc_input = flask_arc_session.get_inputs()[0].name
         print("[Flask] Models loaded successfully!")
     else:
-        print(f"[Flask] Models not found at: {yolo_model_path} or {arcface_model_path}")
+        flask_startup_error = f"Models not found. Paths searched:\nYOLO: {yolo_model_path} (exists: {os.path.exists(yolo_model_path)})\nArcFace: {arcface_model_path} (exists: {os.path.exists(arcface_model_path)})"
+        print(f"[Flask] {flask_startup_error}")
 except Exception as e:
-    print(f"[Flask] Error loading models at startup: {e}")
+    import traceback
+    flask_startup_error = f"Exception: {e}\n{traceback.format_exc()}"
+    print(f"[Flask] Error loading models at startup: {flask_startup_error}")
+
+
+@app.route('/api/debug-models')
+def debug_models():
+    import glob
+    models_dir = os.path.join(_ATTENDANCE_ROOT, "models")
+    available_files = [os.path.basename(f) for f in glob.glob(os.path.join(models_dir, "*"))] if os.path.exists(models_dir) else []
+    return jsonify({
+        'yolo_loaded': flask_yolo_model is not None,
+        'arcface_loaded': flask_arc_session is not None,
+        'startup_error': flask_startup_error,
+        'attendance_root': _ATTENDANCE_ROOT,
+        'models_dir_exists': os.path.exists(models_dir),
+        'available_files': available_files
+    })
 
 
 def get_enrolled_database():
@@ -3305,7 +3324,8 @@ def receive_stream_frame():
                     recognized_names.append(name)
 
         if not recognized_names and not result_faces:
-            return jsonify({'success': False, 'message': 'No faces detected'}), 200
+            model_status = "loaded" if flask_yolo_model is not None else "failed to load (check /api/debug-models)"
+            return jsonify({'success': False, 'message': f'No faces detected (YOLO status: {model_status})'}), 200
 
         if recognized_names:
             connection = get_db_connection()
