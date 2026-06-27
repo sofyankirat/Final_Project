@@ -2920,6 +2920,8 @@ ws_recognized_users = set()
 
 latest_esp_frame = None
 latest_esp_frame_lock = threading.Lock()
+latest_face_boxes = []
+latest_face_boxes_lock = threading.Lock()
 
 def process_frame_async(fpath):
     global is_processing_frame, ws_recognized_users
@@ -2948,6 +2950,8 @@ def process_frame_async(fpath):
                 except json.JSONDecodeError:
                     pass
 
+        with latest_face_boxes_lock:
+            latest_face_boxes = []
         if result and result.get('success'):
             faces = result.get('faces', [])
             recognized_names = []
@@ -2998,6 +3002,16 @@ def process_frame_async(fpath):
                         connection.commit()
                     cursor.close()
                     connection.close()
+            
+            with latest_face_boxes_lock:
+                latest_face_boxes = [
+                    {
+                        'bbox': face.get('bbox', []),
+                        'name': face.get('name', 'Unknown'),
+                        'confidence': face.get('confidence', 0)
+                    }
+                    for face in faces
+                ]
     except Exception as ex:
         print(f"[WS] Subprocess error during background frame processing: {ex}")
     finally:
@@ -3157,6 +3171,19 @@ def receive_stream_frame():
                 except json.JSONDecodeError:
                     pass
 
+        with latest_face_boxes_lock:
+            latest_face_boxes = []
+        if result and result.get('success'):
+            with latest_face_boxes_lock:
+                latest_face_boxes = [
+                    {
+                        'bbox': face.get('bbox', []),
+                        'name': face.get('name', 'Unknown'),
+                        'confidence': face.get('confidence', 0)
+                    }
+                    for face in result.get('faces', [])
+                ]
+
         try:
             if os.path.exists(fpath):
                 os.remove(fpath)
@@ -3266,6 +3293,15 @@ def camera_latest():
     if frame is None:
         return jsonify({'success': False, 'message': 'No frame available. Ensure ESP32-CAM is connected.'}), 404
     return Response(frame, mimetype='image/jpeg')
+
+
+@app.route('/api/camera/faces')
+@login_required
+def camera_faces():
+    global latest_face_boxes
+    with latest_face_boxes_lock:
+        faces = list(latest_face_boxes)
+    return jsonify({'success': True, 'faces': faces})
 
 
 @app.route('/api/attendance/stats', methods=['GET'])

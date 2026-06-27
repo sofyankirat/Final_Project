@@ -388,9 +388,10 @@
                     <div class="cam-stream-wrap" id="camStreamWrap">
                         <div class="cam-stream-placeholder" id="camPlaceholder">
                             <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3.5L14.5 4z"/><circle cx="12" cy="13" r="3"/></svg>
-                            <span id="camPlaceholderText">Waiting for ESP camera to go live… Stand by, this window opens automatically when the camera is online.</span>
+                            <span id="camPlaceholderText">Waiting for ESP camera to open…</span>
                         </div>
-                        <img id="espStreamImg" alt="ESP Camera Stream" style="display:none; width:100%; height:100%; object-fit:cover;">
+                        <canvas id="faceOverlay" style="position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:2;"></canvas>
+                        <img id="espStreamImg" alt="ESP Camera Stream" style="display:none; width:100%; height:100%; object-fit:contain; background:#1a1a2e;">
                     </div>
 
                     <div class="cam-captured-section" id="capturedSection">
@@ -461,36 +462,92 @@
         document.addEventListener('click', () => document.querySelectorAll('.header-popup.open').forEach(p => p.classList.remove('open')));
 
         // ─── Camera Logic ────────────────────────────────────────────
-        let streamActive = false;
+        let hasSignal = false;
         let streamInterval = null;
         const streamImg = document.getElementById('espStreamImg');
         const placeholder = document.getElementById('camPlaceholder');
         const placeholderText = document.getElementById('camPlaceholderText');
         const statusDot = document.getElementById('camStatusDot');
         const statusText = document.getElementById('camStatusText');
+        const faceCanvas = document.getElementById('faceOverlay');
 
-        streamImg.onerror = function() {
-            if (!streamActive) return;
-            statusDot.className = 'cam-status-dot error';
-            statusText.textContent = 'No signal from ESP camera';
-        };
+        function updateStream() {
+            streamImg.src = '/api/camera/latest?t=' + Date.now();
+        }
 
-        function beginStream() {
-            if (streamActive) return;
-            streamActive = true;
+        streamImg.onload = function() {
+            hasSignal = true;
             placeholder.style.display = 'none';
             streamImg.style.display = 'block';
             statusDot.className = 'cam-status-dot live';
             statusText.textContent = 'Camera is live';
-            streamInterval = setInterval(() => {
-                streamImg.src = '/api/camera/latest?t=' + Date.now();
-            }, 100);
+            drawFaceBoxes();
+        };
+
+        streamImg.onerror = function() {
+            hasSignal = false;
+            statusDot.className = 'cam-status-dot error';
+            statusText.textContent = 'No signal from ESP camera';
+            placeholder.style.display = 'flex';
+            placeholderText.textContent = 'Waiting for ESP camera to open…';
+            streamImg.style.display = 'none';
+        };
+
+        streamInterval = setInterval(updateStream, 100);
+
+        function drawFaceBoxes() {
+            if (!faceCanvas) return;
+            const ctx = faceCanvas.getContext('2d');
+            const wrap = document.getElementById('camStreamWrap');
+            faceCanvas.width = wrap.clientWidth;
+            faceCanvas.height = wrap.clientHeight;
+            ctx.clearRect(0, 0, faceCanvas.width, faceCanvas.height);
+
+            if (!streamImg.naturalWidth || !streamImg.naturalHeight) return;
+
+            const containerW = wrap.clientWidth;
+            const containerH = wrap.clientHeight;
+            const naturalW = streamImg.naturalWidth;
+            const naturalH = streamImg.naturalHeight;
+            const scale = Math.min(containerW / naturalW, containerH / naturalH);
+            const renderW = naturalW * scale;
+            const renderH = naturalH * scale;
+            const offsetX = (containerW - renderW) / 2;
+            const offsetY = (containerH - renderH) / 2;
+
+            fetch('/api/camera/faces')
+                .then(r => r.json())
+                .then(data => {
+                    if (!data.success || !Array.isArray(data.faces)) return;
+                    ctx.clearRect(0, 0, faceCanvas.width, faceCanvas.height);
+                    data.faces.forEach(face => {
+                        const bbox = face.bbox || [];
+                        if (bbox.length < 4) return;
+                        const [x1, y1, x2, y2] = bbox;
+                        const left = x1 * scale + offsetX;
+                        const top = y1 * scale + offsetY;
+                        const width = (x2 - x1) * scale;
+                        const height = (y2 - y1) * scale;
+                        const isUnknown = (face.name === 'Unknown' || !face.name);
+                        const color = isUnknown ? '#ef4444' : '#22c55e';
+                        ctx.strokeStyle = color;
+                        ctx.lineWidth = 3;
+                        ctx.strokeRect(left, top, width, height);
+                        if (face.name) {
+                            ctx.fillStyle = color;
+                            ctx.font = 'bold 12px Inter, sans-serif';
+                            const text = isUnknown ? 'Unknown' : face.name;
+                            const metrics = ctx.measureText(text);
+                            ctx.fillRect(left, top - 18, metrics.width + 6, 18);
+                            ctx.fillStyle = '#ffffff';
+                            ctx.fillText(text, left + 3, top - 5);
+                        }
+                    });
+                })
+                .catch(err => console.error('Face overlay error:', err));
         }
 
-        beginStream();
-
         function capturePhoto() {
-            if (!streamActive) return;
             statusDot.className = 'cam-status-dot live';
             statusText.textContent = 'Capturing...';
             fetch('/api/camera/latest')
