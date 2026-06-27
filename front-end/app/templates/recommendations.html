@@ -907,7 +907,8 @@
             max-width: 540px;
             height: 320px;
             border-radius: 20px;
-            object-fit: cover;
+            object-fit: contain;
+            background: rgba(0, 0, 0, 0.02);
             margin-bottom: 28px;
             box-shadow: 0 10px 35px rgba(0, 0, 0, 0.08);
             border: 1px solid rgba(0, 0, 0, 0.08);
@@ -915,6 +916,7 @@
         }
 
         body.dark-mode .rec-card-img {
+            background: rgba(255, 255, 255, 0.03);
             border-color: rgba(255, 255, 255, 0.12);
             box-shadow: 0 10px 40px rgba(0, 0, 0, 0.35);
         }
