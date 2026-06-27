@@ -1989,11 +1989,14 @@
                 const data = await res.json();
                 if (data.success && data.recognized_count > 0) {
                     const firstFace = data.faces.find(f => f.name !== 'Unknown');
-                    const recognizedName = firstFace ? firstFace.name : 'Student';
+                    let recognizedFirstName = 'Student';
+                    if (firstFace && firstFace.name) {
+                        recognizedFirstName = firstFace.name.trim().split(/\s+/)[0];
+                    }
                     rEl.className = 'test-result success';
                     rEl.innerHTML = `<div style="font-size:15px;font-weight:800;display:flex;align-items:center;gap:6px;justify-content:center;">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color:#27ae60"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
-                    <span>Recognized successfully, Hello ${recognizedName}!</span>
+                    <span>Recognized successfully, Hello ${recognizedFirstName}!</span>
                 </div>`;
                 } else if (data.success) {
                     rEl.className = 'test-result fail';
