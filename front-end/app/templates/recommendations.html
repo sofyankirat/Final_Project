@@ -641,93 +641,172 @@
 
         /* ===== RECOMMENDATION SYSTEM SELECTOR STYLES ===== */
         .rec-selector-container {
-            margin-top: 24px;
+            margin-top: 36px;
             width: 100%;
-            animation: fadeIn 0.4s ease;
+            animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .rec-selector-header {
+            text-align: center;
+            margin-bottom: 40px;
+            max-width: 600px;
+        }
+
+        .rec-selector-header h2 {
+            font-size: 28px;
+            font-weight: 800;
+            margin-bottom: 12px;
+            background: linear-gradient(135deg, #ff6b35, #e85c20);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -0.5px;
+        }
+
+        body.dark-mode .rec-selector-header h2 {
+            background: linear-gradient(135deg, #f8fafc, #cbd5e1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .rec-selector-header p {
+            font-size: 15px;
+            color: #5a4a3a;
+            line-height: 1.6;
+        }
+
+        body.dark-mode .rec-selector-header p {
+            color: #94a3b8;
         }
 
         .rec-selector-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-            gap: 28px;
-            margin-bottom: 40px;
+            grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+            gap: 36px;
+            width: 100%;
+            max-width: 960px;
+            margin-bottom: 60px;
         }
 
         .rec-selector-card {
-            background: rgba(255, 255, 255, 0.7);
-            border: 1px solid rgba(255, 107, 53, 0.2);
-            border-radius: 20px;
-            padding: 36px 28px;
-            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.45);
+            border: 1px solid rgba(255, 107, 53, 0.15);
+            border-radius: 24px;
+            padding: 44px 32px;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
             cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
             position: relative;
             overflow: hidden;
             display: flex;
             flex-direction: column;
-            align-items: flex-start;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+            align-items: center;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.03);
         }
 
         body.dark-mode .rec-selector-card {
-            background: rgba(15, 17, 58, 0.7);
-            border-color: rgba(99, 102, 241, 0.25);
-            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2);
+            background: rgba(15, 17, 58, 0.45);
+            border-color: rgba(99, 102, 241, 0.15);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .rec-selector-card::before {
+            content: "";
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255, 107, 53, 0.05) 0%, transparent 70%);
+            opacity: 0;
+            transition: opacity 0.4s ease;
+            pointer-events: none;
+        }
+
+        .rec-selector-card.bloomready-card::before {
+            background: radial-gradient(circle, rgba(20, 184, 166, 0.05) 0%, transparent 70%);
+        }
+
+        .rec-selector-card:hover::before {
+            opacity: 1;
         }
 
         .rec-selector-card:hover {
-            transform: translateY(-6px);
-            box-shadow: 0 12px 30px rgba(255, 107, 53, 0.15);
-            border-color: rgba(255, 107, 53, 0.6);
+            transform: translateY(-8px);
+            box-shadow: 0 20px 40px rgba(255, 107, 53, 0.12);
+            border-color: rgba(255, 107, 53, 0.4);
+            background: rgba(255, 255, 255, 0.65);
         }
 
         body.dark-mode .rec-selector-card:hover {
-            box-shadow: 0 12px 30px rgba(99, 102, 241, 0.2);
-            border-color: rgba(99, 102, 241, 0.6);
+            box-shadow: 0 20px 40px rgba(99, 102, 241, 0.15);
+            border-color: rgba(99, 102, 241, 0.45);
+            background: rgba(15, 17, 58, 0.6);
         }
 
         .rec-selector-card.bloomready-card:hover {
-            box-shadow: 0 12px 30px rgba(20, 184, 166, 0.15);
-            border-color: rgba(20, 184, 166, 0.6);
+            box-shadow: 0 20px 40px rgba(20, 184, 166, 0.12);
+            border-color: rgba(20, 184, 166, 0.4);
         }
 
         .rec-card-icon-wrap {
-            width: 64px;
-            height: 64px;
-            border-radius: 16px;
-            background: rgba(255, 107, 53, 0.1);
+            width: 72px;
+            height: 72px;
+            border-radius: 20px;
+            background: rgba(255, 107, 53, 0.08);
             color: #ff6b35;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin-bottom: 24px;
-            transition: all 0.3s ease;
+            margin-bottom: 28px;
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            border: 1px solid rgba(255, 107, 53, 0.15);
         }
 
         body.dark-mode .rec-card-icon-wrap {
-            background: rgba(99, 102, 241, 0.15);
+            background: rgba(99, 102, 241, 0.1);
             color: #818cf8;
+            border-color: rgba(99, 102, 241, 0.2);
         }
 
         .bloomready-card .rec-card-icon-wrap {
-            background: rgba(20, 184, 166, 0.1);
+            background: rgba(20, 184, 166, 0.08);
             color: #14b8a6;
+            border-color: rgba(20, 184, 166, 0.15);
         }
 
         body.dark-mode .bloomready-card .rec-card-icon-wrap {
-            background: rgba(20, 184, 166, 0.15);
+            background: rgba(20, 184, 166, 0.1);
             color: #2dd4bf;
+            border-color: rgba(20, 184, 166, 0.2);
         }
 
         .rec-selector-card:hover .rec-card-icon-wrap {
-            transform: scale(1.1);
+            transform: scale(1.1) rotate(5deg);
+            background: rgba(255, 107, 53, 0.15);
+            border-color: rgba(255, 107, 53, 0.3);
+        }
+
+        body.dark-mode .rec-selector-card:hover .rec-card-icon-wrap {
+            background: rgba(99, 102, 241, 0.2);
+            border-color: rgba(99, 102, 241, 0.4);
+        }
+
+        .bloomready-card:hover .rec-card-icon-wrap {
+            background: rgba(20, 184, 166, 0.15);
+            border-color: rgba(20, 184, 166, 0.3);
         }
 
         .rec-card-title {
-            font-size: 20px;
-            font-weight: 700;
-            margin-bottom: 12px;
+            font-size: 22px;
+            font-weight: 800;
+            margin-bottom: 14px;
             color: #1a1a1a;
+            letter-spacing: -0.3px;
         }
 
         body.dark-mode .rec-card-title {
@@ -735,11 +814,12 @@
         }
 
         .rec-card-desc {
-            font-size: 14px;
+            font-size: 14.5px;
             line-height: 1.6;
             color: #5a4a3a;
-            margin-bottom: 28px;
+            margin-bottom: 32px;
             flex-grow: 1;
+            max-width: 320px;
         }
 
         body.dark-mode .rec-card-desc {
@@ -747,21 +827,29 @@
         }
 
         .rec-card-action-btn {
-            padding: 10px 20px;
-            border-radius: 8px;
+            padding: 12px 28px;
+            border-radius: 12px;
             background: linear-gradient(135deg, #ff6b35, #e85c20);
             color: white;
-            font-size: 13.5px;
+            font-size: 14px;
             font-weight: 700;
-            transition: opacity 0.2s ease;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(255, 107, 53, 0.2);
+            border: none;
         }
 
         .bloomready-card .rec-card-action-btn {
             background: linear-gradient(135deg, #14b8a6, #0d9488);
+            box-shadow: 0 4px 15px rgba(20, 184, 166, 0.2);
         }
 
         .rec-selector-card:hover .rec-card-action-btn {
-            opacity: 0.9;
+            transform: scale(1.05);
+            box-shadow: 0 6px 20px rgba(255, 107, 53, 0.3);
+        }
+
+        .bloomready-card:hover .rec-card-action-btn {
+            box-shadow: 0 6px 20px rgba(20, 184, 166, 0.3);
         }
 
         .bloomready-badge {
@@ -770,17 +858,40 @@
             right: 24px;
             background: rgba(20, 184, 166, 0.15);
             color: #0d9488;
-            padding: 4px 10px;
-            border-radius: 12px;
-            font-size: 11px;
-            font-weight: 700;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 10.5px;
+            font-weight: 800;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 0.8px;
+            border: 1px solid rgba(20, 184, 166, 0.25);
         }
 
         body.dark-mode .bloomready-badge {
             background: rgba(45, 212, 191, 0.15);
             color: #2dd4bf;
+            border-color: rgba(45, 212, 191, 0.25);
+        }
+
+        .usual-badge {
+            position: absolute;
+            top: 24px;
+            right: 24px;
+            background: rgba(255, 107, 53, 0.1);
+            color: #e85c20;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 10.5px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            border: 1px solid rgba(255, 107, 53, 0.2);
+        }
+
+        body.dark-mode .usual-badge {
+            background: rgba(251, 146, 60, 0.15);
+            color: #fb923c;
+            border-color: rgba(251, 146, 60, 0.25);
         }
 
         /* ===== BLOOMREADY VIEW STYLES ===== */
@@ -1225,30 +1336,35 @@
 
                 <!-- ===== RECOMMENDATION SYSTEM SELECTOR ===== -->
                 <div class="rec-selector-container" id="recSystemSelector">
+                    <div class="rec-selector-header">
+                        <h2>Select Advising System</h2>
+                        <p>Evaluate your performance potential using historical data patterns, or choose the regulations-compliant model to verify your prerequisites and cognitive readiness.</p>
+                    </div>
                     <div class="rec-selector-grid">
                         <!-- Usual Recommendation Card -->
-                        <div class="rec-selector-card" onclick="selectRecSystem('usual')">
+                        <div class="rec-selector-card usual-card" onclick="selectRecSystem('usual')">
+                            <div class="usual-badge">Standard Model</div>
                             <div class="rec-card-icon-wrap">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                                     <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
                                 </svg>
                             </div>
                             <h3 class="rec-card-title">Usual Recommendation System</h3>
-                            <p class="rec-card-desc">Standard advising process based on weekly subject study hours, attendance rate, target course, and professor selection.</p>
+                            <p class="rec-card-desc">Predicts course success score and suitability based on weekly study hours, attendance, GPA, and professor matching algorithms.</p>
                             <span class="rec-card-action-btn">Launch System</span>
                         </div>
 
                         <!-- BloomReady Card -->
                         <div class="rec-selector-card bloomready-card" onclick="selectRecSystem('bloomready')">
+                            <div class="bloomready-badge">Advanced & AI</div>
                             <div class="rec-card-icon-wrap">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                     <path d="M22 10v6M2 10l10-5 10 5-10 5z"></path>
                                     <path d="M6 12v5c0 2 2 3 6 3s6-1 6-3v-5"></path>
                                 </svg>
                             </div>
-                            <div class="bloomready-badge">MU Regulations</div>
                             <h3 class="rec-card-title">BloomReady System</h3>
-                            <p class="rec-card-desc">Advanced intelligent course recommendation strictly enforcing Mansoura University Board Regulations. Employs NetworkX for prerequisite analysis, Gemini Flash LLM for syllabus parsing, and Bloom's Taxonomy MCQs for readiness self-assessment.</p>
+                            <p class="rec-card-desc">Validates credit-hour regulations compliance, builds NetworkX prerequisite charts, parses syllabi, and runs Bloom's Taxonomy self-assessments.</p>
                             <span class="rec-card-action-btn">Enter BloomReady</span>
                         </div>
                     </div>
@@ -1721,12 +1837,22 @@
                 if (usualLayout) usualLayout.style.display = 'flex';
                 if (usualHeader) usualHeader.style.display = 'block';
                 sessionStorage.setItem('rec_system_selection', 'usual');
+                // Force sidebar height recalculation once elements are visible
+                setTimeout(() => {
+                    if (typeof alignRecommendationHistorySidebar === 'function') {
+                        alignRecommendationHistorySidebar();
+                    }
+                }, 50);
             } else if (systemName === 'bloomready') {
                 if (bloomReadyLayout) bloomReadyLayout.style.display = 'block';
                 sessionStorage.setItem('rec_system_selection', 'bloomready');
             } else {
                 if (selector) selector.style.display = 'block';
                 sessionStorage.removeItem('rec_system_selection');
+                // Realignment will reset the height
+                if (typeof alignRecommendationHistorySidebar === 'function') {
+                    alignRecommendationHistorySidebar();
+                }
             }
         }
 
@@ -2093,6 +2219,12 @@
             const fieldsCardEl = document.getElementById('recFieldsCard');
             const contentStackEl = document.getElementById('recContentStack');
             if (!sidebarEl || !fieldsCardEl) return;
+
+            // If the usual form layout is hidden, do not set sidebar height to 0!
+            if (fieldsCardEl.offsetParent === null) {
+                sidebarEl.style.height = '';
+                return;
+            }
 
             if (window.innerWidth <= 1100) {
                 sidebarEl.style.marginTop = '0px';

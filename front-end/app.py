@@ -1787,7 +1787,32 @@ def recommendations():
             # Fallback values
             score = 75.0
             recommended = True
-            reason = f"Based on your attendance ({attendance_count}%) and weekly study hours ({weekly_avg_study_hours} hrs), {course_name} is recommended."
+            
+            # Construct a structured fallback object to call detailed reasoning formatter
+            fallback_prediction = {
+                'score': score,
+                'recommended': recommended,
+                'features': {
+                    'student_program': student_info.get('program', 'Statistics and Computer Science'),
+                    'student_level': student_info.get('level', 1),
+                    'GPA': student_info.get('gpa', 3.0),
+                    'analytical_score': student_info.get('analytical_score', 7),
+                    'practical_score': student_info.get('practical_score', 7),
+                    'total_failed_subjects': student_info.get('failed_subjects', 0),
+                    'is_employed': student_info.get('is_working', 0),
+                    'course_name': course_name if course_name else "Selected Course",
+                    'course_category': "Core/Optional",
+                    'course_difficulty': 3,
+                    'course_credit_hours': 3,
+                    'is_required': "Required",
+                    'professor_name': professors if professors else "Selected Professor",
+                    'professor_avg_teaching_score': 8,
+                    'professor_avg_pass_percentage': 80,
+                    'weekly_avg_study_hours_subject': weekly_avg_study_hours,
+                    'student_attendance_percentage_subject': attendance_count
+                }
+            }
+            reason = recommendation_model.generate_llm_reasoning(fallback_prediction)
 
         # Sticky form data
         form_data = {

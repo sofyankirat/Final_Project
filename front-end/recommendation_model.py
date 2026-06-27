@@ -130,10 +130,14 @@ def predict_recommendation(student_info, course_name, professor_name, study_hour
     df_input = pd.DataFrame([input_data])
     
     # 3. Predict continuous score (Model A)
-    if _regressor_model:
-        pred_score = float(_regressor_model.predict(df_input)[0])
-    else:
-        # Fallback heuristic
+    try:
+        if _regressor_model:
+            pred_score = float(_regressor_model.predict(df_input)[0])
+        else:
+            # Fallback heuristic
+            pred_score = 70.0 + (float(student_info['gpa']) * 5.0) + (float(study_hours) * 1.5)
+    except Exception as model_err:
+        print(f"ML Regressor predict error, using fallback heuristic: {model_err}")
         pred_score = 70.0 + (float(student_info['gpa']) * 5.0) + (float(study_hours) * 1.5)
         
     # Apply weights / adjustment to make study hours, attendance, and difficulty highly dynamic
