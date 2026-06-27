@@ -2161,6 +2161,40 @@ def upload_ai_chat_attachment():
         return jsonify({'success': False, 'message': 'Failed to upload attachment'}), 500
 
 
+@app.route('/api/trigger-db-seed', methods=['GET'])
+def trigger_db_seed():
+    import requests
+    mini_rag_url = os.getenv("MINI_RAG_URL", "http://localhost:8000")
+    try:
+        # Step 1: Process files
+        proc_res = requests.post(
+            f"{mini_rag_url}/api/v1/data/process/1",
+            json={
+                "chunk_size": 1000,
+                "overlap_size": 200,
+                "do_reset": 1
+            },
+            timeout=180
+        )
+        # Step 2: Index/Push to vector store
+        push_res = requests.post(
+            f"{mini_rag_url}/api/v1/nlp/index/push/1",
+            json={
+                "do_reset": True
+            },
+            timeout=300
+        )
+        return jsonify({
+            'success': True,
+            'process_status': proc_res.status_code,
+            'process_response': proc_res.json() if proc_res.status_code == 200 else proc_res.text,
+            'push_status': push_res.status_code,
+            'push_response': push_res.json() if push_res.status_code == 200 else push_res.text
+        })
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
 @app.route('/api/ai-chat', methods=['POST'])
 @login_required
 def ai_chat():
