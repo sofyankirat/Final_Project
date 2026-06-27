@@ -3325,7 +3325,12 @@ def receive_stream_frame():
 
         if not recognized_names and not result_faces:
             model_status = "loaded" if flask_yolo_model is not None else "failed to load (check /api/debug-models)"
-            return jsonify({'success': False, 'message': f'No faces detected (YOLO status: {model_status})'}), 200
+            return jsonify({
+                'success': False,
+                'recognized': [],
+                'faces': [],
+                'message': f'No faces detected (YOLO status: {model_status})'
+            }), 200
 
         if recognized_names:
             connection = get_db_connection()
@@ -3392,12 +3397,14 @@ def receive_stream_frame():
                     'success': True,
                     'recognized': recognized_names,
                     'marked_present_count': logged_count,
+                    'faces': result_faces,
                     'message': f'Processed {len(recognized_names)} student(s). Marked {logged_count} new attendance.'
                 }), 200
 
         return jsonify({
             'success': True,
             'recognized': [],
+            'faces': result_faces,
             'message': 'No known students recognized in frame.'
         }), 200
 
