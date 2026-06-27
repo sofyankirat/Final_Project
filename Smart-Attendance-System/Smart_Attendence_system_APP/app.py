@@ -241,6 +241,32 @@ async def recognize_face(file: UploadFile = File(...)):
         "message": f"Detected {len(results)} face(s)"
     }
 
+
+@app.post("/api/recognize-frame")
+async def recognize_frame(file: UploadFile = File(...)):
+    contents = await file.read()
+    nparr    = np.frombuffer(contents, np.uint8)
+    frame    = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+    if frame is None:
+        return JSONResponse({"error": "Invalid image"}, status_code=400)
+
+    faces = detect_all_faces(frame)
+    faces_found = []
+    for face_img, bbox, conf in faces:
+        embedding = extract_embedding(face_img)
+        name, score = find_match(embedding)
+        faces_found.append({
+            "name": name,
+            "confidence": float(score),
+            "bbox": [int(x) for x in bbox]
+        })
+        
+    return {
+        "success": True,
+        "faces": faces_found
+    }
+
+
 # ============================================================
 # ENROLL — 5-CAPTURE FLOW
 # ============================================================

@@ -3154,30 +3154,21 @@ def receive_stream_frame():
     with open(fpath, 'wb') as fh:
         fh.write(img_bytes)
 
-    script_path = os.path.join(_ATTENDANCE_ROOT, 'web_recognize.py')
-    venv_python = os.path.join(_ATTENDANCE_ROOT, 'venv', 'Scripts', 'python.exe')
-    if not os.path.exists(venv_python):
-        venv_python = sys.executable
+    # Use FastAPI backend to process the frame in-memory (no subprocess spawning!)
+    import requests
+    face_rec_url = os.getenv("FACE_REC_BACKEND_URL", "http://localhost:7860")
+    result = None
+    try:
+        files = {'file': ('frame.jpg', img_bytes, 'image/jpeg')}
+        response = requests.post(f"{face_rec_url}/api/recognize-frame", files=files, timeout=4.0)
+        if response.status_code == 200:
+            result = response.json()
+        else:
+            print(f"[Flask] FastAPI returned error: {response.status_code} - {response.text}")
+    except Exception as ex:
+        print(f"[Flask] Error communicating with FastAPI backend: {ex}")
 
     try:
-        env = os.environ.copy()
-        env['PYTHONIOENCODING'] = 'utf-8'
-        proc = subprocess.run(
-            [venv_python, script_path, fpath],
-            cwd=_ATTENDANCE_ROOT,
-            capture_output=True, text=True, encoding='utf-8', errors='replace',
-            env=env, timeout=60,
-        )
-        
-        result = None
-        for line in (proc.stdout or '').splitlines():
-            if line.startswith('__RESULT_JSON__'):
-                try:
-                    result = json.loads(line[len('__RESULT_JSON__'):])
-                    break
-                except json.JSONDecodeError:
-                    pass
-
         with latest_face_boxes_lock:
             latest_face_boxes = []
         if result and result.get('success'):
@@ -3191,11 +3182,10 @@ def receive_stream_frame():
                     for face in result.get('faces', [])
                 ]
 
-        try:
-            if os.path.exists(fpath):
-                os.remove(fpath)
-        except Exception:
-            pass
+        if os.path.exists(fpath):
+            os.remove(fpath)
+    except Exception:
+        pass
 
         test_user_id = to_int_value(request.args.get('test_user_id'))
         recognized_names = []
