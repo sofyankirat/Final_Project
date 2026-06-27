@@ -2181,30 +2181,12 @@ def trigger_db_seed():
     import requests
     mini_rag_url = os.getenv("MINI_RAG_URL", "http://localhost:8000")
     try:
-        # Step 1: Process files
-        proc_res = requests.post(
-            f"{mini_rag_url}/api/v1/data/process/1",
-            json={
-                "chunk_size": 1000,
-                "overlap_size": 200,
-                "do_reset": 1
-            },
-            timeout=180
-        )
-        # Step 2: Index/Push to vector store
-        push_res = requests.post(
-            f"{mini_rag_url}/api/v1/nlp/index/push/1",
-            json={
-                "do_reset": True
-            },
-            timeout=300
-        )
+        # Call the new seeding endpoint in Mini_RAG
+        seed_res = requests.get(f"{mini_rag_url}/api/v1/data/seed", timeout=300)
         return jsonify({
-            'success': True,
-            'process_status': proc_res.status_code,
-            'process_response': proc_res.json() if proc_res.status_code == 200 else proc_res.text,
-            'push_status': push_res.status_code,
-            'push_response': push_res.json() if push_res.status_code == 200 else push_res.text
+            'success': seed_res.status_code == 200,
+            'status_code': seed_res.status_code,
+            'response': seed_res.json() if seed_res.status_code == 200 else seed_res.text
         })
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500

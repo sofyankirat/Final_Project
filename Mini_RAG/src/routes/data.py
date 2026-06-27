@@ -208,3 +208,15 @@ async def process_endpoint(request: Request, project_id: int, process_request: P
             "processed_files": no_files
         }
     )
+
+
+@data_router.get("/seed")
+async def trigger_seeding(request: Request):
+    from seed_db import main as seed_main
+    try:
+        logger.info("Starting database seeding process from API endpoint...")
+        await seed_main()
+        return JSONResponse(content={"success": True, "message": "Seeding completed successfully"})
+    except Exception as e:
+        logger.error(f"Seeding failed: {e}")
+        return JSONResponse(status_code=500, content={"success": False, "error": str(e)})
