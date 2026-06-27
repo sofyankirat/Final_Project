@@ -90,47 +90,74 @@ class ProcessController(BaseController):
 
         return chunks
 
+    def extract_metadata_from_header(self, header_line: str) -> dict:
+        metadata = {}
+        header = header_line.strip()
+        if header.startswith("##"):
+            header = header[2:].strip()
+
+        match = re.search(r'برنامج\s+([^-]+?)\s*-\s*المستوى\s+(\d+)\s*-\s*الفصل\s+الدراسي\s+(.+)', header)
+        if match:
+            metadata['program'] = match.group(1).strip()
+            metadata['level'] = match.group(2).strip()
+            metadata['semester'] = match.group(3).strip()
+            return metadata
+
+        match = re.search(r'برنامج\s+([^-]+?)\s*-\s*المستوى\s+([^-]+?)\s*-\s*الفصل\s+الدراسي\s+(.+)', header)
+        if match:
+            metadata['program'] = match.group(1).strip()
+            metadata['level'] = match.group(2).strip()
+            metadata['semester'] = match.group(3).strip()
+            return metadata
+
+        parts = [p.strip() for p in header.split('-')]
+        if len(parts) >= 3:
+            metadata['program'] = parts[0]
+            metadata['level'] = parts[1]
+            metadata['semester'] = parts[2]
+
+        return metadata
+
     def process_simpler_splitter(self, texts: List[str], metadatas: List[dict],
                               chunk_size: int, overlap_size: int = 200,
                               splitter_tag: str = "\n"):
 
-        # Use \n join to preserve document structure
         full_text = "\n".join(texts)
-
         lines = full_text.split("\n")
-
         chunks = []
         current_chunk = ""
+        current_metadata = {}
 
         for line in lines:
+            stripped = line.strip()
 
-            # Priority 1: standalone --- separator → hard boundary, no overlap
+            if stripped.startswith("##"):
+                header_meta = self.extract_metadata_from_header(stripped)
+                if header_meta:
+                    current_metadata = header_meta
+
             if re.match(r'^\s*---\s*$', line):
                 if current_chunk.strip():
                     chunks.append(Document(
                         page_content=current_chunk.strip(),
-                        metadata={}
+                        metadata=dict(current_metadata)
                     ))
                 current_chunk = ""
                 continue
 
-            # Add line to current chunk
             current_chunk += line + "\n"
 
-            # Priority 2: chunk_size reached → split at end of current line + overlap
             if len(current_chunk) >= chunk_size:
                 chunks.append(Document(
                     page_content=current_chunk.strip(),
-                    metadata={}
+                    metadata=dict(current_metadata)
                 ))
-                # Carry over last overlap_size chars into next chunk
                 current_chunk = current_chunk[-overlap_size:] if overlap_size > 0 else ""
 
-        # Save the last remaining chunk
         if current_chunk.strip():
             chunks.append(Document(
                 page_content=current_chunk.strip(),
-                metadata={}
+                metadata=dict(current_metadata)
             ))
 
         return chunks

@@ -144,7 +144,8 @@ class QdrantDBProvider(VectorDBInterface):
         return [
             RetrievedDocument(**{
                 "score": result.score,
-                "text": result.payload["text"],
+                "text": result.payload.get("text", ""),
+                "metadata": result.payload.get("metadata", {})
             })
             for result in results
         ]

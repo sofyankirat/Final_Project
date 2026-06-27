@@ -2411,6 +2411,10 @@ To restore AI Agent functionality, please follow these steps:
             answer_text = ans_data.get("answer")
             if answer_text:
                 return jsonify({'success': True, 'answer': answer_text})
+        elif answer_res.status_code == 400:
+            err_data = answer_res.json()
+            err_msg = err_data.get("message") or "No relevant information found in the knowledge base for your question."
+            return jsonify({'success': True, 'answer': f"⚠️ {err_msg}"})
             
     except requests.exceptions.RequestException as e:
         print(f"Mini_RAG service unreachable or failed. Falling back to direct Gemini: {e}")

@@ -282,7 +282,9 @@ class PGVectorProvider(VectorDBInterface):
         vector = "[" + ",".join([ str(v) for v in vector ]) + "]"
         async with self.db_client() as session:
             async with session.begin():
-                search_sql = sql_text(f'SELECT {PgVectorTableSchemeEnums.TEXT.value} as text, 1 - ({PgVectorTableSchemeEnums.VECTOR.value} <=> :vector) as score'
+                search_sql = sql_text(f'SELECT {PgVectorTableSchemeEnums.TEXT.value} as text, '
+                                      f'{PgVectorTableSchemeEnums.METADATA.value} as metadata, '
+                                      f'1 - ({PgVectorTableSchemeEnums.VECTOR.value} <=> :vector) as score'
                                       f' FROM {collection_name}'
                                       ' ORDER BY score DESC '
                                       f'LIMIT {limit}'
@@ -295,7 +297,8 @@ class PGVectorProvider(VectorDBInterface):
                 return [
                     RetrievedDocument(
                         text=record.text,
-                        score=record.score
+                        score=record.score,
+                        metadata=record.metadata if record.metadata else {}
                     )
                     for record in records
                 ]

@@ -150,6 +150,7 @@ class NLPController(BaseController):
             self.template_parser.get("rag", "document_prompt", {
                     "doc_num": idx + 1,
                     "chunk_text": self.generation_client.process_text(doc.text),
+                    "chunk_metadata": doc.metadata if hasattr(doc, 'metadata') and doc.metadata else {}
             })
             for idx, doc in enumerate(retrieved_documents)
         ])
