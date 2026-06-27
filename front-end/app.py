@@ -33,6 +33,112 @@ if _ATTENDANCE_ROOT not in sys.path:
 # Load environment variables
 load_dotenv()
 
+# --- Load YOLO and ArcFace models in-memory inside Flask at startup ---
+print("[Flask] Pre-loading YOLO and ArcFace models...")
+flask_yolo_model = None
+flask_arc_session = None
+flask_arc_input = None
+
+try:
+    import cv2
+    import numpy as np
+    import onnxruntime as ort
+    from ultralytics import YOLO
+    
+    # Resolve absolute paths
+    yolo_model_path = os.path.join(_ATTENDANCE_ROOT, "models", "yolov8s-face-lindevs.pt")
+    arcface_model_path = os.path.join(_ATTENDANCE_ROOT, "models", "w600k_mbf.onnx")
+    
+    if os.path.exists(yolo_model_path) and os.path.exists(arcface_model_path):
+        flask_yolo_model = YOLO(yolo_model_path)
+        flask_arc_session = ort.InferenceSession(
+            arcface_model_path,
+            providers=['CPUExecutionProvider']
+        )
+        flask_arc_input = flask_arc_session.get_inputs()[0].name
+        print("[Flask] Models loaded successfully!")
+    else:
+        print(f"[Flask] Models not found at: {yolo_model_path} or {arcface_model_path}")
+except Exception as e:
+    print(f"[Flask] Error loading models at startup: {e}")
+
+
+def get_enrolled_database():
+    import pickle
+    db_dir = os.getenv('SQLITE_DB_DIR')
+    if db_dir:
+        db_path = os.path.join(db_dir, 'database.pkl')
+    else:
+        db_path = os.path.join(_ATTENDANCE_ROOT, 'database', 'database.pkl')
+        
+    if os.path.exists(db_path):
+        try:
+            with open(db_path, 'rb') as f:
+                return pickle.load(f)
+        except Exception:
+            backup = db_path + ".bak"
+            if os.path.exists(backup):
+                try:
+                    with open(backup, 'rb') as f:
+                        return pickle.load(f)
+                except Exception:
+                    pass
+    return {}
+
+
+def flask_detect_all_faces(frame):
+    if flask_yolo_model is None:
+        return []
+    import cv2
+    results = flask_yolo_model(frame, verbose=False)
+    boxes   = results[0].boxes
+    if boxes is None or len(boxes) == 0:
+        return []
+    faces = []
+    h, w  = frame.shape[:2]
+    pad = 20  # PADDING
+    for box in boxes:
+        conf = float(box.conf[0])
+        if conf < 0.5:  # DETECTION_CONF
+            continue
+        x1, y1, x2, y2 = map(int, box.xyxy[0].tolist())
+        x1p = max(0, x1 - pad)
+        y1p = max(0, y1 - pad)
+        x2p = min(w, x2 + pad)
+        y2p = min(h, y2 + pad)
+        crop = frame[y1p:y2p, x1p:x2p]
+        if crop.size == 0:
+            continue
+        face = cv2.resize(crop, (112, 112))
+        faces.append((face, (x1, y1, x2, y2), conf))
+    return faces
+
+
+def flask_extract_embedding(face_img):
+    if flask_arc_session is None:
+        return None
+    import cv2
+    import numpy as np
+    img = cv2.cvtColor(face_img, cv2.COLOR_BGR2RGB).astype(np.float32)
+    img = (img - 127.5) / 127.5
+    img = np.transpose(img, (2, 0, 1))[np.newaxis, ...]
+    return flask_arc_session.run(None, {flask_arc_input: img})[0].flatten()
+
+
+def flask_find_match(query_embedding, database):
+    if not database or query_embedding is None:
+        return "Unknown", 0.0
+    import numpy as np
+    best_match, best_score = "Unknown", -1.0
+    query = query_embedding / np.linalg.norm(query_embedding)
+    for person, stored_emb in database.items():
+        sim = float(np.dot(query, stored_emb.flatten()))
+        if sim > best_score:
+            best_score, best_match = sim, person
+    if best_score < 0.3:  # THRESHOLD
+        return "Unknown", best_score
+    return best_match, best_score
+
 import recommendation_model
 
 # Get base directory
@@ -3154,54 +3260,52 @@ def receive_stream_frame():
     with open(fpath, 'wb') as fh:
         fh.write(img_bytes)
 
-    # Use FastAPI backend to process the frame in-memory (no subprocess spawning!)
-    import requests
-    face_rec_url = os.getenv("FACE_REC_BACKEND_URL", "http://localhost:7860")
-    result = None
     try:
-        files = {'file': ('frame.jpg', img_bytes, 'image/jpeg')}
-        response = requests.post(f"{face_rec_url}/api/recognize-frame", files=files, timeout=4.0)
-        if response.status_code == 200:
-            result = response.json()
-        else:
-            print(f"[Flask] FastAPI returned error: {response.status_code} - {response.text}")
-    except Exception as ex:
-        print(f"[Flask] Error communicating with FastAPI backend: {ex}")
+        # Process the frame in-memory (no subprocess spawning or external HTTP calls!)
+        result_faces = []
+        try:
+            import numpy as np
+            nparr = np.frombuffer(img_bytes, np.uint8)
+            frame = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+            if frame is not None:
+                faces = flask_detect_all_faces(frame)
+                db = get_enrolled_database()
+                for face_img, (x1, y1, x2, y2), conf in faces:
+                    emb = flask_extract_embedding(face_img)
+                    name, score = flask_find_match(emb, db)
+                    result_faces.append({
+                        "name": name,
+                        "confidence": float(score),
+                        "bbox": [x1, y1, x2, y2]
+                    })
 
-    try:
-        with latest_face_boxes_lock:
-            latest_face_boxes = []
-        if result and result.get('success'):
             with latest_face_boxes_lock:
                 latest_face_boxes = [
                     {
-                        'bbox': face.get('bbox', []),
-                        'name': face.get('name', 'Unknown'),
-                        'confidence': face.get('confidence', 0)
+                        'bbox': f.get('bbox', []),
+                        'name': f.get('name', 'Unknown'),
+                        'confidence': f.get('confidence', 0.0)
                     }
-                    for face in result.get('faces', [])
+                    for f in result_faces
                 ]
 
-        if os.path.exists(fpath):
-            os.remove(fpath)
-    except Exception:
-        pass
+            if os.path.exists(fpath):
+                os.remove(fpath)
+        except Exception as ex:
+            print(f"[Flask] Error processing frame: {ex}")
 
         test_user_id = to_int_value(request.args.get('test_user_id'))
         recognized_names = []
         if test_user_id:
             recognized_names = [f"user_{test_user_id}"]
         else:
-            if result and result.get('success'):
-                faces = result.get('faces', [])
-                for face in faces:
-                    name = face.get('name')
-                    if name and name != "Unknown":
-                        recognized_names.append(name)
+            for face in result_faces:
+                name = face.get('name')
+                if name and name != "Unknown":
+                    recognized_names.append(name)
 
-        if not recognized_names and (not result or not result.get('success')):
-            err_msg = result.get('message', 'Recognition failed') if result else 'No recognition result output'
-            return jsonify({'success': False, 'message': err_msg}), 200
+        if not recognized_names and not result_faces:
+            return jsonify({'success': False, 'message': 'No faces detected'}), 200
 
         if recognized_names:
             connection = get_db_connection()
