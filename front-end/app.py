@@ -1103,30 +1103,6 @@ def verify_email(token):
         return render_template('email_verification.html', success=False, message=f'An error occurred: {str(e)}')
 
 
-@app.route('/debug-db')
-def debug_db():
-    import os
-    from database import get_db_connection, PostgresConnectionWrapper, SQLiteConnectionWrapper
-    
-    supabase_url = os.getenv('SUPABASE_URL')
-    supa_pass = os.getenv('SUPA_PASS')
-    
-    db_conn = get_db_connection()
-    conn_type = "None"
-    if db_conn:
-        if isinstance(db_conn, PostgresConnectionWrapper):
-            conn_type = "PostgreSQL (Supabase)"
-        elif isinstance(db_conn, SQLiteConnectionWrapper):
-            conn_type = "SQLite (Local)"
-        db_conn.close()
-        
-    return {
-        "SUPABASE_URL_configured": bool(supabase_url),
-        "SUPA_PASS_configured": bool(supa_pass),
-        "active_database_connection": conn_type
-    }
-
-
 @app.route('/dashboard')
 @login_required
 def dashboard():
