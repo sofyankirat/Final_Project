@@ -18,7 +18,7 @@ COPY front-end/requirements.txt /app/front-end/requirements.txt
 
 # Install PyTorch CPU first to avoid heavy GPU/CUDA downloads and reduce memory consumption
 # We increase default timeout to 1000s and force IPv4 via our wrapper script to prevent connection drops
-RUN python /app/pip_ipv4.py install --default-timeout 1000 --no-cache-dir torch torchvision --index-url https://download.pytorch.org/whl/cpu
+RUN python /app/pip_ipv4.py install --default-timeout 1000 --no-cache-dir torch torchvision "numpy==1.23.5" --index-url https://download.pytorch.org/whl/cpu
 
 # Install remaining requirements
 RUN python /app/pip_ipv4.py install --default-timeout 1000 --no-cache-dir -r /app/front-end/requirements.txt
