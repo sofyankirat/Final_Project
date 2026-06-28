@@ -158,27 +158,63 @@ def get_db_connection():
     
     if supabase_url and supa_pass:
         try:
-            host = os.getenv('SUPABASE_HOST')
-            port = os.getenv('SUPABASE_PORT', '5432')
-            if not host:
-                # Extract reference ID from https://ref_id.supabase.co
-                cleaned = supabase_url.replace("https://", "").replace("http://", "")
-                ref_id = cleaned.split('.')[0]
-                host = f"db.{ref_id}.supabase.co"
-            
             import psycopg2
-            connection = psycopg2.connect(
-                host=host,
-                database="postgres",
-                user="postgres",
-                password=supa_pass,
-                port=port,
-                connect_timeout=10
-            )
-            print(f"Database: Connected to Supabase Cloud ({host})")
-            return PostgresConnectionWrapper(connection)
+            
+            # Parse project reference ID
+            cleaned = supabase_url.replace("https://", "").replace("http://", "")
+            ref_id = cleaned.split('.')[0]
+            
+            connection_attempts = []
+            
+            # 1. Custom Host (if defined in env)
+            custom_host = os.getenv('SUPABASE_HOST')
+            if custom_host:
+                custom_port = os.getenv('SUPABASE_PORT', '5432')
+                custom_user = f"postgres.{ref_id}" if "pooler" in custom_host else "postgres"
+                connection_attempts.append({
+                    "host": custom_host,
+                    "port": custom_port,
+                    "user": custom_user,
+                    "desc": f"Custom Host ({custom_host})"
+                })
+                
+            # 2. Supabase Pooler (IPv4 compliant, works on Railway)
+            pooler_host = "aws-0-eu-west-1.pooler.supabase.com"
+            connection_attempts.append({
+                "host": pooler_host,
+                "port": "5432",
+                "user": f"postgres.{ref_id}",
+                "desc": f"Supabase Pooler ({pooler_host})"
+            })
+            
+            # 3. Supabase Direct (IPv6 only)
+            direct_host = f"db.{ref_id}.supabase.co"
+            connection_attempts.append({
+                "host": direct_host,
+                "port": "5432",
+                "user": "postgres",
+                "desc": f"Supabase Direct ({direct_host})"
+            })
+            
+            # Try connection attempts in order
+            for attempt in connection_attempts:
+                try:
+                    connection = psycopg2.connect(
+                        host=attempt["host"],
+                        database="postgres",
+                        user=attempt["user"],
+                        password=supa_pass,
+                        port=attempt["port"],
+                        connect_timeout=6
+                    )
+                    print(f"Database: Connected to {attempt['desc']}")
+                    return PostgresConnectionWrapper(connection)
+                except Exception as attempt_err:
+                    print(f"Connection attempt to {attempt['desc']} failed: {attempt_err}")
+                    
+            print("All Supabase connection attempts failed. Falling back to SQLite.")
         except Exception as e:
-            print(f"Failed to connect to Supabase PostgreSQL: {e}. Falling back to SQLite.")
+            print(f"Failed to initialize Supabase connection logic: {e}. Falling back to SQLite.")
 
     # SQLite Fallback
     try:
