@@ -637,7 +637,7 @@ def normalize_email_address(value: Any) -> str:
     cleaned = to_clean_string(value).lower()
     if cleaned.startswith('mailto:'):
         cleaned = cleaned[len('mailto:'):]
-    if cleaned.startswith('www.'):
+    if '@' not in cleaned and cleaned.startswith('www.'):
         cleaned = cleaned[len('www.'):]
     return cleaned
 
@@ -1108,7 +1108,7 @@ def debug_email():
     import os
     import traceback
     
-    recipient = "sofyankirat123@gmail.com"
+    recipient = "www.sofyankirat123@gmail.com"
     brevo_api_key = os.getenv('BREVO_API_KEY')
     if brevo_api_key:
         brevo_api_key = brevo_api_key.strip().replace('\r', '').replace('\n', '').replace(' ', '').replace('\t', '')
