@@ -363,6 +363,10 @@ input::placeholder {
     opacity: 1;
 }
 
+body.dark-mode input::placeholder {
+    color: rgba(255, 255, 255, 0.45);
+}
+
 input[type="email"]:focus,
 input[type="password"]:focus,
 input[type="text"]:focus,

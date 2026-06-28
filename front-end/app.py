@@ -44,6 +44,14 @@ app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'your-secret-key-change-this'
 app.config['SESSION_TIMEOUT'] = 3600  # 1 hour
 app.config['MAX_CONTENT_LENGTH'] = 50 * 1024 * 1024  # 50 MB upload limit (5 base64 captures)
 
+@app.after_request
+def add_header(response):
+    # Set aggressive cache headers for static files to make page image loading instant
+    if 'Cache-Control' not in response.headers:
+        if request.path.startswith('/static/'):
+            response.headers['Cache-Control'] = 'public, max-age=31536000'
+    return response
+
 import recommendation_model
 
 
@@ -1752,17 +1760,17 @@ def recommendations():
                 db_conn.close()
                 if db_row:
                     student_info = {
-                        'age': int(db_row[0]),
-                        'program': db_row[1],
-                        'gender': db_row[2],
-                        'level': int(db_row[3]),
-                        'is_working': int(db_row[4]),
-                        'failed_subjects': int(db_row[5]),
-                        'discipline_score': int(db_row[6]),
-                        'analytical_score': int(db_row[7]),
-                        'practical_score': int(db_row[8]),
-                        'gpa': float(db_row[9]),
-                        'screen_hours': float(db_row[10])
+                        'age': int(db_row[0]) if db_row[0] is not None else 20,
+                        'program': db_row[1] if db_row[1] is not None else 'Statistics and Computer Science',
+                        'gender': db_row[2] if db_row[2] is not None else 'Male',
+                        'level': int(db_row[3]) if db_row[3] is not None else 1,
+                        'is_working': int(db_row[4]) if db_row[4] is not None else 0,
+                        'failed_subjects': int(db_row[5]) if db_row[5] is not None else 0,
+                        'discipline_score': int(db_row[6]) if db_row[6] is not None else 7,
+                        'analytical_score': int(db_row[7]) if db_row[7] is not None else 7,
+                        'practical_score': int(db_row[8]) if db_row[8] is not None else 7,
+                        'gpa': float(db_row[9]) if db_row[9] is not None else 3.0,
+                        'screen_hours': float(db_row[10]) if db_row[10] is not None else 4.0
                     }
         except Exception as e:
             print(f"Error retrieving student additional info: {e}")

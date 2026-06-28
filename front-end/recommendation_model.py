@@ -159,8 +159,15 @@ def predict_recommendation(student_info, course_name, professor_name, study_hour
     pred_score = max(0.0, min(100.0, pred_score))
     
     # 4. Predict recommended label (Model B)
-    # The final recommendation depends on the adjusted score (threshold of 75.0)
-    pred_rec = pred_score >= 75.0
+    # The final recommendation depends on the adjusted score (threshold of 75.0) or predicted class
+    if _classifier_model:
+        try:
+            pred_rec = bool(_classifier_model.predict(df_input)[0])
+        except Exception as clf_err:
+            print(f"ML Classifier predict error, using score threshold: {clf_err}")
+            pred_rec = pred_score >= 75.0
+    else:
+        pred_rec = pred_score >= 75.0
         
     return {
         'score': pred_score,

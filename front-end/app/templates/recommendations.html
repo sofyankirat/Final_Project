@@ -2,6 +2,16 @@
 <html lang="en">
 
 <head>
+    <script>
+        (function() {
+            const hasResults = {% if score is not none %}true{% else %}false{% endif %};
+            const hasActiveHistory = {% if selected_history_id %}true{% else %}false{% endif %};
+            const savedSystem = sessionStorage.getItem('rec_system_selection');
+            const system = (hasResults || hasActiveHistory || savedSystem === 'usual') ? 'usual' : 
+                           (savedSystem === 'bloomready' ? 'bloomready' : 'selector');
+            document.documentElement.setAttribute('data-initial-rec-system', system);
+        })();
+    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Recommendations - {{ username }}</title>
@@ -17,6 +27,35 @@
     <link rel="preload" as="image" href="{{ url_for('static', filename='images/Advanced_Recommendation_system.jpg') }}">
     <script src="https://cdn.jsdelivr.net/npm/tsparticles@2.12.0/tsparticles.bundle.min.js"></script>
     <style>
+        html[data-initial-rec-system="usual"] #recSystemSelector,
+        html[data-initial-rec-system="usual"] #recBloomReadyLayout {
+            display: none !important;
+        }
+        html[data-initial-rec-system="usual"] .rec-main-layout {
+            display: flex !important;
+        }
+        html[data-initial-rec-system="usual"] #recUsualHeader {
+            display: block !important;
+        }
+
+        html[data-initial-rec-system="bloomready"] #recSystemSelector,
+        html[data-initial-rec-system="bloomready"] .rec-main-layout,
+        html[data-initial-rec-system="bloomready"] #recUsualHeader {
+            display: none !important;
+        }
+        html[data-initial-rec-system="bloomready"] #recBloomReadyLayout {
+            display: block !important;
+        }
+
+        html[data-initial-rec-system="selector"] .rec-main-layout,
+        html[data-initial-rec-system="selector"] #recUsualHeader,
+        html[data-initial-rec-system="selector"] #recBloomReadyLayout {
+            display: none !important;
+        }
+        html[data-initial-rec-system="selector"] #recSystemSelector {
+            display: block !important;
+        }
+
         .rec-label {
             font-size: 13.5px;
             font-weight: 600;
@@ -1201,6 +1240,10 @@
             color: #f3f4f6 !important;
         }
 
+        body.dark-mode .bloomready-form-input::placeholder {
+            color: rgba(255, 255, 255, 0.4) !important;
+        }
+
         .bloomready-form-input:focus {
             outline: none !important;
             border-color: #ff6b35 !important;
@@ -2292,9 +2335,9 @@
                                         </button>
                                         <button type="button" class="bloomready-action-btn" id="btnBloomTest" onclick="switchSubPane('test')">
                                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 6px;">
-                                                <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path>
-                                                <rect x="8" y="2" width="8" height="4" rx="1" ry="1" fill="currentColor" opacity="0.3"></rect>
-                                                <path d="M9 14l2 2 4-4"></path>
+                                                <path d="M22 10v6M2 10l10-5 10 5-10 5z"></path>
+                                                <path d="M6 12v5c0 2 2 3 6 3s6-1 6-3v-5"></path>
+                                                <path d="m9 10.5 2 2 4-4" stroke-width="2.5"></path>
                                             </svg> Test
                                         </button>
                                     </div>
@@ -2732,6 +2775,9 @@
     <script>
         // Selection system toggle logic
         function selectRecSystem(systemName) {
+            // Clear the initial layout attribute to let Javascript styles take over
+            document.documentElement.removeAttribute('data-initial-rec-system');
+            
             // Prevent entering the page if the user is highlighting/selecting text
             if (window.getSelection && window.getSelection().toString().trim() !== '') {
                 return;
@@ -2800,12 +2846,13 @@
 
         function switchBloomReadyTab(tabName) {
             currentBloomTab = tabName;
+            sessionStorage.setItem('bloom_ready_tab', tabName);
             
             const btnAcademic = document.getElementById('btnBloomAcademic');
             const btnGeneral = document.getElementById('btnBloomGeneral');
             const paneAcademic = document.getElementById('bloomAcademicFlow');
             const paneGeneral = document.getElementById('bloomGeneralFlow');
-
+ 
             if (tabName === 'academic') {
                 if (btnAcademic) btnAcademic.classList.add('active');
                 if (btnGeneral) btnGeneral.classList.remove('active');
@@ -2893,9 +2940,18 @@
             if (detailPane) detailPane.style.display = 'none';
             removeSyllabus();
 
+            if (semesterInput) {
+                sessionStorage.setItem('bloom_semester', semesterInput.value);
+            }
+            sessionStorage.removeItem('bloom_active_course');
+            sessionStorage.removeItem('bloom_active_subpane');
+            sessionStorage.removeItem('bloom_uploaded_file_names');
+
             // Shuffle and pick 4 courses
             const shuffled = [...ALL_COURSES].sort(() => 0.5 - Math.random());
             const selectedCourses = shuffled.slice(0, 4);
+            sessionStorage.setItem('bloom_selected_courses', JSON.stringify(selectedCourses));
+            sessionStorage.setItem('bloom_courses_visible', 'true');
 
             const grid = document.getElementById('bloomAcademicCoursesGrid');
             if (grid) {
@@ -2918,8 +2974,9 @@
             }
         }
 
-        function selectBloomCourse(courseName, cardElement) {
+        function selectBloomCourse(courseName, cardElement, isRestoring) {
             currentSelectedCourse = courseName;
+            sessionStorage.setItem('bloom_active_course', courseName);
 
             // Remove active class from other course cards
             document.querySelectorAll('.bloomready-course-card').forEach(card => {
@@ -2942,7 +2999,10 @@
             }
 
             // Reset syllabus and panes
-            removeSyllabus();
+            if (!isRestoring) {
+                removeSyllabus();
+                sessionStorage.removeItem('bloom_active_subpane');
+            }
 
             // Show course detail pane
             const detailPane = document.getElementById('bloomAcademicCourseDetailPane');
@@ -2993,6 +3053,9 @@
         function renderUploadedFiles() {
             const fileList = document.getElementById('bloomUploadFileList');
             if (!fileList) return;
+
+            // Save file names list to sessionStorage
+            sessionStorage.setItem('bloom_uploaded_file_names', JSON.stringify(uploadedSyllabusFiles.map(f => f.name)));
 
             // Handle the Upload Box disable state and text representation
             const uploadBox = document.querySelector('.bloomready-upload-box');
@@ -3068,6 +3131,7 @@
                 if (fileObj.url) URL.revokeObjectURL(fileObj.url);
             });
             uploadedSyllabusFiles = [];
+            sessionStorage.removeItem('bloom_uploaded_file_names');
             
             const fileInput = document.getElementById('bloomSyllabusInput');
             if (fileInput) fileInput.value = '';
@@ -3089,6 +3153,7 @@
 
         function switchSubPane(paneType) {
             activeSubPane = paneType;
+            sessionStorage.setItem('bloom_active_subpane', paneType);
             const btnNotes = document.getElementById('btnBloomNotes');
             const btnTest = document.getElementById('btnBloomTest');
             const paneNotes = document.getElementById('bloomNotesPane');
@@ -3133,6 +3198,84 @@
             URL.revokeObjectURL(url);
         }
 
+        function restoreBloomAcademicState() {
+            const semesterInput = document.getElementById('bloomSemester');
+            const savedSemester = sessionStorage.getItem('bloom_semester');
+            if (savedSemester && semesterInput) {
+                semesterInput.value = savedSemester;
+            }
+
+            const savedBloomTab = sessionStorage.getItem('bloom_ready_tab');
+            if (savedBloomTab) {
+                switchBloomReadyTab(savedBloomTab);
+            }
+
+            const coursesVisible = sessionStorage.getItem('bloom_courses_visible');
+            const savedCoursesJson = sessionStorage.getItem('bloom_selected_courses');
+            if (coursesVisible === 'true' && savedCoursesJson) {
+                try {
+                    const selectedCourses = JSON.parse(savedCoursesJson);
+                    const grid = document.getElementById('bloomAcademicCoursesGrid');
+                    if (grid) {
+                        grid.innerHTML = '';
+                        selectedCourses.forEach((course, index) => {
+                            const card = document.createElement('div');
+                            card.className = 'bloomready-course-card';
+                            card.onclick = () => selectBloomCourse(course, card);
+                            card.innerHTML = `
+                                <div class="bloomready-course-number">Course ${index + 1}</div>
+                                <div class="bloomready-course-name">${course}</div>
+                            `;
+                            grid.appendChild(card);
+                        });
+                        
+                        const coursesSection = document.getElementById('bloomAcademicCoursesSection');
+                        if (coursesSection) {
+                            coursesSection.style.display = 'block';
+                        }
+                    }
+                } catch (e) {
+                    console.error("Error restoring selected courses", e);
+                }
+            }
+
+            const activeCourse = sessionStorage.getItem('bloom_active_course');
+            if (activeCourse) {
+                // Find card and select it
+                const cards = document.querySelectorAll('.bloomready-course-card');
+                let foundCard = null;
+                cards.forEach(card => {
+                    if (card.querySelector('.bloomready-course-name').textContent.trim() === activeCourse) {
+                        foundCard = card;
+                    }
+                });
+                
+                // Call selectBloomCourse with isRestoring = true
+                selectBloomCourse(activeCourse, foundCard, true);
+                
+                // Restore uploaded files (just names as mock file placeholders)
+                const savedFileNamesJson = sessionStorage.getItem('bloom_uploaded_file_names');
+                if (savedFileNamesJson) {
+                    try {
+                        const fileNames = JSON.parse(savedFileNamesJson);
+                        uploadedSyllabusFiles = fileNames.map(name => ({
+                            name: name,
+                            url: '#', // placeholder since blob URL was revoked on page unload
+                            file: new File([], name)
+                        }));
+                        renderUploadedFiles();
+                    } catch (e) {
+                        console.error("Error restoring file names", e);
+                    }
+                }
+                
+                const savedSubpane = sessionStorage.getItem('bloom_active_subpane');
+                if (savedSubpane) {
+                    switchSubPane(savedSubpane);
+                }
+            }
+        }
+
         // Initialize state on load
         document.addEventListener('DOMContentLoaded', () => {
             const hasResults = {% if score is not none %}true{% else %}false{% endif %};
@@ -3143,6 +3286,7 @@
                 selectRecSystem('usual');
             } else if (savedSystem === 'bloomready') {
                 selectRecSystem('bloomready');
+                restoreBloomAcademicState();
             } else {
                 selectRecSystem('selector');
             }
