@@ -78,7 +78,21 @@ def main():
     try:
         with open(IMAGE_PATH, 'rb') as fh:
             files = {'file': fh}
-            response = requests.post(request_url, files=files)
+            try:
+                response = requests.post(request_url, files=files)
+            except (requests.exceptions.SSLError, requests.exceptions.ConnectionError) as ssl_err:
+                print(f"SSL/Connection issue ({ssl_err}), retrying with verify=False...")
+                import urllib3
+                urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+                try:
+                    response = requests.post(request_url, files=files, verify=False, timeout=15)
+                except Exception as fallback_err:
+                    if request_url.startswith("https://"):
+                        http_url = request_url.replace("https://", "http://")
+                        print(f"Retrying over HTTP: {http_url}")
+                        response = requests.post(http_url, files=files, timeout=15)
+                    else:
+                        raise fallback_err
             
         if response.status_code == 200:
             result = response.json()
