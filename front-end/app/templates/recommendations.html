@@ -2454,98 +2454,101 @@
                                 </div>
                             </div>
                             <div class="card-chart-area" style="padding: 32px;">
-                                <!-- Course Name Input -->
-                                <div class="bloomready-form-group" style="margin-bottom: 24px;">
-                                    <label class="bloomready-form-label" for="bloomGeneralCourseName">Course Name</label>
-                                    <input type="text" class="bloomready-form-input" id="bloomGeneralCourseName"
-                                        placeholder="Enter the general course name (e.g. Data Structures)"
-                                        oninput="onGeneralCourseNameInput()" style="padding-left: 12px;">
-                                </div>
+                                <div class="bloomready-course-detail-pane" style="display: block; margin-top: 0;">
+                                    <!-- Course Name Input -->
+                                    <div class="bloomready-form-group" style="margin-bottom: 24px;">
+                                        <label class="bloomready-form-label" for="bloomGeneralCourseName">Course Name</label>
+                                        <input type="text" class="bloomready-form-input" id="bloomGeneralCourseName"
+                                            placeholder="Enter the general course name (e.g. Data Structures)"
+                                            oninput="onGeneralCourseNameInput()" style="padding-left: 12px;">
+                                    </div>
 
-                                <!-- Syllabus Uploader -->
-                                <div class="bloomready-upload-box" id="bloomGeneralUploadBox" onclick="triggerGeneralFileInput()">
-                                    <svg class="upload-icon-svg" xmlns="http://www.w3.org/2000/svg" width="48"
-                                        height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                        stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"
-                                        style="margin-bottom: 12px;">
-                                        <path
-                                            d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z">
-                                        </path>
-                                        <line x1="12" y1="11" x2="12" y2="17"></line>
-                                        <polyline points="9 14 12 11 15 14"></polyline>
-                                    </svg>
-                                    <div class="upload-text"
-                                        style="font-weight: 700; color: #1f2937; margin-bottom: 4px;">Upload
-                                        Syllabus Files</div>
-                                    <div class="upload-hint" style="font-size: 13px; color: #6b7280;">Supported
-                                        formats: PDF, DOCX, PPTX (Up to 5 files)</div>
-                                </div>
-                                <input type="file" id="bloomGeneralSyllabusInput" style="display: none;"
-                                    accept=".pdf,.docx,.pptx" multiple onchange="handleGeneralSyllabusUpload(this)">
-
-                                <!-- Uploaded Files List -->
-                                <div class="bloomready-upload-list" id="bloomGeneralUploadFileList"
-                                    style="display: none; margin-top: 16px; display: flex; flex-direction: column; gap: 8px;">
-                                    <!-- Uploaded file item placeholder -->
-                                </div>
-
-                                <!-- Notes / Test Options Actions -->
-                                <div class="bloomready-options-actions" id="bloomGeneralOptionsActions"
-                                    style="display: none; margin-top: 24px;">
-                                    <button type="button" class="bloomready-action-btn" id="btnGeneralNotes"
-                                        onclick="switchGeneralSubPane('notes')">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"
-                                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-                                            stroke-linecap="round" stroke-linejoin="round"
-                                            style="margin-right: 6px;">
-                                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z">
-                                            </path>
-                                            <polyline points="14 2 14 8 20 8"></polyline>
-                                            <line x1="16" y1="13" x2="8" y2="13"></line>
-                                            <line x1="16" y1="17" x2="8" y2="17"></line>
-                                            <polyline points="10 9 9 9 8 9"></polyline>
-                                        </svg> Notes
-                                    </button>
-                                    <button type="button" class="bloomready-action-btn" id="btnGeneralTest"
-                                        onclick="switchGeneralSubPane('test')">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"
-                                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
-                                            stroke-linecap="round" stroke-linejoin="round"
-                                            style="margin-right: 6px;">
-                                            <path d="M22 10v6M2 10l10-5 10 5-10 5z"></path>
-                                            <path d="M6 12v5c0 2 2 3 6 3s6-1 6-3v-5"></path>
-                                            <path d="m9 10.5 2 2 4-4" stroke-width="2.5"></path>
-                                        </svg> Test
-                                    </button>
-                                </div>
-
-                                <!-- Notes Pane -->
-                                <div class="bloomready-notes-pane" id="bloomGeneralNotesPane" style="display: none; margin-top: 24px;">
-                                    <div class="pdf-placeholder-box">
-                                        <svg class="pdf-icon-svg" xmlns="http://www.w3.org/2000/svg" width="64"
-                                            height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    <!-- Syllabus Uploader -->
+                                    <div class="bloomready-upload-box" id="bloomGeneralUploadBox" onclick="triggerGeneralFileInput()">
+                                        <svg class="upload-icon-svg" xmlns="http://www.w3.org/2000/svg" width="48"
+                                            height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                             stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"
-                                            style="margin-bottom: 8px;">
-                                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z">
+                                            style="margin-bottom: 12px;">
+                                            <path
+                                                d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z">
                                             </path>
-                                            <polyline points="14 2 14 8 20 8"></polyline>
-                                            <line x1="16" y1="13" x2="8" y2="13"></line>
-                                            <line x1="16" y1="17" x2="8" y2="17"></line>
-                                            <polyline points="10 9 9 9 8 9"></polyline>
+                                            <line x1="12" y1="11" x2="12" y2="17"></line>
+                                            <polyline points="9 14 12 11 15 14"></polyline>
                                         </svg>
-                                        <div class="pdf-placeholder-title" id="bloomGeneralNotesPdfTitle">
-                                            course_notes_placeholder.pdf</div>
-                                        <div class="pdf-placeholder-desc">This PDF is a placeholder containing
-                                            AI-generated revision notes, core concept maps, and summary charts for
-                                            the course.</div>
-                                        <button type="button" class="pdf-download-btn"
-                                            onclick="downloadGeneralPlaceholderPdf()">
-                                            Download PDF
+                                        <div class="upload-text" id="bloomGeneralUploadText"
+                                            style="font-weight: 700; color: #1f2937; margin-bottom: 4px;">Upload
+                                            Syllabus Files</div>
+                                        <div class="upload-hint" id="bloomGeneralUploadHint" style="font-size: 13px; color: #6b7280;">Supported
+                                            formats: PDF, DOCX, PPTX (Up to 5 files)</div>
+                                    </div>
+                                    <input type="file" id="bloomGeneralSyllabusInput" style="display: none;"
+                                        accept=".pdf,.docx,.pptx" multiple onchange="handleGeneralSyllabusUpload(this)">
+
+                                    <!-- Uploaded Files List -->
+                                    <div class="bloomready-upload-list" id="bloomGeneralUploadFileList"
+                                        style="display: none; margin-top: 16px; display: flex; flex-direction: column; gap: 8px;">
+                                        <!-- Uploaded file item placeholder -->
+                                    </div>
+
+                                    <!-- Notes / Test Options Actions -->
+                                    <div class="bloomready-options-actions" id="bloomGeneralOptionsActions"
+                                        style="display: none; margin-top: 24px;">
+                                        <button type="button" class="bloomready-action-btn" id="btnGeneralNotes"
+                                            onclick="switchGeneralSubPane('notes')">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"
+                                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                                                stroke-linecap="round" stroke-linejoin="round"
+                                                style="margin-right: 6px;">
+                                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z">
+                                                </path>
+                                                <polyline points="14 2 14 8 20 8"></polyline>
+                                                <line x1="16" y1="13" x2="8" y2="13"></line>
+                                                <line x1="16" y1="17" x2="8" y2="17"></line>
+                                                <polyline points="10 9 9 9 8 9"></polyline>
+                                            </svg> Notes
                                         </button>
+                                        <button type="button" class="bloomready-action-btn" id="btnGeneralTest"
+                                            onclick="switchGeneralSubPane('test')">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"
+                                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+                                                stroke-linecap="round" stroke-linejoin="round"
+                                                style="margin-right: 6px;">
+                                                <path d="M22 10v6M2 10l10-5 10 5-10 5z"></path>
+                                                <path d="M6 12v5c0 2 2 3 6 3s6-1 6-3v-5"></path>
+                                                <path d="m9 10.5 2 2 4-4" stroke-width="2.5"></path>
+                                            </svg> Test
+                                        </button>
+                                    </div>
+
+                                    <!-- Notes Pane -->
+                                    <div class="bloomready-notes-pane" id="bloomGeneralNotesPane" style="display: none; margin-top: 24px;">
+                                        <div class="pdf-placeholder-box">
+                                            <svg class="pdf-icon-svg" xmlns="http://www.w3.org/2000/svg" width="64"
+                                                height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                                stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"
+                                                style="margin-bottom: 8px;">
+                                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z">
+                                                </path>
+                                                <polyline points="14 2 14 8 20 8"></polyline>
+                                                <line x1="16" y1="13" x2="8" y2="13"></line>
+                                                <line x1="16" y1="17" x2="8" y2="17"></line>
+                                                <polyline points="10 9 9 9 8 9"></polyline>
+                                            </svg>
+                                            <div class="pdf-placeholder-title" id="bloomGeneralNotesPdfTitle">
+                                                course_notes_placeholder.pdf</div>
+                                            <div class="pdf-placeholder-desc">This PDF is a placeholder containing
+                                                AI-generated revision notes, core concept maps, and summary charts for
+                                                the course.</div>
+                                            <button type="button" class="pdf-download-btn"
+                                                onclick="downloadGeneralPlaceholderPdf()">
+                                                Download PDF
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
+                    </div>
                     </div>
                 </div>
 
@@ -3379,6 +3382,13 @@
         let activeGeneralSubPane = '';
 
         function triggerGeneralFileInput() {
+            const courseInput = document.getElementById('bloomGeneralCourseName');
+            const courseName = courseInput ? courseInput.value.trim() : '';
+            if (!courseName) {
+                alert('Please enter a Course Name before uploading syllabus files.');
+                if (courseInput) courseInput.focus();
+                return;
+            }
             if (uploadedGeneralSyllabusFiles.length >= 5) {
                 return;
             }
@@ -3416,6 +3426,34 @@
             }
         }
 
+        function updateGeneralUploadBoxState() {
+            const courseInput = document.getElementById('bloomGeneralCourseName');
+            const courseName = courseInput ? courseInput.value.trim() : '';
+            const uploadBox = document.getElementById('bloomGeneralUploadBox');
+            const uploadText = document.getElementById('bloomGeneralUploadText');
+            const uploadHint = document.getElementById('bloomGeneralUploadHint');
+
+            if (!uploadBox) return;
+
+            if (!courseName) {
+                uploadBox.style.opacity = '0.7';
+                if (uploadText) uploadText.textContent = 'Enter Course Name to Upload';
+                if (uploadHint) uploadHint.textContent = 'Syllabus uploads require a course name first.';
+            } else {
+                if (uploadedGeneralSyllabusFiles.length >= 5) {
+                    uploadBox.classList.add('disabled');
+                    uploadBox.style.opacity = '';
+                    if (uploadText) uploadText.textContent = 'Upload Limit Reached';
+                    if (uploadHint) uploadHint.textContent = 'You have uploaded the maximum limit of 5 files.';
+                } else {
+                    uploadBox.classList.remove('disabled');
+                    uploadBox.style.opacity = '';
+                    if (uploadText) uploadText.textContent = 'Upload Syllabus Files';
+                    if (uploadHint) uploadHint.textContent = 'Supported formats: PDF, DOCX, PPTX (Up to 5 files)';
+                }
+            }
+        }
+
         function renderGeneralUploadedFiles() {
             const fileList = document.getElementById('bloomGeneralUploadFileList');
             if (!fileList) return;
@@ -3423,23 +3461,8 @@
             // Save file names to session storage
             sessionStorage.setItem('bloom_general_uploaded_file_names', JSON.stringify(uploadedGeneralSyllabusFiles.map(f => f.name)));
 
-            // Handle the Upload Box disable state and text representation
-            const uploadBox = document.getElementById('bloomGeneralUploadBox');
-            if (uploadBox) {
-                if (uploadedGeneralSyllabusFiles.length >= 5) {
-                    uploadBox.classList.add('disabled');
-                    const uploadText = uploadBox.querySelector('.upload-text');
-                    const uploadHint = uploadBox.querySelector('.upload-hint');
-                    if (uploadText) uploadText.textContent = 'Upload Limit Reached';
-                    if (uploadHint) uploadHint.textContent = 'You have uploaded the maximum limit of 5 files.';
-                } else {
-                    uploadBox.classList.remove('disabled');
-                    const uploadText = uploadBox.querySelector('.upload-text');
-                    const uploadHint = uploadBox.querySelector('.upload-hint');
-                    if (uploadText) uploadText.textContent = 'Upload Syllabus Files';
-                    if (uploadHint) uploadHint.textContent = 'Supported formats: PDF, DOCX, PPTX (Up to 5 files)';
-                }
-            }
+            // Handle the Upload Box state
+            updateGeneralUploadBoxState();
 
             if (uploadedGeneralSyllabusFiles.length === 0) {
                 fileList.innerHTML = '';
@@ -3507,9 +3530,9 @@
             const courseName = courseInput ? courseInput.value.trim() : '';
             const actions = document.getElementById('bloomGeneralOptionsActions');
             
-            if (uploadedGeneralSyllabusFiles.length > 0) {
+            if (courseName && uploadedGeneralSyllabusFiles.length > 0) {
                 if (actions) actions.style.display = 'flex';
-                currentSelectedGeneralCourse = courseName || 'General Course';
+                currentSelectedGeneralCourse = courseName;
                 sessionStorage.setItem('bloom_general_active_course', courseName);
             } else {
                 if (actions) actions.style.display = 'none';
@@ -3521,6 +3544,7 @@
             const courseInput = document.getElementById('bloomGeneralCourseName');
             const val = courseInput ? courseInput.value : '';
             sessionStorage.setItem('bloom_general_active_course', val);
+            updateGeneralUploadBoxState();
             validateGeneralCourseAndFiles();
         }
 
@@ -3590,6 +3614,8 @@
                     console.error("Error restoring general file names", e);
                 }
             }
+
+            updateGeneralUploadBoxState();
 
             const savedSubpane = sessionStorage.getItem('bloom_general_active_subpane');
             if (savedSubpane && currentSelectedGeneralCourse && uploadedGeneralSyllabusFiles.length > 0) {
