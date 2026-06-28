@@ -4,8 +4,8 @@ FROM python:3.10-slim-bookworm
 WORKDIR /app
 
 # Install system dependencies (including OpenGL and GLib needed by OpenCV/Ultralytics)
-# Removed build-essential to prevent downloading massive compilation dependencies
-RUN apt-get update && apt-get install -y --no-install-recommends \
+# Forced IPv4 to prevent slow IPv6 timeouts/resolution on Railway's container builder network
+RUN apt-get -o Acquire::ForceIPv4=true update && apt-get -o Acquire::ForceIPv4=true install -y --no-install-recommends \
     libgl1 \
     libglib2.0-0 \
     && rm -rf /var/lib/apt/lists/*
