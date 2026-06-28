@@ -246,6 +246,55 @@ def mark_attendance(student_id: int, weekday: int):
         finally:
             connection.close()
 
+def get_current_active_course_id(student_id: int):
+    """Check if there is a course in the student's schedule active at the current time and weekday."""
+    now = get_local_now()
+    weekday = now.weekday()
+    current_time = now.time()
+    
+    connection = get_db_connection()
+    if connection:
+        try:
+            cursor = connection.cursor()
+            cursor.execute(
+                "SELECT id, start_time, end_time, days FROM user_course_schedule WHERE user_id = %s",
+                (student_id,)
+            )
+            rows = cursor.fetchall()
+            cursor.close()
+            connection.close()
+            
+            for row in rows:
+                sch_id, start_val, end_val, days_str = row
+                c_days = parse_days_to_weekdays(to_clean_string(days_str))
+                if weekday in c_days:
+                    def _to_time(val):
+                        if val is None:
+                            return None
+                        if hasattr(val, 'seconds'):
+                            total = int(val.total_seconds())
+                            h = total // 3600
+                            m = (total % 3600) // 60
+                            return time(h, m)
+                        if isinstance(val, time):
+                            return val
+                        s = str(val).strip()
+                        for fmt in ("%H:%M:%S", "%H:%M"):
+                            try:
+                                return datetime.strptime(s, fmt).time()
+                            except ValueError:
+                                pass
+                        return None
+                    
+                    st = _to_time(start_val)
+                    et = _to_time(end_val)
+                    if st and et:
+                        if st <= current_time <= et:
+                            return sch_id
+        except Exception as e:
+            print(f"Error finding active course: {e}")
+    return None
+
 def get_weekly_attendance(student_id: int) -> dict[str, float]:
     """
     Get weekday attendance percentages (Mon-Sun) based on weekday occurrences in the semester.
@@ -3372,10 +3421,12 @@ def receive_stream_frame():
                     "email": user_email
                 })
 
-                if course_id:
+                active_course_id = course_id or get_current_active_course_id(user_id)
+
+                if active_course_id:
                     cursor.execute(
                         "SELECT 1 FROM attendance WHERE user_id = %s AND course_id = %s AND date(attendance_date) = %s LIMIT 1",
-                        (user_id, course_id, today)
+                        (user_id, active_course_id, today)
                     )
                 else:
                     cursor.execute(
@@ -3387,7 +3438,7 @@ def receive_stream_frame():
                     today_datetime = get_local_now().strftime("%Y-%m-%d %H:%M:%S")
                     cursor.execute(
                         "INSERT INTO attendance (user_id, course_id, attendance_date, status, created_at) VALUES (%s, %s, %s, TRUE, %s)",
-                        (user_id, course_id, today_datetime, today_datetime)
+                        (user_id, active_course_id, today_datetime, today_datetime)
                     )
                     logged_count += 1
 
@@ -3396,10 +3447,12 @@ def receive_stream_frame():
             connection.close()
 
             if recognized_students:
+                # Use the resolved active course ID for reporting
+                first_course_id = course_id or (recognized_students[0].get('id') and get_current_active_course_id(recognized_students[0]['id']))
                 import threading
                 threading.Thread(
                     target=send_session_report_email,
-                    args=(recognized_students, course_id),
+                    args=(recognized_students, first_course_id),
                     daemon=True
                 ).start()
 

@@ -27,6 +27,25 @@ def get_registered_users():
                 pass
     return []
 
+def get_user_courses(user_id):
+    """Fetch course schedules for a user from local SQLite database."""
+    db_paths = [
+        os.path.join('front-end', 'student_system.db'),
+        'student_system.db'
+    ]
+    for db_path in db_paths:
+        if os.path.exists(db_path):
+            try:
+                conn = sqlite3.connect(db_path)
+                cursor = conn.cursor()
+                cursor.execute("SELECT id, course_name FROM user_course_schedule WHERE user_id = ? ORDER BY course_name", (user_id,))
+                rows = cursor.fetchall()
+                conn.close()
+                return rows
+            except Exception:
+                pass
+    return []
+
 def main():
     if not os.path.exists(IMAGE_PATH):
         print(f"Error: Could not find '{IMAGE_PATH}' in the project folder.")
@@ -69,10 +88,39 @@ def main():
     else:
         print("\nNote: Local database not found or empty. Using standard face recognition matching.")
 
-    # Construct request URL
-    request_url = url
+    # Construct request URL and select course if student is selected
+    test_course_id = None
     if test_user_id:
-        request_url = f"{url}?test_user_id={test_user_id}"
+        courses = get_user_courses(test_user_id)
+        if courses:
+            print("\nSelect which course schedule to mark attendance for:")
+            for idx, (cid, course_name) in enumerate(courses):
+                print(f"[{idx + 1}] {course_name} (ID: {cid})")
+            print(f"[{len(courses) + 1}] General/No specific course")
+            
+            try:
+                choice = input(f"\nEnter choice [1-{len(courses) + 1}] (default: {len(courses) + 1}): ").strip()
+                if choice:
+                    choice_idx = int(choice) - 1
+                    if 0 <= choice_idx < len(courses):
+                        test_course_id = courses[choice_idx][0]
+                        print(f"Marking attendance for course: {courses[choice_idx][1]} (ID: {test_course_id})")
+                    else:
+                        print("Using general class attendance.")
+                else:
+                    print("Using general class attendance.")
+            except Exception:
+                print("Using general class attendance.")
+
+    params = []
+    if test_user_id:
+        params.append(f"test_user_id={test_user_id}")
+    if test_course_id:
+        params.append(f"course_id={test_course_id}")
+
+    request_url = url
+    if params:
+        request_url = f"{url}?{'&'.join(params)}"
 
     print(f"\nSending '{IMAGE_PATH}' to {request_url}...")
     try:
