@@ -1403,11 +1403,15 @@
             border: 1px solid rgba(255, 107, 53, 0.15);
             border-radius: 28px;
             padding: 40px;
-            max-width: 100%;
+            width: 100%;
+            max-width: 950px;
+            min-height: 680px;
             margin-left: auto;
             margin-right: auto;
             animation: fadeIn 0.4s ease;
             box-shadow: 0 12px 36px rgba(0, 0, 0, 0.03);
+            display: flex;
+            flex-direction: column;
         }
 
         body.dark-mode .bloomready-course-detail-pane {
@@ -2454,7 +2458,7 @@
                                 </div>
                             </div>
                             <div class="card-chart-area" style="padding: 32px;">
-                                <div class="bloomready-course-detail-pane" style="display: block; margin-top: 0;">
+                                <div class="bloomready-course-detail-pane" style="margin-top: 0;">
                                     <!-- Course Name Input -->
                                     <div class="bloomready-form-group" style="margin-bottom: 24px;">
                                         <label class="bloomready-form-label" for="bloomGeneralCourseName">Course Name</label>
