@@ -83,11 +83,14 @@ def recognize(image_path):
         return {"success": False, "message": "No enrolled users in the database yet."}
 
     frame = cv2.imread(image_path)
+    print(f"DEBUG: path={image_path}, type={type(frame)}, hasattr_shape={hasattr(frame, 'shape')}", file=sys.stderr)
+    if frame is not None and hasattr(frame, 'shape'):
+        print(f"DEBUG: shape={frame.shape}, dtype={frame.dtype}", file=sys.stderr)
     if frame is None:
         return {"success": False, "message": "Could not read the uploaded image."}
 
     # Detect faces
-    results = yolo_model(frame, verbose=False)
+    results = yolo_model(image_path, verbose=False)
     boxes = results[0].boxes
     if boxes is None or len(boxes) == 0:
         return {"success": False, "message": "No face detected in the image. Please try a clearer photo."}

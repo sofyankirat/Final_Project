@@ -1803,6 +1803,8 @@ def recommendations():
             recommended = prediction['recommended']
             reason = recommendation_model.generate_llm_reasoning(prediction)
         except Exception as pred_err:
+            import traceback
+            traceback.print_exc()
             print(f"Prediction error: {pred_err}")
             # Fallback values
             score = 75.0

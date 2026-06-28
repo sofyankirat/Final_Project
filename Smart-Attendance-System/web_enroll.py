@@ -65,10 +65,11 @@ def extract_embedding(face_img):
 
 
 # ── SAME detect_and_crop as enroll.py ────────────────────────
-def detect_and_crop(frame):
+def detect_and_crop(frame, path=None):
     """Detect face and return 112x112 crop + box.
     Identical to enroll.py: YOLO detect → bbox + padding → resize."""
-    results = yolo_model(frame, verbose=False)
+    source = path if path is not None else frame
+    results = yolo_model(source, verbose=False)
     boxes = results[0].boxes
 
     if boxes is None or len(boxes) == 0:
@@ -221,11 +222,14 @@ def process_images(name, paths):
     for path in paths:
         bn = os.path.basename(path)
         frame = cv2.imread(path)
+        print(f"DEBUG: path={path}, type={type(frame)}, hasattr_shape={hasattr(frame, 'shape')}", file=sys.stderr)
+        if frame is not None and hasattr(frame, 'shape'):
+            print(f"DEBUG: shape={frame.shape}, dtype={frame.dtype}", file=sys.stderr)
         if frame is None:
-            per_image.append({"file": bn, "status": "error", "reason": "Cannot read image"})
+            per_image.append({"file": bn, "status": "error", "reason": f"Cannot read image (frame is None)"})
             continue
 
-        face, box = detect_and_crop(frame)
+        face, box = detect_and_crop(frame, path)
         if face is None:
             per_image.append({"file": bn, "status": "no_face", "reason": "No face detected"})
             continue

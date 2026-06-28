@@ -61,15 +61,26 @@ def _load_resources():
             _professors_map = {}
 
     # Load Models
+    import sys
     if _regressor_model is None:
         model_path = os.path.join(base_dir, "models", "recommendation_regressor.joblib")
         if os.path.exists(model_path):
-            _regressor_model = joblib.load(model_path)
+            try:
+                _regressor_model = joblib.load(model_path)
+            except Exception as e:
+                import traceback
+                print(f"DEBUG ERROR: Failed to load regressor model: {e}", file=sys.stderr)
+                traceback.print_exc()
             
     if _classifier_model is None:
         model_path = os.path.join(base_dir, "models", "recommendation_classifier.joblib")
         if os.path.exists(model_path):
-            _classifier_model = joblib.load(model_path)
+            try:
+                _classifier_model = joblib.load(model_path)
+            except Exception as e:
+                import traceback
+                print(f"DEBUG ERROR: Failed to load classifier model: {e}", file=sys.stderr)
+                traceback.print_exc()
 
 def get_course_details(course_name):
     _load_resources()
