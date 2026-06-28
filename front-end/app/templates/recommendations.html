@@ -2447,11 +2447,104 @@
 
                     <!-- Bloom General Flow -->
                     <div class="bloomready-flow-pane" id="bloomGeneralFlow" style="display: none;">
-                        <div class="general-placeholder-pane">
-                            <span class="general-placeholder-icon">🌍</span>
-                            <h3 class="general-placeholder-title">Bloom General System</h3>
-                            <p class="general-placeholder-desc">The Bloom General Recommendation System path is
-                                currently under development. Stay tuned for update details!</p>
+                        <div class="dash-card">
+                            <div class="card-header">
+                                <div class="card-title-wrap">
+                                    <h3 class="card-title bloom-system-title">Bloom General System</h3>
+                                </div>
+                            </div>
+                            <div class="card-chart-area" style="padding: 32px;">
+                                <!-- Course Name Input -->
+                                <div class="bloomready-form-group" style="margin-bottom: 24px;">
+                                    <label class="bloomready-form-label" for="bloomGeneralCourseName">Course Name</label>
+                                    <input type="text" class="bloomready-form-input" id="bloomGeneralCourseName"
+                                        placeholder="Enter the general course name (e.g. Data Structures)"
+                                        oninput="onGeneralCourseNameInput()" style="padding-left: 12px;">
+                                </div>
+
+                                <!-- Syllabus Uploader -->
+                                <div class="bloomready-upload-box" id="bloomGeneralUploadBox" onclick="triggerGeneralFileInput()">
+                                    <svg class="upload-icon-svg" xmlns="http://www.w3.org/2000/svg" width="48"
+                                        height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"
+                                        style="margin-bottom: 12px;">
+                                        <path
+                                            d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z">
+                                        </path>
+                                        <line x1="12" y1="11" x2="12" y2="17"></line>
+                                        <polyline points="9 14 12 11 15 14"></polyline>
+                                    </svg>
+                                    <div class="upload-text"
+                                        style="font-weight: 700; color: #1f2937; margin-bottom: 4px;">Upload
+                                        Syllabus Files</div>
+                                    <div class="upload-hint" style="font-size: 13px; color: #6b7280;">Supported
+                                        formats: PDF, DOCX, PPTX (Up to 5 files)</div>
+                                </div>
+                                <input type="file" id="bloomGeneralSyllabusInput" style="display: none;"
+                                    accept=".pdf,.docx,.pptx" multiple onchange="handleGeneralSyllabusUpload(this)">
+
+                                <!-- Uploaded Files List -->
+                                <div class="bloomready-upload-list" id="bloomGeneralUploadFileList"
+                                    style="display: none; margin-top: 16px; display: flex; flex-direction: column; gap: 8px;">
+                                    <!-- Uploaded file item placeholder -->
+                                </div>
+
+                                <!-- Notes / Test Options Actions -->
+                                <div class="bloomready-options-actions" id="bloomGeneralOptionsActions"
+                                    style="display: none; margin-top: 24px;">
+                                    <button type="button" class="bloomready-action-btn" id="btnGeneralNotes"
+                                        onclick="switchGeneralSubPane('notes')">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"
+                                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                                            stroke-linecap="round" stroke-linejoin="round"
+                                            style="margin-right: 6px;">
+                                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z">
+                                            </path>
+                                            <polyline points="14 2 14 8 20 8"></polyline>
+                                            <line x1="16" y1="13" x2="8" y2="13"></line>
+                                            <line x1="16" y1="17" x2="8" y2="17"></line>
+                                            <polyline points="10 9 9 9 8 9"></polyline>
+                                        </svg> Notes
+                                    </button>
+                                    <button type="button" class="bloomready-action-btn" id="btnGeneralTest"
+                                        onclick="switchGeneralSubPane('test')">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"
+                                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+                                            stroke-linecap="round" stroke-linejoin="round"
+                                            style="margin-right: 6px;">
+                                            <path d="M22 10v6M2 10l10-5 10 5-10 5z"></path>
+                                            <path d="M6 12v5c0 2 2 3 6 3s6-1 6-3v-5"></path>
+                                            <path d="m9 10.5 2 2 4-4" stroke-width="2.5"></path>
+                                        </svg> Test
+                                    </button>
+                                </div>
+
+                                <!-- Notes Pane -->
+                                <div class="bloomready-notes-pane" id="bloomGeneralNotesPane" style="display: none; margin-top: 24px;">
+                                    <div class="pdf-placeholder-box">
+                                        <svg class="pdf-icon-svg" xmlns="http://www.w3.org/2000/svg" width="64"
+                                            height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                            stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"
+                                            style="margin-bottom: 8px;">
+                                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z">
+                                            </path>
+                                            <polyline points="14 2 14 8 20 8"></polyline>
+                                            <line x1="16" y1="13" x2="8" y2="13"></line>
+                                            <line x1="16" y1="17" x2="8" y2="17"></line>
+                                            <polyline points="10 9 9 9 8 9"></polyline>
+                                        </svg>
+                                        <div class="pdf-placeholder-title" id="bloomGeneralNotesPdfTitle">
+                                            course_notes_placeholder.pdf</div>
+                                        <div class="pdf-placeholder-desc">This PDF is a placeholder containing
+                                            AI-generated revision notes, core concept maps, and summary charts for
+                                            the course.</div>
+                                        <button type="button" class="pdf-download-btn"
+                                            onclick="downloadGeneralPlaceholderPdf()">
+                                            Download PDF
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -3280,6 +3373,230 @@
             URL.revokeObjectURL(url);
         }
 
+        // ===== BLOOMREADY GENERAL FLOW LOGIC =====
+        let uploadedGeneralSyllabusFiles = [];
+        let currentSelectedGeneralCourse = '';
+        let activeGeneralSubPane = '';
+
+        function triggerGeneralFileInput() {
+            if (uploadedGeneralSyllabusFiles.length >= 5) {
+                return;
+            }
+            const fileInput = document.getElementById('bloomGeneralSyllabusInput');
+            if (fileInput) fileInput.click();
+        }
+
+        function handleGeneralSyllabusUpload(input) {
+            if (input.files && input.files.length > 0) {
+                const filesToAdd = Array.from(input.files);
+
+                if (uploadedGeneralSyllabusFiles.length + filesToAdd.length > 5) {
+                    alert('You can upload up to 5 documents only.');
+                    input.value = '';
+                    return;
+                }
+
+                for (let file of filesToAdd) {
+                    const ext = file.name.split('.').pop().toLowerCase();
+                    if (!['pdf', 'docx', 'pptx'].includes(ext)) {
+                        alert(`Invalid file format for "${file.name}". Only PDF, DOCX, and PPTX files are supported.`);
+                        continue;
+                    }
+
+                    const fileUrl = URL.createObjectURL(file);
+                    uploadedGeneralSyllabusFiles.push({
+                        name: file.name,
+                        url: fileUrl,
+                        file: file
+                    });
+                }
+
+                input.value = '';
+                renderGeneralUploadedFiles();
+            }
+        }
+
+        function renderGeneralUploadedFiles() {
+            const fileList = document.getElementById('bloomGeneralUploadFileList');
+            if (!fileList) return;
+
+            // Save file names to session storage
+            sessionStorage.setItem('bloom_general_uploaded_file_names', JSON.stringify(uploadedGeneralSyllabusFiles.map(f => f.name)));
+
+            // Handle the Upload Box disable state and text representation
+            const uploadBox = document.getElementById('bloomGeneralUploadBox');
+            if (uploadBox) {
+                if (uploadedGeneralSyllabusFiles.length >= 5) {
+                    uploadBox.classList.add('disabled');
+                    const uploadText = uploadBox.querySelector('.upload-text');
+                    const uploadHint = uploadBox.querySelector('.upload-hint');
+                    if (uploadText) uploadText.textContent = 'Upload Limit Reached';
+                    if (uploadHint) uploadHint.textContent = 'You have uploaded the maximum limit of 5 files.';
+                } else {
+                    uploadBox.classList.remove('disabled');
+                    const uploadText = uploadBox.querySelector('.upload-text');
+                    const uploadHint = uploadBox.querySelector('.upload-hint');
+                    if (uploadText) uploadText.textContent = 'Upload Syllabus Files';
+                    if (uploadHint) uploadHint.textContent = 'Supported formats: PDF, DOCX, PPTX (Up to 5 files)';
+                }
+            }
+
+            if (uploadedGeneralSyllabusFiles.length === 0) {
+                fileList.innerHTML = '';
+                fileList.style.display = 'none';
+
+                const actions = document.getElementById('bloomGeneralOptionsActions');
+                if (actions) actions.style.display = 'none';
+                switchGeneralSubPane('');
+                return;
+            }
+
+            fileList.innerHTML = '';
+            uploadedGeneralSyllabusFiles.forEach((fileObj, idx) => {
+                const item = document.createElement('div');
+                item.className = 'uploaded-file-item';
+
+                // Click to open in new tab
+                item.onclick = (e) => {
+                    if (e.target.classList.contains('remove-file-btn')) return;
+                    window.open(fileObj.url, '_blank');
+                };
+
+                item.innerHTML = `
+                    <div style="display: flex; align-items: center;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                            <polyline points="14 2 14 8 20 8"></polyline>
+                        </svg>
+                        <span class="file-name-text">${fileObj.name.replace(/_/g, ' ')}</span>
+                    </div>
+                    <button type="button" class="remove-file-btn" onclick="removeSingleGeneralSyllabus(${idx})" title="Remove file" style="background: none; border: none; color: #ef4444; font-size: 14px; cursor: pointer; padding: 2px 6px;">✕</button>
+                `;
+                fileList.appendChild(item);
+            });
+
+            fileList.style.display = 'flex';
+
+            // Show actions (Notes / Test) if Course Name is filled
+            validateGeneralCourseAndFiles();
+        }
+
+        function removeSingleGeneralSyllabus(index) {
+            if (uploadedGeneralSyllabusFiles[index] && uploadedGeneralSyllabusFiles[index].url) {
+                URL.revokeObjectURL(uploadedGeneralSyllabusFiles[index].url);
+            }
+            uploadedGeneralSyllabusFiles.splice(index, 1);
+            renderGeneralUploadedFiles();
+        }
+
+        function removeGeneralSyllabus() {
+            uploadedGeneralSyllabusFiles.forEach(fileObj => {
+                if (fileObj.url) URL.revokeObjectURL(fileObj.url);
+            });
+            uploadedGeneralSyllabusFiles = [];
+            sessionStorage.removeItem('bloom_general_uploaded_file_names');
+
+            const fileInput = document.getElementById('bloomGeneralSyllabusInput');
+            if (fileInput) fileInput.value = '';
+
+            renderGeneralUploadedFiles();
+        }
+
+        function validateGeneralCourseAndFiles() {
+            const courseInput = document.getElementById('bloomGeneralCourseName');
+            const courseName = courseInput ? courseInput.value.trim() : '';
+            const actions = document.getElementById('bloomGeneralOptionsActions');
+            
+            if (courseName && uploadedGeneralSyllabusFiles.length > 0) {
+                if (actions) actions.style.display = 'flex';
+                currentSelectedGeneralCourse = courseName;
+                sessionStorage.setItem('bloom_general_active_course', courseName);
+            } else {
+                if (actions) actions.style.display = 'none';
+                switchGeneralSubPane('');
+            }
+        }
+
+        function onGeneralCourseNameInput() {
+            const courseInput = document.getElementById('bloomGeneralCourseName');
+            const val = courseInput ? courseInput.value : '';
+            sessionStorage.setItem('bloom_general_active_course', val);
+            validateGeneralCourseAndFiles();
+        }
+
+        function switchGeneralSubPane(paneType) {
+            activeGeneralSubPane = paneType;
+            sessionStorage.setItem('bloom_general_active_subpane', paneType);
+            
+            const btnNotes = document.getElementById('btnGeneralNotes');
+            const btnTest = document.getElementById('btnGeneralTest');
+            const paneNotes = document.getElementById('bloomGeneralNotesPane');
+
+            if (btnNotes) btnNotes.classList.remove('active');
+            if (btnTest) btnTest.classList.remove('active');
+            if (paneNotes) paneNotes.style.display = 'none';
+
+            if (paneType === 'notes') {
+                if (btnNotes) btnNotes.classList.add('active');
+                if (paneNotes) {
+                    paneNotes.style.display = 'block';
+                    const notesTitle = document.getElementById('bloomGeneralNotesPdfTitle');
+                    if (notesTitle) {
+                        notesTitle.innerText = `${currentSelectedGeneralCourse.replace(/_/g, ' ')} Syllabus Notes.pdf`;
+                    }
+                }
+            } else if (paneType === 'test') {
+                if (currentSelectedGeneralCourse) {
+                    window.open('/assessment?course=' + encodeURIComponent(currentSelectedGeneralCourse), '_blank');
+                }
+            }
+        }
+
+        function downloadGeneralPlaceholderPdf() {
+            if (!currentSelectedGeneralCourse) return;
+
+            const content = `BloomReady Course Revision Notes\n\nCourse: ${currentSelectedGeneralCourse}\nSyllabus Reference Files: ${uploadedGeneralSyllabusFiles.length > 0 ? uploadedGeneralSyllabusFiles.map(f => f.name).join(', ') : 'Not available'}\nGenerated on: ${new Date().toLocaleString()}\n\nKey Concepts:\n1. Core definitions and theoretical baseline.\n2. Primary equations and system variables.\n3. Optimization criteria and constraint boundaries.\n4. Experimental validation methods.\n\nThis is a high-fidelity placeholder PDF generated by BloomReady. When fully integrated, this file will contain extensive syllabus-parsed revision materials.`;
+
+            const blob = new Blob([content], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${currentSelectedGeneralCourse.replace(/_/g, ' ')} Syllabus Notes.pdf`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        function restoreBloomGeneralState() {
+            const courseInput = document.getElementById('bloomGeneralCourseName');
+            const savedCourse = sessionStorage.getItem('bloom_general_active_course');
+            if (savedCourse && courseInput) {
+                courseInput.value = savedCourse;
+                currentSelectedGeneralCourse = savedCourse;
+            }
+
+            const savedFileNamesJson = sessionStorage.getItem('bloom_general_uploaded_file_names');
+            if (savedFileNamesJson) {
+                try {
+                    const fileNames = JSON.parse(savedFileNamesJson);
+                    uploadedGeneralSyllabusFiles = fileNames.map(name => ({
+                        name: name,
+                        url: '#',
+                        file: new File([], name)
+                    }));
+                    renderGeneralUploadedFiles();
+                } catch (e) {
+                    console.error("Error restoring general file names", e);
+                }
+            }
+
+            const savedSubpane = sessionStorage.getItem('bloom_general_active_subpane');
+            if (savedSubpane && currentSelectedGeneralCourse && uploadedGeneralSyllabusFiles.length > 0) {
+                switchGeneralSubPane(savedSubpane);
+            }
+        }
+
         function restoreBloomAcademicState() {
             const semesterInput = document.getElementById('bloomSemester');
             const savedSemester = sessionStorage.getItem('bloom_semester');
@@ -3369,6 +3686,7 @@
         } else if (savedSystem === 'bloomready') {
             selectRecSystem('bloomready');
             restoreBloomAcademicState();
+            restoreBloomGeneralState();
         } else {
             selectRecSystem('selector');
         }
