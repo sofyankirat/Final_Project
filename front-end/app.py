@@ -28,6 +28,14 @@ _ATTENDANCE_ROOT = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(
 if _ATTENDANCE_ROOT not in sys.path:
     sys.path.insert(0, _ATTENDANCE_ROOT)
 
+try:
+    import web_enroll
+    import web_recognize
+except Exception as _import_err:
+    print(f"Warning: could not import web_enroll or web_recognize directly: {_import_err}")
+    web_enroll = None
+    web_recognize = None
+
 # Load environment variables
 load_dotenv()
 
@@ -3007,27 +3015,36 @@ def attendance_enroll():
         saved_paths.append(fpath)
 
     try:
-        script_path = os.path.join(_ATTENDANCE_ROOT, 'web_enroll.py')
-        venv_python = os.path.join(_ATTENDANCE_ROOT, 'venv', 'Scripts', 'python.exe')
-        if not os.path.exists(venv_python):
-            venv_python = sys.executable
+        # Try direct in-process call first to avoid process startup lag and speed up responses to <200ms
+        try:
+            if web_enroll is not None:
+                result = web_enroll.process_images(student_name, saved_paths)
+                return jsonify(result), 200
+            else:
+                raise ImportError("web_enroll is not loaded")
+        except Exception as direct_err:
+            print(f"Direct web_enroll.process_images failed, falling back to subprocess: {direct_err}")
+            script_path = os.path.join(_ATTENDANCE_ROOT, 'web_enroll.py')
+            venv_python = os.path.join(_ATTENDANCE_ROOT, 'venv', 'Scripts', 'python.exe')
+            if not os.path.exists(venv_python):
+                venv_python = sys.executable
 
-        env = os.environ.copy()
-        env['PYTHONIOENCODING'] = 'utf-8'
-        proc = subprocess.run(
-            [venv_python, script_path, student_name] + saved_paths,
-            cwd=_ATTENDANCE_ROOT,
-            capture_output=True, text=True, encoding='utf-8', errors='replace',
-            env=env, timeout=120,
-        )
-        for line in (proc.stdout or '').splitlines():
-            if line.startswith('__RESULT_JSON__'):
-                try:
-                    return jsonify(json.loads(line[len('__RESULT_JSON__'):])), 200
-                except json.JSONDecodeError:
-                    pass
-        error_detail = (proc.stderr or proc.stdout or 'Unknown error').strip()[-500:]
-        return jsonify({'success': False, 'message': f'Enrollment error: {error_detail}'}), 200
+            env = os.environ.copy()
+            env['PYTHONIOENCODING'] = 'utf-8'
+            proc = subprocess.run(
+                [venv_python, script_path, student_name] + saved_paths,
+                cwd=_ATTENDANCE_ROOT,
+                capture_output=True, text=True, encoding='utf-8', errors='replace',
+                env=env, timeout=120,
+            )
+            for line in (proc.stdout or '').splitlines():
+                if line.startswith('__RESULT_JSON__'):
+                    try:
+                        return jsonify(json.loads(line[len('__RESULT_JSON__'):])), 200
+                    except json.JSONDecodeError:
+                        pass
+            error_detail = (proc.stderr or proc.stdout or 'Unknown error').strip()[-500:]
+            return jsonify({'success': False, 'message': f'Enrollment error: {error_detail}'}), 200
     except subprocess.TimeoutExpired:
         return jsonify({'success': False, 'message': 'Enrollment timed out. Please try again.'}), 504
     except Exception as err:
@@ -3060,51 +3077,80 @@ def attendance_test_recognize():
     with open(fpath, 'wb') as fh:
         fh.write(img_bytes)
 
-    # Run recognition
-    script_path = os.path.join(_ATTENDANCE_ROOT, 'web_recognize.py')
-    venv_python = os.path.join(_ATTENDANCE_ROOT, 'venv', 'Scripts', 'python.exe')
-    if not os.path.exists(venv_python):
-        venv_python = sys.executable
-
     try:
-        env = os.environ.copy()
-        env['PYTHONIOENCODING'] = 'utf-8'
-        proc = subprocess.run(
-            [venv_python, script_path, fpath],
-            cwd=_ATTENDANCE_ROOT,
-            capture_output=True, text=True, encoding='utf-8', errors='replace',
-            env=env, timeout=60,
-        )
-        for line in (proc.stdout or '').splitlines():
-            if line.startswith('__RESULT_JSON__'):
-                try:
-                    res_data = json.loads(line[len('__RESULT_JSON__'):])
-                    if isinstance(res_data, dict) and res_data.get('success'):
-                        connection = get_db_connection()
-                        if connection:
-                            try:
-                                cursor = connection.cursor()
-                                for face in res_data.get('faces', []):
-                                    name_key = face.get('name')
-                                    if name_key and name_key.startswith('user_'):
-                                        try:
-                                            uid = int(name_key.split('_')[1])
-                                            cursor.execute("SELECT first_name FROM user_additional_info WHERE user_id = %s", (uid,))
-                                            row = cursor.fetchone()
-                                            if row and row[0]:
-                                                face['name'] = to_clean_string(row[0])
-                                        except (IndexError, ValueError):
-                                            pass
-                                cursor.close()
-                            except Exception as e:
-                                print(f"Error fetching recognized user name: {e}")
-                            finally:
-                                connection.close()
-                    return jsonify(res_data)
-                except json.JSONDecodeError:
-                    pass
-        error_detail = (proc.stderr or proc.stdout or 'Unknown error').strip()[-500:]
-        return jsonify({'success': False, 'message': f'Recognition error: {error_detail}'}), 500
+        # Try direct in-process call first to avoid process startup lag and speed up responses to <200ms
+        try:
+            if web_recognize is not None:
+                res_data = web_recognize.recognize(fpath)
+                if isinstance(res_data, dict) and res_data.get('success'):
+                    connection = get_db_connection()
+                    if connection:
+                        try:
+                            cursor = connection.cursor()
+                            for face in res_data.get('faces', []):
+                                name_key = face.get('name')
+                                if name_key and name_key.startswith('user_'):
+                                    try:
+                                        uid = int(name_key.split('_')[1])
+                                        cursor.execute("SELECT first_name FROM user_additional_info WHERE user_id = %s", (uid,))
+                                        row = cursor.fetchone()
+                                        if row and row[0]:
+                                            face['name'] = to_clean_string(row[0])
+                                    except (IndexError, ValueError):
+                                        pass
+                            cursor.close()
+                        except Exception as e:
+                            print(f"Error fetching recognized user name: {e}")
+                        finally:
+                            connection.close()
+                return jsonify(res_data)
+            else:
+                raise ImportError("web_recognize is not loaded")
+        except Exception as direct_err:
+            print(f"Direct web_recognize.recognize failed, falling back to subprocess: {direct_err}")
+            script_path = os.path.join(_ATTENDANCE_ROOT, 'web_recognize.py')
+            venv_python = os.path.join(_ATTENDANCE_ROOT, 'venv', 'Scripts', 'python.exe')
+            if not os.path.exists(venv_python):
+                venv_python = sys.executable
+
+            env = os.environ.copy()
+            env['PYTHONIOENCODING'] = 'utf-8'
+            proc = subprocess.run(
+                [venv_python, script_path, fpath],
+                cwd=_ATTENDANCE_ROOT,
+                capture_output=True, text=True, encoding='utf-8', errors='replace',
+                env=env, timeout=60,
+            )
+            for line in (proc.stdout or '').splitlines():
+                if line.startswith('__RESULT_JSON__'):
+                    try:
+                        res_data = json.loads(line[len('__RESULT_JSON__'):])
+                        if isinstance(res_data, dict) and res_data.get('success'):
+                            connection = get_db_connection()
+                            if connection:
+                                try:
+                                    cursor = connection.cursor()
+                                    for face in res_data.get('faces', []):
+                                        name_key = face.get('name')
+                                        if name_key and name_key.startswith('user_'):
+                                            try:
+                                                uid = int(name_key.split('_')[1])
+                                                cursor.execute("SELECT first_name FROM user_additional_info WHERE user_id = %s", (uid,))
+                                                row = cursor.fetchone()
+                                                if row and row[0]:
+                                                    face['name'] = to_clean_string(row[0])
+                                            except (IndexError, ValueError):
+                                                pass
+                                    cursor.close()
+                                except Exception as e:
+                                    print(f"Error fetching recognized user name: {e}")
+                                finally:
+                                    connection.close()
+                        return jsonify(res_data)
+                    except json.JSONDecodeError:
+                        pass
+            error_detail = (proc.stderr or proc.stdout or 'Unknown error').strip()[-500:]
+            return jsonify({'success': False, 'message': f'Recognition error: {error_detail}'}), 500
     except subprocess.TimeoutExpired:
         return jsonify({'success': False, 'message': 'Recognition timed out.'}), 504
     except Exception as err:
