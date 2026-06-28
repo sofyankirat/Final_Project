@@ -618,7 +618,7 @@ def send_verification_email(email, verification_token):
         with smtplib.SMTP(SMTP_SERVER, SMTP_PORT, timeout=5.0) as server:
             server.set_debuglevel(1)
             server.starttls()
-            server.login(EMAIL_ADDRESS, EMAIL_PASSWORD)
+            server.login(normalize_email_address(EMAIL_ADDRESS), EMAIL_PASSWORD)
             server.sendmail(sender_email, recipient_email, message.as_string())
         
         print("Email sent successfully via SMTP.")
@@ -633,7 +633,7 @@ def normalize_email_address(value: Any) -> str:
     cleaned = to_clean_string(value).lower()
     if cleaned.startswith('mailto:'):
         cleaned = cleaned[len('mailto:'):]
-    if '@' not in cleaned and cleaned.startswith('www.'):
+    if cleaned.startswith('www.'):
         cleaned = cleaned[len('www.'):]
     return cleaned
 
@@ -685,7 +685,7 @@ def send_help_request_email(user_name: str, user_email: str, subject: str, messa
         with smtplib.SMTP(SMTP_SERVER, SMTP_PORT) as server:
             server.set_debuglevel(1)
             server.starttls()
-            server.login(EMAIL_ADDRESS, EMAIL_PASSWORD)
+            server.login(normalize_email_address(EMAIL_ADDRESS), EMAIL_PASSWORD)
             server.sendmail(sender_email, [support_email], msg.as_string())
 
         return True
@@ -807,7 +807,7 @@ def send_session_report_email(students, course_id=None):
         with smtplib.SMTP(SMTP_SERVER, SMTP_PORT, timeout=5.0) as server:
             server.set_debuglevel(1)
             server.starttls()
-            server.login(EMAIL_ADDRESS, EMAIL_PASSWORD)
+            server.login(normalize_email_address(EMAIL_ADDRESS), EMAIL_PASSWORD)
             server.sendmail(sender_email, recipient_email, message.as_string())
         
         print("Session report email sent successfully via SMTP.")
