@@ -1163,6 +1163,23 @@ def debug_email():
         
     logs.append(f"Brevo HTTP Status: {brevo_status}")
     logs.append(f"Brevo Response Body: {brevo_response}")
+
+    # Try SMTP 465 SSL
+    smtp_465_status = "Not tested"
+    try:
+        import smtplib
+        import ssl
+        context = ssl.create_default_context()
+        # Use clean credentials
+        login_email = normalize_email_address(email_addr)
+        with smtplib.SMTP_SSL("smtp.gmail.com", 465, context=context, timeout=5.0) as server:
+            server.login(login_email, email_pwd)
+            server.sendmail(login_email, recipient, "Subject: SMTP 465 Test\n\nSMTP 465 Test Message")
+        smtp_465_status = "Success"
+    except Exception as smtp_err:
+        smtp_465_status = f"Failed: {str(smtp_err)}"
+        
+    logs.append(f"SMTP 465 (SSL) Test Status: {smtp_465_status}")
     
     # Read email_logs.txt
     logs_file_content = ""
