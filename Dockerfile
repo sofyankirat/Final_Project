@@ -12,6 +12,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 # Copy front-end requirements first to leverage Docker cache
 COPY front-end/requirements.txt /app/front-end/requirements.txt
+
+# Install PyTorch CPU first to avoid heavy GPU/CUDA downloads and reduce memory consumption
+RUN pip install --no-cache-dir torch torchvision --index-url https://download.pytorch.org/whl/cpu
+
+# Install remaining requirements
 RUN pip install --no-cache-dir -r /app/front-end/requirements.txt
 
 # Copy all required codebase parts into the container

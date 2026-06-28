@@ -1,9 +1,24 @@
-**/venv
-**/.venv
-**/.git
+# Ignore python virtual environments
+**/venv/
+**/.venv/
+venv/
+.venv/
+Smart-Attendance-System/venv/
+front-end/venv/
+
+# Ignore local database files and backups
 **/*.db
-**/*.pyc
-**/__pycache__
-.vscode
+**/*.pkl
+**/*.tar.gz
 front-end/student_system.db
 front-end/email_logs.txt
+
+# Ignore Git files and IDE configurations
+.git/
+.github/
+.vscode/
+.gitignore
+.dockerignore
+
+# Ignore unrelated services / big volumes
+Mini_RAG/
