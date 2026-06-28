@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Course Assessment - BloomReady</title>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/logo1.png') }}?v=20260521">
+    <script src="{{ url_for('static', filename='js/favicon.js') }}" defer></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -11,27 +13,27 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
     <style>
         :root {
-            --primary-accent: #ff6b35;
-            --primary-gradient: linear-gradient(135deg, #ff6b35, #e85c20);
+            --primary-accent: #0fb5a2;
+            --primary-gradient: linear-gradient(135deg, #0fb5a2, #3ca3cc);
             --bg-glass: rgba(255, 255, 255, 0.45);
-            --border-glass: rgba(255, 107, 53, 0.15);
+            --border-glass: rgba(15, 181, 162, 0.15);
             --text-main: #1f2937;
             --text-muted: #6b7280;
             --card-shadow: 0 12px 36px rgba(0, 0, 0, 0.03);
             --option-bg: rgba(255, 255, 255, 0.6);
-            --option-border: rgba(255, 107, 53, 0.12);
+            --option-border: rgba(15, 181, 162, 0.12);
         }
 
         body.dark-mode {
-            --primary-accent: #6366f1;
-            --primary-gradient: linear-gradient(135deg, #6366f1, #4f46e5);
+            --primary-accent: #3ca3cc;
+            --primary-gradient: linear-gradient(135deg, #0fb5a2, #3ca3cc);
             --bg-glass: rgba(15, 17, 58, 0.45);
-            --border-glass: rgba(99, 102, 241, 0.15);
+            --border-glass: rgba(60, 163, 204, 0.15);
             --text-main: #f3f4f6;
             --text-muted: #9ca3af;
             --card-shadow: 0 20px 50px rgba(0, 0, 0, 0.22);
             --option-bg: rgba(15, 17, 58, 0.35);
-            --option-border: rgba(99, 102, 241, 0.12);
+            --option-border: rgba(60, 163, 204, 0.12);
         }
 
         body {
@@ -122,26 +124,30 @@
         }
 
         .option-label {
-            display: flex;
-            align-items: center;
+            display: flex !important;
+            align-items: center !important;
             background: var(--option-bg);
             border: 1px solid var(--option-border);
             border-radius: 12px;
             padding: 14px 18px;
             cursor: pointer;
             transition: all 0.25s ease;
-            font-weight: 500;
-            font-size: 14.5px;
+            font-weight: 600 !important;
+            font-size: 15px !important;
+            color: var(--text-main) !important;
+            text-transform: none !important;
+            letter-spacing: normal !important;
+            margin-bottom: 0 !important;
         }
 
         .option-label:hover {
-            border-color: var(--primary-accent);
-            background: rgba(255, 107, 53, 0.04);
+            border-color: var(--primary-accent) !important;
+            background: rgba(15, 181, 162, 0.04) !important;
             transform: translateX(4px);
         }
 
         body.dark-mode .option-label:hover {
-            background: rgba(99, 102, 241, 0.04);
+            background: rgba(60, 163, 204, 0.04) !important;
         }
 
         .option-radio {
@@ -162,8 +168,8 @@
         }
 
         .option-radio:checked {
-            border-color: var(--primary-accent);
-            background: var(--primary-accent);
+            border-color: var(--primary-accent) !important;
+            background: var(--primary-accent) !important;
             box-shadow: inset 0 0 0 3px rgba(255, 255, 255, 0.95);
         }
 
@@ -172,14 +178,14 @@
         }
 
         .option-label.selected {
-            border-color: var(--primary-accent);
-            background: rgba(255, 107, 53, 0.06);
-            box-shadow: 0 4px 12px rgba(255, 107, 53, 0.05);
+            border-color: var(--primary-accent) !important;
+            background: rgba(15, 181, 162, 0.06) !important;
+            box-shadow: 0 4px 12px rgba(15, 181, 162, 0.05);
         }
 
         body.dark-mode .option-label.selected {
-            background: rgba(99, 102, 241, 0.06);
-            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.05);
+            background: rgba(60, 163, 204, 0.06) !important;
+            box-shadow: 0 4px 12px rgba(60, 163, 204, 0.05);
         }
 
         .submit-btn {
@@ -335,13 +341,16 @@
 
         <!-- Results View -->
         <div id="resultsView" class="results-container">
-            <!-- Trophy SVG replacing emoji cup -->
-            <svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color: var(--primary-accent); margin-bottom: 12px;">
-                <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path>
-                <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path>
-                <path d="M4 22h16"></path>
-                <path d="M10 14.66V17c0 .55-.45 1-1 1H4v2h16v-2h-5c-.55 0-1-.45-1-1v-2.34"></path>
-                <path d="M12 2a6 6 0 0 1 6 6v5a6 6 0 0 1-6 6 6 6 0 0 1-6-6V8a6 6 0 0 1 6-6z"></path>
+            <!-- Redesigned Elegant Trophy SVG -->
+            <svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="color: var(--primary-accent); margin-bottom: 16px; filter: drop-shadow(0 4px 12px rgba(15, 181, 162, 0.25));">
+                <!-- Classic Trophy Cup shape -->
+                <path d="M12 15a7 7 0 0 0 7-7V3H5v5a7 7 0 0 0 7 7z"></path>
+                <!-- Base & Stem -->
+                <path d="M12 15v5"></path>
+                <path d="M7 21h10"></path>
+                <!-- Elegant Side Handles -->
+                <path d="M5 5H3v3a4 4 0 0 0 4 4"></path>
+                <path d="M19 5h2v3a4 4 0 0 1-4 4"></path>
             </svg>
             <h2 class="assessment-title" style="margin-bottom: 8px;">Assessment Completed!</h2>
             <p style="color: var(--text-muted); font-size: 15px; margin-bottom: 16px;">
