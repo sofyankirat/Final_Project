@@ -1403,7 +1403,7 @@
             border: 1px solid rgba(255, 107, 53, 0.15);
             border-radius: 28px;
             padding: 40px;
-            max-width: 900px;
+            max-width: 100%;
             margin-left: auto;
             margin-right: auto;
             animation: fadeIn 0.4s ease;
@@ -2461,6 +2461,10 @@
                                         <input type="text" class="bloomready-form-input" id="bloomGeneralCourseName"
                                             placeholder="Enter the general course name (e.g. Data Structures)"
                                             oninput="onGeneralCourseNameInput()" style="padding-left: 12px;">
+                                        <div class="bloomready-input-error" id="bloomGeneralCourseNameError"
+                                            style="display: none; color: #ef4444; font-size: 13px; margin-top: 6px; font-weight: 600; text-align: left;">
+                                            Please enter a Course Name before uploading syllabus files.
+                                        </div>
                                     </div>
 
                                     <!-- Syllabus Uploader -->
@@ -3384,11 +3388,13 @@
         function triggerGeneralFileInput() {
             const courseInput = document.getElementById('bloomGeneralCourseName');
             const courseName = courseInput ? courseInput.value.trim() : '';
+            const errorDiv = document.getElementById('bloomGeneralCourseNameError');
             if (!courseName) {
-                alert('Please enter a Course Name before uploading syllabus files.');
+                if (errorDiv) errorDiv.style.display = 'block';
                 if (courseInput) courseInput.focus();
                 return;
             }
+            if (errorDiv) errorDiv.style.display = 'none';
             if (uploadedGeneralSyllabusFiles.length >= 5) {
                 return;
             }
@@ -3542,8 +3548,14 @@
 
         function onGeneralCourseNameInput() {
             const courseInput = document.getElementById('bloomGeneralCourseName');
-            const val = courseInput ? courseInput.value : '';
+            const val = courseInput ? courseInput.value.trim() : '';
             sessionStorage.setItem('bloom_general_active_course', val);
+            
+            const errorDiv = document.getElementById('bloomGeneralCourseNameError');
+            if (val && errorDiv) {
+                errorDiv.style.display = 'none';
+            }
+            
             updateGeneralUploadBoxState();
             validateGeneralCourseAndFiles();
         }
