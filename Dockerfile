@@ -10,15 +10,17 @@ RUN apt-get -o Acquire::ForceIPv4=true update && apt-get -o Acquire::ForceIPv4=t
     libglib2.0-0 \
     && rm -rf /var/lib/apt/lists/*
 
+# Copy pip IPv4 helper wrapper
+COPY pip_ipv4.py /app/pip_ipv4.py
+
 # Copy front-end requirements first to leverage Docker cache
 COPY front-end/requirements.txt /app/front-end/requirements.txt
 
 # Install PyTorch CPU first to avoid heavy GPU/CUDA downloads and reduce memory consumption
-# We use a python socket monkeypatch to force IPv4 and prevent IPv6 connection timeouts on Railway network
-RUN python -c "import socket; orig=socket.getaddrinfo; socket.getaddrinfo=lambda *a,**k: [r for r in orig(*a,**k) if r[0] == socket.AF_INET]; from pip._internal.cli.main import main; main()" install --no-cache-dir torch torchvision --index-url https://download.pytorch.org/whl/cpu
+RUN python /app/pip_ipv4.py install --no-cache-dir torch torchvision --index-url https://download.pytorch.org/whl/cpu
 
 # Install remaining requirements
-RUN python -c "import socket; orig=socket.getaddrinfo; socket.getaddrinfo=lambda *a,**k: [r for r in orig(*a,**k) if r[0] == socket.AF_INET]; from pip._internal.cli.main import main; main()" install --no-cache-dir -r /app/front-end/requirements.txt
+RUN python /app/pip_ipv4.py install --no-cache-dir -r /app/front-end/requirements.txt
 
 # Copy all required codebase parts into the container
 COPY front-end /app/front-end
