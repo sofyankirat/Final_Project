@@ -1,11 +1,11 @@
-FROM python:3.10-slim
+FROM python:3.10-slim-bookworm
 
 # Set working directory in container
 WORKDIR /app
 
 # Install system dependencies (including OpenGL and GLib needed by OpenCV/Ultralytics)
+# Removed build-essential to prevent downloading massive compilation dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential \
     libgl1 \
     libglib2.0-0 \
     && rm -rf /var/lib/apt/lists/*
