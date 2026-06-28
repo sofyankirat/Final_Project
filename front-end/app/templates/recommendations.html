@@ -1340,7 +1340,7 @@
         .bloomready-course-detail-pane {
             margin-top: 48px;
             background: rgba(255, 255, 255, 0.4);
-            border: 1px solid rgba(20, 184, 166, 0.15);
+            border: 1px solid rgba(255, 107, 53, 0.15);
             border-radius: 28px;
             padding: 40px;
             max-width: 900px;
@@ -1356,7 +1356,7 @@
         }
 
         .bloomready-upload-box {
-            border: 2px dashed rgba(20, 184, 166, 0.3);
+            border: 2px dashed rgba(255, 107, 53, 0.3);
             background: rgba(255, 255, 255, 0.3);
             border-radius: 20px;
             padding: 40px 24px;
@@ -1373,13 +1373,36 @@
         }
 
         .bloomready-upload-box:hover {
-            border-color: #14b8a6;
-            background: rgba(20, 184, 166, 0.03);
+            border-color: #ff6b35;
+            background: rgba(255, 107, 53, 0.03);
         }
 
         body.dark-mode .bloomready-upload-box:hover {
             border-color: #6366f1;
             background: rgba(99, 102, 241, 0.04);
+        }
+
+        #bloomSelectedCourseTitle {
+            color: #ff6b35 !important;
+            border-bottom: 2px solid rgba(255, 107, 53, 0.1) !important;
+        }
+        body.dark-mode #bloomSelectedCourseTitle {
+            color: #6366f1 !important;
+            border-bottom: 2px solid rgba(99, 102, 241, 0.1) !important;
+        }
+
+        .upload-icon-svg {
+            color: #ff6b35 !important;
+        }
+        body.dark-mode .upload-icon-svg {
+            color: #6366f1 !important;
+        }
+
+        .pdf-icon-svg {
+            color: #ff6b35 !important;
+        }
+        body.dark-mode .pdf-icon-svg {
+            color: #6366f1 !important;
         }
 
         .upload-icon {
@@ -2147,14 +2170,16 @@
                             <div class="card-chart-area" style="padding: 32px;">
                                 <!-- Input Form -->
                                 <form class="bloomready-form" id="bloomAcademicForm" novalidate onsubmit="handleBloomAcademicSubmit(event)">
-                                    <div class="bloomready-form-group">
-                                        <label class="bloomready-form-label" for="bloomStudentId">Student ID</label>
-                                        <input type="text" class="bloomready-form-input" id="bloomStudentId" value="{{ student_id }}" readonly disabled>
-                                    </div>
-                                    <div class="bloomready-form-group">
-                                        <label class="bloomready-form-label" for="bloomSemester">Semester</label>
-                                        <input type="text" class="bloomready-form-input" id="bloomSemester" placeholder="e.g. 1-20 or S" required maxlength="2" onkeypress="validateSemesterKey(event)" oninput="validateSemesterInput(this)">
-                                        <div class="bloomready-input-error" id="bloomSemesterError" style="display: none; color: #ef4444; font-size: 13px; margin-top: 6px; font-weight: 600; text-align: left;"></div>
+                                    <div class="bloomready-form-row" style="display: flex; gap: 20px; align-items: flex-start; margin-bottom: 20px;">
+                                        <div class="bloomready-form-group" style="flex: 1; margin-bottom: 0;">
+                                            <label class="bloomready-form-label" for="bloomStudentId">Student ID</label>
+                                            <input type="text" class="bloomready-form-input" id="bloomStudentId" value="{{ student_id }}" readonly disabled style="padding-left: 12px;">
+                                        </div>
+                                        <div class="bloomready-form-group" style="flex: 1; margin-bottom: 0;">
+                                            <label class="bloomready-form-label" for="bloomSemester">Semester</label>
+                                            <input type="text" class="bloomready-form-input" id="bloomSemester" placeholder="e.g. 1-20 or S" required maxlength="2" onkeypress="validateSemesterKey(event)" oninput="validateSemesterInput(this)" style="padding-left: 12px;">
+                                            <div class="bloomready-input-error" id="bloomSemesterError" style="display: none; color: #ef4444; font-size: 13px; margin-top: 6px; font-weight: 600; text-align: left;"></div>
+                                        </div>
                                     </div>
                                     <div class="bloomready-form-submit-container">
                                         <button type="submit" class="bloomready-submit-btn">Submit</button>
@@ -2177,11 +2202,11 @@
 
                                 <!-- Course Detail Pane -->
                                 <div class="bloomready-course-detail-pane" id="bloomAcademicCourseDetailPane" style="display: none;">
-                                    <h4 class="bloomready-section-title" id="bloomSelectedCourseTitle" style="color: #14b8a6; border-bottom: 2px solid rgba(20, 184, 166, 0.1); padding-bottom: 12px; margin-bottom: 28px; display: flex; align-items: center; gap: 8px;">Selected Course</h4>
+                                    <h4 class="bloomready-section-title" id="bloomSelectedCourseTitle" style="border-bottom: 2px solid rgba(20, 184, 166, 0.1); padding-bottom: 12px; margin-bottom: 28px; display: flex; align-items: center; gap: 8px;">Selected Course</h4>
                                     
                                     <!-- Syllabus Uploader -->
                                     <div class="bloomready-upload-box" onclick="triggerFileInput()">
-                                        <svg class="upload-icon-svg" xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color: #14b8a6; margin-bottom: 12px;">
+                                        <svg class="upload-icon-svg" xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 12px;">
                                             <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
                                             <line x1="12" y1="11" x2="12" y2="17"></line>
                                             <polyline points="9 14 12 11 15 14"></polyline>
@@ -2231,17 +2256,6 @@
                                             <button type="button" class="pdf-download-btn" onclick="downloadPlaceholderPdf()">
                                                 Download PDF
                                             </button>
-                                        </div>
-                                    </div>
-
-                                    <!-- Test Pane -->
-                                    <div class="bloomready-test-pane" id="bloomTestPane" style="display: none;">
-                                        <h4 class="bloomready-section-title" style="margin-bottom: 24px; text-align: left; font-size: 18px;">🎯 Course Assessment (20 MCQ Questions)</h4>
-                                        <div class="mcq-container" id="mcqContainer">
-                                            <!-- Dynamically generated MCQ questions -->
-                                        </div>
-                                        <div class="mcq-submit-btn-container">
-                                            <button type="button" class="bloomready-submit-btn" onclick="submitAssessment()">Submit Assessment</button>
                                         </div>
                                     </div>
                                 </div>
@@ -2994,7 +3008,7 @@
                             <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
                             <polyline points="14 2 14 8 20 8"></polyline>
                         </svg>
-                        <span class="file-name-text" style="text-decoration: underline; font-weight: 600; color: ${textColor};">${fileObj.name}</span>
+                        <span class="file-name-text" style="text-decoration: underline; font-weight: 600; color: ${textColor};">${fileObj.name.replace(/_/g, ' ')}</span>
                     </div>
                     <button type="button" class="remove-file-btn" onclick="removeSingleSyllabus(${idx})" title="Remove file" style="background: none; border: none; color: #ef4444; font-size: 14px; cursor: pointer; padding: 2px 6px;">✕</button>
                 `;
@@ -3061,14 +3075,12 @@
                     // Update notes placeholder name
                     const notesTitle = document.getElementById('bloomNotesPdfTitle');
                     if (notesTitle) {
-                        notesTitle.innerText = `${currentSelectedCourse} Syllabus Notes.pdf`;
+                        notesTitle.innerText = `${currentSelectedCourse.replace(/_/g, ' ')} Syllabus Notes.pdf`;
                     }
                 }
             } else if (paneType === 'test') {
-                if (btnTest) btnTest.classList.add('active');
-                if (paneTest) {
-                    paneTest.style.display = 'block';
-                    generateMCQQuestions();
+                if (currentSelectedCourse) {
+                    window.open('/assessment?course=' + encodeURIComponent(currentSelectedCourse), '_blank');
                 }
             }
         }
@@ -3083,145 +3095,11 @@
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `${currentSelectedCourse} Syllabus Notes.pdf`;
+            a.download = `${currentSelectedCourse.replace(/_/g, ' ')} Syllabus Notes.pdf`;
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
-        }
-
-        function generateMCQQuestions() {
-            const container = document.getElementById('mcqContainer');
-            if (!container) return;
-            
-            container.innerHTML = '';
-            
-            const questions = [
-                "Recall the fundamental definition of a core concept in " + currentSelectedCourse + ".",
-                "Identify the primary theorem or equation used for analysis in " + currentSelectedCourse + ".",
-                "Under what conditions is the primary model of " + currentSelectedCourse + " applicable?",
-                "Apply the basic principles of " + currentSelectedCourse + " to calculate a first-order approximation.",
-                "Select the correct derivative or rate of change representation for " + currentSelectedCourse + ".",
-                "Interpret the graphical representation of a steady-state system in " + currentSelectedCourse + ".",
-                "Calculate the limit or boundary condition of a function modeling " + currentSelectedCourse + ".",
-                "Determine the impact of doubling the input coefficient in " + currentSelectedCourse + ".",
-                "Analyze the error propagation in a multi-step calculation within " + currentSelectedCourse + ".",
-                "Identify the constraint equation for optimizing a system in " + currentSelectedCourse + ".",
-                "Evaluate which numerical method yields the highest precision for " + currentSelectedCourse + ".",
-                "Compare the efficiency of two analytical techniques in " + currentSelectedCourse + ".",
-                "Formulate a hypothesis regarding the convergence rate of " + currentSelectedCourse + " series.",
-                "Which of the following describes the null space or kernel boundary in " + currentSelectedCourse + "?",
-                "Select the correct integral transformation parameter for " + currentSelectedCourse + ".",
-                "Design a validation test to verify the stability of a " + currentSelectedCourse + " simulation.",
-                "What is the physical or mathematical interpretation of the gradient vector in " + currentSelectedCourse + "?",
-                "Explain the divergence criteria for a non-linear differential representation of " + currentSelectedCourse + ".",
-                "Which assumption is violated if the boundary conditions of " + currentSelectedCourse + " are non-homogeneous?",
-                "Synthesize the optimal parameters for a second-order system model of " + currentSelectedCourse + "."
-            ];
-
-            questions.forEach((qText, index) => {
-                const level = Math.min(6, Math.floor(index / 3) + 1);
-                const levelsText = ["Remembering", "Understanding", "Applying", "Analyzing", "Evaluating", "Creating"];
-                const qDiv = document.createElement('div');
-                qDiv.className = 'mcq-item';
-                qDiv.innerHTML = `
-                    <div class="mcq-question">Q${index + 1} [Bloom Level: ${levelsText[level - 1]}]: ${qText}</div>
-                    <div class="mcq-options">
-                        <label class="mcq-option-label">
-                            <input type="radio" name="q_${index}" value="A" class="mcq-option-radio">
-                            <span>A) Standard optimal value computed for ${currentSelectedCourse}</span>
-                        </label>
-                        <label class="mcq-option-label">
-                            <input type="radio" name="q_${index}" value="B" class="mcq-option-radio">
-                            <span>B) Local linear approximation method</span>
-                        </label>
-                        <label class="mcq-option-label">
-                            <input type="radio" name="q_${index}" value="C" class="mcq-option-radio">
-                            <span>C) Boundary limit fallback state</span>
-                        </label>
-                        <label class="mcq-option-label">
-                            <input type="radio" name="q_${index}" value="D" class="mcq-option-radio">
-                            <span>D) Insufficient constraint parameter</span>
-                        </label>
-                    </div>
-                `;
-                container.appendChild(qDiv);
-            });
-        }
-
-        function submitAssessment() {
-            let answered = 0;
-            let correct = 0;
-            
-            for (let i = 0; i < 20; i++) {
-                const radios = document.getElementsByName(`q_${i}`);
-                let chosen = false;
-                for (let r of radios) {
-                    if (r.checked) {
-                        chosen = true;
-                        // Let's grade A or B as correct dynamically
-                        if (r.value === 'A' || r.value === 'B') {
-                            correct++;
-                        }
-                        break;
-                    }
-                }
-                if (chosen) answered++;
-            }
-
-            if (answered < 20) {
-                alert(`Please answer all 20 questions before submitting. You have answered ${answered}/20 questions.`);
-                return;
-            }
-
-            const scorePercent = Math.round((correct / 20) * 100);
-            
-            // Custom dialog popup overlay
-            const overlay = document.createElement('div');
-            overlay.style.position = 'fixed';
-            overlay.style.top = '0';
-            overlay.style.left = '0';
-            overlay.style.width = '100vw';
-            overlay.style.height = '100vh';
-            overlay.style.background = 'rgba(0, 0, 0, 0.45)';
-            overlay.style.backdropFilter = 'blur(8px)';
-            overlay.style.display = 'flex';
-            overlay.style.alignItems = 'center';
-            overlay.style.justifyContent = 'center';
-            overlay.style.zIndex = '99999';
-            overlay.style.animation = 'fadeIn 0.3s ease';
-
-            const dialog = document.createElement('div');
-            const isDark = document.body.classList.contains('dark-mode');
-            dialog.style.background = isDark ? 'rgba(15, 17, 58, 0.95)' : 'rgba(255, 255, 255, 0.95)';
-            dialog.style.border = isDark ? '1px solid rgba(99, 102, 241, 0.25)' : '1px solid rgba(255, 107, 53, 0.25)';
-            dialog.style.borderRadius = '24px';
-            dialog.style.padding = '40px';
-            dialog.style.maxWidth = '500px';
-            dialog.style.width = '90%';
-            dialog.style.textAlign = 'center';
-            dialog.style.boxShadow = '0 20px 50px rgba(0, 0, 0, 0.15)';
-            dialog.style.color = isDark ? '#f3f4f6' : '#1f2937';
-
-            dialog.innerHTML = `
-                <div style="font-size: 48px; margin-bottom: 16px;">🏆</div>
-                <h3 style="font-size: 22px; font-weight: 800; margin-bottom: 8px;">Assessment Completed!</h3>
-                <p style="font-size: 14px; color: #6b7280; margin-bottom: 24px;">Your results for the <strong>${currentSelectedCourse}</strong> cognitive evaluation:</p>
-                <div style="font-size: 54px; font-weight: 900; color: ${isDark ? '#6366f1' : '#ff6b35'}; margin-bottom: 24px;">${scorePercent}%</div>
-                <p style="font-size: 15px; font-weight: 700; margin-bottom: 32px;">
-                    ${scorePercent >= 70 ? '🎉 Congratulations! You show high cognitive readiness for this course.' : '⚠️ You may want to review prerequisite materials before starting.'}
-                </p>
-                <button type="button" class="bloomready-submit-btn" id="closeAssessmentResultBtn">Close Results</button>
-            `;
-
-            overlay.appendChild(dialog);
-            document.body.appendChild(overlay);
-
-            document.getElementById('closeAssessmentResultBtn').onclick = () => {
-                document.body.removeChild(overlay);
-                // Reset test questions selection
-                switchSubPane('test');
-            };
         }
 
         // Initialize state on load

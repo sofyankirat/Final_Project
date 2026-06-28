@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Course Assessment - BloomReady</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+    <style>
+        :root {
+            --primary-accent: #ff6b35;
+            --primary-gradient: linear-gradient(135deg, #ff6b35, #e85c20);
+            --bg-glass: rgba(255, 255, 255, 0.45);
+            --border-glass: rgba(255, 107, 53, 0.15);
+            --text-main: #1f2937;
+            --text-muted: #6b7280;
+            --card-shadow: 0 12px 36px rgba(0, 0, 0, 0.03);
+            --option-bg: rgba(255, 255, 255, 0.6);
+            --option-border: rgba(255, 107, 53, 0.12);
+        }
+
+        body.dark-mode {
+            --primary-accent: #6366f1;
+            --primary-gradient: linear-gradient(135deg, #6366f1, #4f46e5);
+            --bg-glass: rgba(15, 17, 58, 0.45);
+            --border-glass: rgba(99, 102, 241, 0.15);
+            --text-main: #f3f4f6;
+            --text-muted: #9ca3af;
+            --card-shadow: 0 20px 50px rgba(0, 0, 0, 0.22);
+            --option-bg: rgba(15, 17, 58, 0.35);
+            --option-border: rgba(99, 102, 241, 0.12);
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: linear-gradient(135deg, #fff5ee 0%, #ffe9dc 100%);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px;
+            margin: 0;
+            transition: background 0.3s ease;
+        }
+
+        body.dark-mode {
+            background: linear-gradient(135deg, #0b0c26 0%, #060714 100%);
+        }
+
+        .assessment-container {
+            width: 100%;
+            max-width: 840px;
+            background: var(--bg-glass);
+            border: 1px solid var(--border-glass);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 32px;
+            box-shadow: var(--card-shadow);
+            padding: 48px;
+            animation: slideIn 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .assessment-header {
+            display: flex;
+            align-items: center;
+            border-bottom: 2px solid var(--border-glass);
+            padding-bottom: 24px;
+            margin-bottom: 40px;
+        }
+
+        .assessment-title {
+            font-size: 26px;
+            font-weight: 800;
+            margin: 0;
+            letter-spacing: -0.02em;
+        }
+
+        .q-card {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid var(--border-glass);
+            border-radius: 20px;
+            padding: 28px;
+            margin-bottom: 28px;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        body.dark-mode .q-card {
+            background: rgba(15, 17, 58, 0.2);
+        }
+
+        .q-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.02);
+        }
+
+        .q-text {
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+        }
+
+        .option-label {
+            display: flex;
+            align-items: center;
+            background: var(--option-bg);
+            border: 1px solid var(--option-border);
+            border-radius: 12px;
+            padding: 14px 18px;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            font-weight: 500;
+            font-size: 14.5px;
+        }
+
+        .option-label:hover {
+            border-color: var(--primary-accent);
+            background: rgba(255, 107, 53, 0.04);
+            transform: translateX(4px);
+        }
+
+        body.dark-mode .option-label:hover {
+            background: rgba(99, 102, 241, 0.04);
+        }
+
+        .option-radio {
+            appearance: none;
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            border: 2px solid var(--text-muted);
+            border-radius: 50%;
+            margin-right: 12px;
+            outline: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            flex-shrink: 0;
+            background: transparent;
+        }
+
+        .option-radio:checked {
+            border-color: var(--primary-accent);
+            background: var(--primary-accent);
+            box-shadow: inset 0 0 0 3px rgba(255, 255, 255, 0.95);
+        }
+
+        body.dark-mode .option-radio:checked {
+            box-shadow: inset 0 0 0 3px #0f113a;
+        }
+
+        .option-label.selected {
+            border-color: var(--primary-accent);
+            background: rgba(255, 107, 53, 0.06);
+            box-shadow: 0 4px 12px rgba(255, 107, 53, 0.05);
+        }
+
+        body.dark-mode .option-label.selected {
+            background: rgba(99, 102, 241, 0.06);
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.05);
+        }
+
+        .submit-btn {
+            background: var(--primary-gradient);
+            color: #ffffff;
+            border: none;
+            border-radius: 16px;
+            padding: 16px 36px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 24px -8px var(--primary-accent);
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 30px -6px var(--primary-accent);
+            filter: brightness(1.05);
+        }
+
+        .submit-btn:active {
+            transform: translateY(0);
+        }
+
+        .error-banner {
+            display: none;
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 24px;
+            font-weight: 600;
+            font-size: 14.5px;
+            text-align: center;
+            animation: shake 0.4s ease;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-4px); }
+            75% { transform: translateX(4px); }
+        }
+
+        /* ===== RESULTS VIEW ===== */
+        .results-container {
+            display: none;
+            text-align: center;
+            animation: fadeIn 0.4s ease;
+        }
+
+        .score-circle {
+            font-size: 72px;
+            font-weight: 900;
+            color: var(--primary-accent);
+            margin: 20px 0;
+            line-height: 1;
+        }
+
+        .feedback-banner {
+            display: inline-flex;
+            align-items: center;
+            background: var(--option-bg);
+            border: 1px solid var(--border-glass);
+            border-radius: 99px;
+            padding: 12px 28px;
+            font-weight: 700;
+            font-size: 16px;
+            margin-bottom: 40px;
+        }
+
+        .review-section-title {
+            text-align: left;
+            font-size: 20px;
+            font-weight: 800;
+            margin-bottom: 24px;
+            border-bottom: 1px solid var(--border-glass);
+            padding-bottom: 12px;
+        }
+
+        .q-card.correct {
+            border-color: rgba(34, 197, 94, 0.3);
+            background: rgba(34, 197, 94, 0.05);
+        }
+
+        .q-card.incorrect {
+            border-color: rgba(239, 68, 68, 0.3);
+            background: rgba(239, 68, 68, 0.05);
+        }
+
+        .option-label.correct-choice {
+            border-color: #22c55e !important;
+            background: rgba(34, 197, 94, 0.1) !important;
+            color: #15803d !important;
+            font-weight: 700;
+        }
+
+        body.dark-mode .option-label.correct-choice {
+            color: #4ade80 !important;
+        }
+
+        .option-label.incorrect-choice {
+            border-color: #ef4444 !important;
+            background: rgba(239, 68, 68, 0.1) !important;
+            color: #b91c1c !important;
+            font-weight: 700;
+        }
+
+        body.dark-mode .option-label.incorrect-choice {
+            color: #f87171 !important;
+        }
+    </style>
+</head>
+<body>
+    <script>
+        // Immediately apply dark mode class if user has dark mode set in localStorage
+        if (localStorage.getItem('theme') === 'dark') {
+            document.documentElement.classList.add('dark-mode');
+            document.body.classList.add('dark-mode');
+        }
+    </script>
+
+    <div class="assessment-container">
+        <!-- Main Form View -->
+        <div id="testFormView">
+            <div class="assessment-header">
+                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color: var(--primary-accent); margin-right: 12px; vertical-align: middle;">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <circle cx="12" cy="12" r="6"></circle>
+                    <circle cx="12" cy="12" r="2"></circle>
+                </svg>
+                <h2 class="assessment-title">Course Assessment: {{ course_name }}</h2>
+            </div>
+
+            <div class="error-banner" id="validationError">Please answer all 20 questions before submitting.</div>
+
+            <form id="mcqForm" onsubmit="handleAssessmentSubmit(event)">
+                <div id="questionsContainer">
+                    <!-- Questions will be generated here -->
+                </div>
+
+                <button type="submit" class="submit-btn" style="margin-top: 20px;">
+                    Submit Assessment
+                </button>
+            </form>
+        </div>
+
+        <!-- Results View -->
+        <div id="resultsView" class="results-container">
+            <!-- Trophy SVG replacing emoji cup -->
+            <svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color: var(--primary-accent); margin-bottom: 12px;">
+                <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path>
+                <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path>
+                <path d="M4 22h16"></path>
+                <path d="M10 14.66V17c0 .55-.45 1-1 1H4v2h16v-2h-5c-.55 0-1-.45-1-1v-2.34"></path>
+                <path d="M12 2a6 6 0 0 1 6 6v5a6 6 0 0 1-6 6 6 6 0 0 1-6-6V8a6 6 0 0 1 6-6z"></path>
+            </svg>
+            <h2 class="assessment-title" style="margin-bottom: 8px;">Assessment Completed!</h2>
+            <p style="color: var(--text-muted); font-size: 15px; margin-bottom: 16px;">
+                Your results for the <strong>{{ course_name }}</strong> cognitive evaluation:
+            </p>
+
+            <div class="score-circle" id="scoreDisplay">0%</div>
+
+            <div class="feedback-banner">
+                <!-- Congratulations SVG replacing emoji -->
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--primary-accent); margin-right: 8px; vertical-align: middle;">
+                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                </svg>
+                <span id="feedbackText">Congratulations! You show high cognitive readiness.</span>
+            </div>
+
+            <h3 class="review-section-title">Review Answers</h3>
+            <div id="reviewContainer" style="text-align: left; margin-bottom: 40px;">
+                <!-- Correct/incorrect list rendering -->
+            </div>
+
+            <button type="button" class="submit-btn" onclick="closeAssessmentWindow()">
+                Close Assessment Tab
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const courseName = "{{ course_name|safe }}";
+
+        const questions = [
+            {
+                q: "What is the primary objective of analysis in " + courseName + "?",
+                options: {
+                    A: "To calculate bounds and optimize systemic efficiency.",
+                    B: "To store unstructured data segments in local memory.",
+                    C: "To measure external physical temperature fluctuations.",
+                    D: "To perform sorting algorithms on raw text values."
+                },
+                correct: "A"
+            },
+            {
+                q: "Which fundamental theorem or equation forms the baseline of " + courseName + "?",
+                options: {
+                    A: "The central limiting model distribution.",
+                    B: "Standard conservation and systemic rate equations.",
+                    C: "Linear regression coefficients and variance.",
+                    D: "Asymmetric cryptography paradigms."
+                },
+                correct: "B"
+            },
+            {
+                q: "Under what conditions is the primary model of " + courseName + " applicable?",
+                options: {
+                    A: "Highly chaotic and completely unbounded states.",
+                    B: "Only when physical temperature is exactly absolute zero.",
+                    C: "Static equilibrium and linear constraints.",
+                    D: "Under non-computable recursive iterations."
+                },
+                correct: "C"
+            },
+            {
+                q: "How do we approximate first-order behavior in " + courseName + "?",
+                options: {
+                    A: "Using a localized Taylor series expansion.",
+                    B: "By discarding all rational coefficients.",
+                    C: "Through a random Monte Carlo walk sequence.",
+                    D: "Implementing depth-first tree traversal."
+                },
+                correct: "A"
+            },
+            {
+                q: "What does the first derivative or rate of change represent in " + courseName + "?",
+                options: {
+                    A: "Total accumulated volume under the system curve.",
+                    B: "The inverse frequency of noise modulation.",
+                    C: "The standard deviation of statistical errors.",
+                    D: "The marginal rate of systemic transition."
+                },
+                correct: "D"
+            },
+            {
+                q: "How is a steady-state system characterized in " + courseName + "?",
+                options: {
+                    A: "The system parameters diverge to infinity.",
+                    B: "Net change over time converges to zero.",
+                    C: "All variables fluctuate periodically.",
+                    D: "The system remains unresponsive to inputs."
+                },
+                correct: "B"
+            },
+            {
+                q: "What is the primary consequence of exceeding the boundary limit in " + courseName + "?",
+                options: {
+                    A: "Structural instability or mathematical divergence.",
+                    B: "A localized shift in background rendering.",
+                    C: "Instantaneous execution of the fallback loop.",
+                    D: "No change in system characteristics."
+                },
+                correct: "A"
+            },
+            {
+                q: "Which parameter is adjusted to minimize steady-state error in " + courseName + "?",
+                options: {
+                    A: "The system clock frequency divider.",
+                    B: "The size of the local database index.",
+                    C: "The feedback control gain constant.",
+                    D: "The storage buffer allocation size."
+                },
+                correct: "C"
+            },
+            {
+                q: "How is error propagation analyzed in " + courseName + "?",
+                options: {
+                    A: "By computing partial derivatives of the system components.",
+                    B: "Running search queries on log streams.",
+                    C: "By increasing the network socket timeout.",
+                    D: "Compressing the payload into binary formats."
+                },
+                correct: "A"
+            },
+            {
+                q: "What is the main role of optimization constraints in " + courseName + "?",
+                options: {
+                    A: "Defining the feasible region of operation.",
+                    B: "Forcing the processor to run in single-thread mode.",
+                    C: "Reducing the complexity of database schemas.",
+                    D: "Restricting access keys to read-only mode."
+                },
+                correct: "A"
+            },
+            {
+                q: "Which numerical method is preferred for stiff differential models in " + courseName + "?",
+                options: {
+                    A: "Naive Euler forward extrapolation.",
+                    B: "Simple binary bisection algorithms.",
+                    C: "Random gradient descent without step-sizing.",
+                    D: "Implicit Runge-Kutta integration."
+                },
+                correct: "D"
+            },
+            {
+                q: "How do we validate a proposed system model in " + courseName + "?",
+                options: {
+                    A: "By cross-referencing empirical trials with simulated runs.",
+                    B: "Verifying the hash value of the database tables.",
+                    C: "Compiling the source code using multiple compilers.",
+                    D: "Counting total lines of configuration parameters."
+                },
+                correct: "A"
+            },
+            {
+                q: "What does the null space or kernel represent in a " + courseName + " matrix model?",
+                options: {
+                    A: "Unused memory blocks in the local stack.",
+                    B: "The collection of invalid API requests.",
+                    C: "The set of inputs mapped to the zero output vector.",
+                    D: "The default index of empty rows."
+                },
+                correct: "C"
+            },
+            {
+                q: "Which integral transform is used to analyze frequency-domain behaviors in " + courseName + "?",
+                options: {
+                    A: "The Fourier or Laplace transformation.",
+                    B: "The standard cryptographic cipher transform.",
+                    C: "Simple base64 decoding transforms.",
+                    D: "Huffman compression trees."
+                },
+                correct: "A"
+            },
+            {
+                q: "What is the physical interpretation of the gradient vector in " + courseName + "?",
+                options: {
+                    A: "The curvature index of the systemic bounds.",
+                    B: "The absolute average value over a closed boundary.",
+                    C: "The direction of maximum rate of increase.",
+                    D: "The latency duration of system responses."
+                },
+                correct: "C"
+            },
+            {
+                q: "Under what conditions does a linear system in " + courseName + " have a unique solution?",
+                options: {
+                    A: "The coefficient matrix is non-singular.",
+                    B: "The input vector is completely empty.",
+                    C: "The system has more equations than variables.",
+                    D: "The eigenvalues are all equal to zero."
+                },
+                correct: "A"
+            },
+            {
+                q: "What is the main advantage of finite element analysis in " + courseName + "?",
+                options: {
+                    A: "Handling complex geometries and boundary conditions.",
+                    B: "Reducing the memory footprint to zero.",
+                    C: "Compiling code directly into assembly instructions.",
+                    D: "Eliminating the need for parameter inputs."
+                },
+                correct: "A"
+            },
+            {
+                q: "How does noise affect the state estimation in " + courseName + "?",
+                options: {
+                    A: "It changes the physical units of the variables.",
+                    B: "It introduces variance and potential measurement bias.",
+                    C: "It increases CPU core temperatures.",
+                    D: "It automatically triggers system shutdown."
+                },
+                correct: "B"
+            },
+            {
+                q: "Which assumption is crucial for the superposition principle in " + courseName + "?",
+                options: {
+                    A: "System linearity and time-invariance.",
+                    B: "Having infinite degrees of freedom.",
+                    C: "Operating in a completely vacuum space.",
+                    D: "Discarding all boundary constraints."
+                },
+                correct: "A"
+            },
+            {
+                q: "How is system convergence accelerated in " + courseName + "?",
+                options: {
+                    A: "Using a state-space observer model.",
+                    B: "Increasing input voltages.",
+                    C: "Adding more database indexes.",
+                    D: "Implementing optimal relaxation parameters."
+                },
+                correct: "D"
+            }
+        ];
+
+        // Generate questions list
+        const qContainer = document.getElementById('questionsContainer');
+        questions.forEach((qObj, index) => {
+            const card = document.createElement('div');
+            card.className = 'q-card';
+            card.id = `q_card_${index}`;
+
+            const qText = document.createElement('div');
+            qText.className = 'q-text';
+            qText.innerText = `Q${index + 1}: ${qObj.q}`;
+            card.appendChild(qText);
+
+            const grid = document.createElement('div');
+            grid.className = 'options-grid';
+
+            Object.entries(qObj.options).forEach(([key, val]) => {
+                const label = document.createElement('label');
+                label.className = 'option-label';
+                label.id = `option_label_${index}_${key}`;
+
+                const radio = document.createElement('input');
+                radio.type = 'radio';
+                radio.name = `q_${index}`;
+                radio.value = key;
+                radio.className = 'option-radio';
+                
+                radio.onchange = () => {
+                    // Remove selected styling from siblings
+                    Object.keys(qObj.options).forEach(optKey => {
+                        const sib = document.getElementById(`option_label_${index}_${optKey}`);
+                        if (sib) sib.classList.remove('selected');
+                    });
+                    label.classList.add('selected');
+                };
+
+                label.appendChild(radio);
+
+                const span = document.createElement('span');
+                span.innerText = `${key}) ${val}`;
+                label.appendChild(span);
+
+                grid.appendChild(label);
+            });
+
+            card.appendChild(grid);
+            qContainer.appendChild(card);
+        });
+
+        function handleAssessmentSubmit(event) {
+            event.preventDefault();
+            const errBanner = document.getElementById('validationError');
+            errBanner.style.display = 'none';
+
+            let answeredCount = 0;
+            const answers = {};
+
+            questions.forEach((qObj, index) => {
+                const radios = document.getElementsByName(`q_${index}`);
+                let val = null;
+                radios.forEach(r => {
+                    if (r.checked) {
+                        val = r.value;
+                    }
+                });
+
+                if (val !== null) {
+                    answeredCount++;
+                    answers[index] = val;
+                }
+            });
+
+            if (answeredCount < 20) {
+                errBanner.style.display = 'block';
+                errBanner.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                return;
+            }
+
+            // Grade questions
+            let correctCount = 0;
+            const reviewContainer = document.getElementById('reviewContainer');
+            reviewContainer.innerHTML = '';
+
+            questions.forEach((qObj, index) => {
+                const userAns = answers[index];
+                const isCorrect = userAns === qObj.correct;
+
+                if (isCorrect) {
+                    correctCount++;
+                }
+
+                // Render review card
+                const reviewCard = document.createElement('div');
+                reviewCard.className = `q-card ${isCorrect ? 'correct' : 'incorrect'}`;
+
+                const qText = document.createElement('div');
+                qText.className = 'q-text';
+                qText.innerText = `Q${index + 1}: ${qObj.q}`;
+                reviewCard.appendChild(qText);
+
+                const list = document.createElement('div');
+                list.className = 'options-grid';
+
+                Object.entries(qObj.options).forEach(([key, val]) => {
+                    const label = document.createElement('div');
+                    label.className = 'option-label';
+                    
+                    if (key === qObj.correct) {
+                        label.classList.add('correct-choice');
+                    } else if (key === userAns && !isCorrect) {
+                        label.classList.add('incorrect-choice');
+                    }
+
+                    const span = document.createElement('span');
+                    span.innerText = `${key}) ${val}`;
+                    label.appendChild(span);
+
+                    // Add checkmark or cross icon next to labels
+                    if (key === qObj.correct) {
+                        const iconSpan = document.createElement('span');
+                        iconSpan.innerHTML = ' &#10004; (Correct)';
+                        iconSpan.style.marginLeft = '12px';
+                        label.appendChild(iconSpan);
+                    } else if (key === userAns && !isCorrect) {
+                        const iconSpan = document.createElement('span');
+                        iconSpan.innerHTML = ' &#10006; (Your Answer)';
+                        iconSpan.style.marginLeft = '12px';
+                        label.appendChild(iconSpan);
+                    }
+
+                    list.appendChild(label);
+                });
+
+                reviewCard.appendChild(list);
+                reviewContainer.appendChild(reviewCard);
+            });
+
+            const score = Math.round((correctCount / 20) * 100);
+            document.getElementById('scoreDisplay').innerText = `${score}%`;
+
+            const feedbackText = document.getElementById('feedbackText');
+            if (score >= 70) {
+                feedbackText.innerText = 'Congratulations! You show high cognitive readiness for this course.';
+            } else {
+                feedbackText.innerText = 'You may want to review prerequisite materials before starting.';
+            }
+
+            // Hide form and show results
+            document.getElementById('testFormView').style.display = 'none';
+            document.getElementById('resultsView').style.display = 'block';
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function closeAssessmentWindow() {
+            window.close();
+            // Fallback warning if window.close() is blocked by browser security
+            setTimeout(() => {
+                alert("You can now safely close this browser tab.");
+            }, 100);
+        }
+    </script>
+</body>
+</html>

@@ -1200,6 +1200,14 @@ def profile():
                            saved=saved)
 
 
+@app.route('/assessment')
+@login_required
+def assessment():
+    """Separate dedicated assessment page to avoid lag and show results."""
+    course_name = request.args.get('course', 'Selected Course')
+    return render_template('assessment.html', course_name=course_name)
+
+
 @app.route('/profile/update', methods=['POST'])
 @login_required
 def profile_update():
