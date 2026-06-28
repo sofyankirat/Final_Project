@@ -98,11 +98,11 @@ ALLOWED_CHAT_UPLOAD_EXTENSIONS = {
 }
 
 # Email Configuration
-EMAIL_ADDRESS = os.getenv('EMAIL_ADDRESS', 'your-email@gmail.com')
-EMAIL_PASSWORD = os.getenv('EMAIL_PASSWORD', 'your-email-password')
-SMTP_SERVER = os.getenv('SMTP_SERVER', 'smtp.gmail.com')
+EMAIL_ADDRESS = os.getenv('EMAIL_ADDRESS', 'your-email@gmail.com').strip().replace('\r', '').replace('\n', '').replace(' ', '')
+EMAIL_PASSWORD = os.getenv('EMAIL_PASSWORD', 'your-email-password').strip().replace('\r', '').replace('\n', '')
+SMTP_SERVER = os.getenv('SMTP_SERVER', 'smtp.gmail.com').strip().replace('\r', '').replace('\n', '').replace(' ', '')
 SMTP_PORT = int(os.getenv('SMTP_PORT', 587))
-HELP_RECEIVER_EMAIL = os.getenv('HELP_RECEIVER_EMAIL', 'www.sofyankirat123@gmail.com')
+HELP_RECEIVER_EMAIL = os.getenv('HELP_RECEIVER_EMAIL', 'www.sofyankirat123@gmail.com').strip().replace('\r', '').replace('\n', '').replace(' ', '')
 SKIP_EMAIL_VERIFICATION = os.getenv('SKIP_EMAIL_VERIFICATION', 'True').lower() == 'true'
 
 # Initialize database
@@ -571,8 +571,12 @@ def send_verification_email(email, verification_token):
         
         # Try sending using Brevo HTTP API (Port 443, not blocked by Railway)
         brevo_api_key = os.getenv('BREVO_API_KEY')
-        if not brevo_api_key and EMAIL_PASSWORD and (EMAIL_PASSWORD.startswith("xkeysib-") or len(EMAIL_PASSWORD) > 40):
-            brevo_api_key = EMAIL_PASSWORD
+        if brevo_api_key:
+            brevo_api_key = brevo_api_key.strip().replace('\r', '').replace('\n', '').replace(' ', '').replace('\t', '')
+        if not brevo_api_key and EMAIL_PASSWORD:
+            pwd_clean = EMAIL_PASSWORD.strip().replace('\r', '').replace('\n', '').replace(' ', '').replace('\t', '')
+            if pwd_clean.startswith("xkeysib-") or len(pwd_clean) > 40:
+                brevo_api_key = pwd_clean
 
         if brevo_api_key and requests:
             print("Attempting to send email via Brevo HTTP API...")
@@ -762,8 +766,12 @@ def send_session_report_email(students, course_id=None):
         
         # Try Brevo HTTP API
         brevo_api_key = os.getenv('BREVO_API_KEY')
-        if not brevo_api_key and EMAIL_PASSWORD and (EMAIL_PASSWORD.startswith("xkeysib-") or len(EMAIL_PASSWORD) > 40):
-            brevo_api_key = EMAIL_PASSWORD
+        if brevo_api_key:
+            brevo_api_key = brevo_api_key.strip().replace('\r', '').replace('\n', '').replace(' ', '').replace('\t', '')
+        if not brevo_api_key and EMAIL_PASSWORD:
+            pwd_clean = EMAIL_PASSWORD.strip().replace('\r', '').replace('\n', '').replace(' ', '').replace('\t', '')
+            if pwd_clean.startswith("xkeysib-") or len(pwd_clean) > 40:
+                brevo_api_key = pwd_clean
 
         if brevo_api_key and requests:
             headers = {
