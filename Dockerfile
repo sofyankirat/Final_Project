@@ -3,10 +3,10 @@ FROM python:3.10-slim-bookworm
 # Set working directory in container
 WORKDIR /app
 
-# Install system dependencies (only GLib is needed for headless OpenCV/Ultralytics)
+# Install system dependencies (including OpenGL and GLib needed by OpenCV/Ultralytics)
 # Forced IPv4 to prevent slow IPv6 timeouts/resolution on Railway's container builder network
-# Removed libgl1 (OpenGL) to avoid downloading 52MB of graphical libraries since we use opencv-python-headless
 RUN apt-get -o Acquire::ForceIPv4=true update && apt-get -o Acquire::ForceIPv4=true install -y --no-install-recommends \
+    libgl1 \
     libglib2.0-0 \
     && rm -rf /var/lib/apt/lists/*
 
@@ -27,6 +27,10 @@ RUN python /app/pip_ipv4.py install --default-timeout 1000 --no-cache-dir -r /ap
 COPY front-end /app/front-end
 COPY Recommendation_System_Data /app/Recommendation_System_Data
 COPY Smart-Attendance-System /app/Smart-Attendance-System
+
+# Train ML recommendation models inside the container to ensure scikit-learn version match
+WORKDIR /app/front-end
+RUN python train_recommendation_models.py
 
 # Expose port (Railway automatically injects PORT environment variable)
 EXPOSE 5000
