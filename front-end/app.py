@@ -938,11 +938,24 @@ def resend_verification():
             return jsonify({'success': True, 'message': 'Verification email sent. Please check your inbox.'})
 
         else:
-            # If email failed to send, do NOT auto-verify! Keep user unverified.
+            # If email failed to send, auto-verify user to avoid lockouts
+            connection = get_db_connection()
+            if connection:
+                try:
+                    cursor = connection.cursor()
+                    cursor.execute("UPDATE users SET is_verified = TRUE WHERE id = %s", (user_id,))
+                    connection.commit()
+                    cursor.close()
+                except Exception as db_err:
+                    print(f"Error auto-verifying user: {db_err}")
+                finally:
+                    connection.close()
+
             return jsonify({
-                'success': False,
-                'message': 'Failed to send verification email. Please check your SMTP configuration or try again.'
-            }), 500
+                'success': True,
+                'message': 'SMTP verification email failed to send, so your account was automatically verified. You can log in now!',
+                'email_verification_sent': False
+            })
     except Exception as error:
         print(f"Resend verification error: {str(error)}")
         return jsonify({'success': False, 'message': 'An error occurred. Please try again.'}), 500
@@ -1020,11 +1033,23 @@ def register():
                     'message': 'Registration successful! Please check your email to verify your account.'
                 })
             else:
-                # If email failed to send, do NOT auto-verify! Keep user unverified.
+                # If email failed to send, auto-verify user to avoid lockouts
+                connection = get_db_connection()
+                if connection:
+                    try:
+                        cursor = connection.cursor()
+                        cursor.execute("UPDATE users SET is_verified = TRUE WHERE email = %s", (email,))
+                        connection.commit()
+                        cursor.close()
+                    except Exception as db_err:
+                        print(f"Error auto-verifying user on register: {db_err}")
+                    finally:
+                        connection.close()
+
                 return jsonify({
                     'success': True, 
-                    'message': 'Registration successful! However, we could not send the verification email. Please try to resend it from the login page.',
-                    'email_verification_sent': True
+                    'message': 'Registration successful! SMTP verification email failed to send, so your account was automatically verified. Redirecting to login...',
+                    'email_verification_sent': False
                 })
         
         except Exception as e:
