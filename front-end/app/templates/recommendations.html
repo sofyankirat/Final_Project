@@ -1373,10 +1373,10 @@
                 <!-- ===== RECOMMENDATION SYSTEM SELECTOR ===== -->
                 <div class="rec-selector-container" id="recSystemSelector">
                     <div class="rec-selector-grid">
-                        <!-- Usual Recommendation Card -->
+                        <!-- Standard Recommendation Card -->
                         <div class="rec-selector-card usual-card" onclick="selectRecSystem('usual')">
                             <div class="usual-badge">Standard Model</div>
-                            <h3 class="rec-card-title">Usual Recommendation System</h3>
+                            <h3 class="rec-card-title">Standard Recommendation System</h3>
                             <img src="{{ url_for('static', filename='images/Standard_Recommendation_page.jpg') }}" alt="Standard Recommendation System Preview" class="rec-card-img">
                             <p class="rec-card-desc">Predicts course success score and suitability based on weekly study hours, attendance, GPA, and professor matching algorithms.</p>
                             <span class="rec-card-action-btn">Launch System</span>
@@ -1387,7 +1387,7 @@
                             <div class="bloomready-badge">Advanced & AI</div>
                             <h3 class="rec-card-title">BloomReady System</h3>
                             <img src="{{ url_for('static', filename='images/Advanced_Recommendation_system.jpg') }}" alt="Advanced Recommendation System Preview" class="rec-card-img">
-                            <p class="rec-card-desc">Validates credit-hour regulations compliance, builds NetworkX prerequisite charts, parses syllabi, and runs Bloom's Taxonomy self-assessments.</p>
+                            <p class="rec-card-desc">Verify academic prerequisites, analyze course syllabi using AI, and self-assess your cognitive readiness for advanced material.</p>
                             <span class="rec-card-action-btn">Enter BloomReady</span>
                         </div>
                     </div>
@@ -1845,6 +1845,11 @@
     <script>
         // Selection system toggle logic
         function selectRecSystem(systemName) {
+            // Prevent entering the page if the user is highlighting/selecting text
+            if (window.getSelection && window.getSelection().toString().trim() !== '') {
+                return;
+            }
+
             const selector = document.getElementById('recSystemSelector');
             const usualLayout = document.querySelector('.rec-main-layout');
             const usualHeader = document.getElementById('recUsualHeader');
