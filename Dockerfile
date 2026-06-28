@@ -17,10 +17,11 @@ COPY pip_ipv4.py /app/pip_ipv4.py
 COPY front-end/requirements.txt /app/front-end/requirements.txt
 
 # Install PyTorch CPU first to avoid heavy GPU/CUDA downloads and reduce memory consumption
-RUN python /app/pip_ipv4.py install --no-cache-dir torch torchvision --index-url https://download.pytorch.org/whl/cpu
+# We increase default timeout to 1000s and use Cloudflare CDN mirror for PyPI dependencies to resolve connection failures
+RUN python /app/pip_ipv4.py install --default-timeout 1000 --no-cache-dir torch torchvision --index-url https://download.pytorch.org/whl/cpu --extra-index-url https://pypi.cloudflare.com/simple
 
 # Install remaining requirements
-RUN python /app/pip_ipv4.py install --no-cache-dir -r /app/front-end/requirements.txt
+RUN python /app/pip_ipv4.py install --default-timeout 1000 --no-cache-dir -r /app/front-end/requirements.txt --index-url https://pypi.cloudflare.com/simple
 
 # Copy all required codebase parts into the container
 COPY front-end /app/front-end
