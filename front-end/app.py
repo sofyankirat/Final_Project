@@ -1689,15 +1689,19 @@ def recommendations():
     # Default fallback is capitalized email prefix
     username = email.split('@')[0].capitalize() if email else 'User'
     
-    # Fetch real first name from additional info
+    # Fetch real first name and student_id from additional info
+    student_id = ''
     try:
         connection = get_db_connection()
         if connection:
             cursor = connection.cursor()
-            cursor.execute("SELECT first_name FROM user_additional_info WHERE user_id = %s", (user_id,))
+            cursor.execute("SELECT first_name, student_id FROM user_additional_info WHERE user_id = %s", (user_id,))
             result = cursor.fetchone()
-            if result and result[0]:
-                username = result[0]
+            if result:
+                if result[0]:
+                    username = result[0]
+                if result[1]:
+                    student_id = result[1]
             cursor.close()
             connection.close()
     except Exception as e:
@@ -1936,7 +1940,8 @@ def recommendations():
         reason=reason,
         form_data=form_data,
         recommendation_history=recommendation_history,
-        selected_history_id=selected_history_id
+        selected_history_id=selected_history_id,
+        student_id=student_id
     )
 
 
