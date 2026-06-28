@@ -3260,6 +3260,163 @@ def get_notifications_api():
     })
 
 
+
+@app.route('/stream/frame', methods=['POST'])
+def receive_stream_frame():
+    """Receive raw JPEG bytes from ESP32-CAM or simulator, perform face recognition, and mark present."""
+    img_bytes = request.data
+    if not img_bytes:
+        if 'file' in request.files:
+            img_bytes = request.files['file'].read()
+        else:
+            return jsonify({'success': False, 'message': 'No image data received.'}), 400
+
+    static_root = get_static_root()
+    test_dir = os.path.join(static_root, 'uploads', 'attendance', 'test')
+    os.makedirs(test_dir, exist_ok=True)
+    timestamp = datetime.now().strftime('%Y%m%d_%H%M%S_%f')
+    fpath = os.path.join(test_dir, f'esp32_{timestamp}.jpg')
+    with open(fpath, 'wb') as fh:
+        fh.write(img_bytes)
+
+    res_data = None
+    try:
+        if web_recognize is not None:
+            res_data = web_recognize.recognize(fpath)
+        else:
+            raise ImportError("web_recognize is not loaded")
+    except Exception as direct_err:
+        print(f"Direct web_recognize failed in stream/frame, trying subprocess: {direct_err}")
+        script_path = os.path.join(_ATTENDANCE_ROOT, 'web_recognize.py')
+        venv_python = os.path.join(_ATTENDANCE_ROOT, 'venv', 'Scripts', 'python.exe')
+        if not os.path.exists(venv_python):
+            venv_python = sys.executable
+
+        try:
+            env = os.environ.copy()
+            env['PYTHONIOENCODING'] = 'utf-8'
+            proc = subprocess.run(
+                [venv_python, script_path, fpath],
+                cwd=_ATTENDANCE_ROOT,
+                capture_output=True, text=True, encoding='utf-8', errors='replace',
+                env=env, timeout=60,
+            )
+            for line in (proc.stdout or '').splitlines():
+                if line.startswith('__RESULT_JSON__'):
+                    try:
+                        res_data = json.loads(line[len('__RESULT_JSON__'):])
+                        break
+                    except json.JSONDecodeError:
+                        pass
+        except Exception as sub_err:
+            print(f"Subprocess recognition failed: {sub_err}")
+
+    try:
+        if os.path.exists(fpath):
+            os.remove(fpath)
+    except Exception:
+        pass
+
+    if not res_data or not res_data.get('success'):
+        err_msg = res_data.get('message', 'Recognition failed') if res_data else 'No recognition result output'
+        return jsonify({'success': False, 'message': err_msg}), 200
+
+    faces = res_data.get('faces', [])
+    recognized_names = []
+    for face in faces:
+        name = face.get('name')
+        if name and name != "Unknown":
+            recognized_names.append(name)
+
+    if recognized_names:
+        connection = get_db_connection()
+        if connection is not None:
+            cursor = connection.cursor()
+            today = get_local_now().strftime("%Y-%m-%d")
+            test_user_override = to_int_value(request.args.get('test_user_id'))
+            course_id = to_int_value(request.args.get('course_id')) or None
+            logged_count = 0
+            recognized_students = []
+
+            for key in recognized_names:
+                user_id = None
+                if test_user_override:
+                    user_id = test_user_override
+                elif key.startswith("user_"):
+                    try:
+                        user_id = int(key.split("_")[1])
+                    except (IndexError, ValueError):
+                        continue
+                else:
+                    try:
+                        user_id = int(key)
+                    except ValueError:
+                        continue
+
+                if user_id is None:
+                    continue
+
+                cursor.execute("SELECT email FROM users WHERE id = %s LIMIT 1", (user_id,))
+                user_row = cursor.fetchone()
+                if user_row is None:
+                    continue
+                user_email = user_row[0]
+
+                cursor.execute("SELECT first_name FROM user_additional_info WHERE user_id = %s LIMIT 1", (user_id,))
+                info_row = cursor.fetchone()
+                user_name = to_clean_string(info_row[0]) if info_row and info_row[0] else "N/A"
+
+                recognized_students.append({
+                    "id": user_id,
+                    "name": user_name,
+                    "email": user_email
+                })
+
+                if course_id:
+                    cursor.execute(
+                        "SELECT 1 FROM attendance WHERE user_id = %s AND course_id = %s AND date(attendance_date) = %s LIMIT 1",
+                        (user_id, course_id, today)
+                    )
+                else:
+                    cursor.execute(
+                        "SELECT 1 FROM attendance WHERE user_id = %s AND course_id IS NULL AND date(attendance_date) = %s LIMIT 1",
+                        (user_id, today)
+                    )
+
+                if cursor.fetchone() is None:
+                    today_datetime = get_local_now().strftime("%Y-%m-%d %H:%M:%S")
+                    cursor.execute(
+                        "INSERT INTO attendance (user_id, course_id, attendance_date, status, created_at) VALUES (%s, %s, %s, TRUE, %s)",
+                        (user_id, course_id, today_datetime, today_datetime)
+                    )
+                    logged_count += 1
+
+            connection.commit()
+            cursor.close()
+            connection.close()
+
+            if recognized_students:
+                import threading
+                threading.Thread(
+                    target=send_session_report_email,
+                    args=(recognized_students, course_id),
+                    daemon=True
+                ).start()
+
+            return jsonify({
+                'success': True,
+                'recognized': [s['name'] for s in recognized_students],
+                'marked_present_count': logged_count,
+                'message': f'Processed {len(recognized_students)} student(s). Marked {logged_count} new attendance. Session report sent.'
+            }), 200
+
+    return jsonify({
+        'success': True,
+        'recognized': [],
+        'message': 'No known students recognized in frame.'
+    }), 200
+
+
 @app.route('/api/attendance/session', methods=['POST'])
 def receive_session_attendance():
     """Receive student IDs from the AI stream server and mark them as present."""
