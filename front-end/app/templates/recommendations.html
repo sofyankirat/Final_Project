@@ -3507,9 +3507,9 @@
             const courseName = courseInput ? courseInput.value.trim() : '';
             const actions = document.getElementById('bloomGeneralOptionsActions');
             
-            if (courseName && uploadedGeneralSyllabusFiles.length > 0) {
+            if (uploadedGeneralSyllabusFiles.length > 0) {
                 if (actions) actions.style.display = 'flex';
-                currentSelectedGeneralCourse = courseName;
+                currentSelectedGeneralCourse = courseName || 'General Course';
                 sessionStorage.setItem('bloom_general_active_course', courseName);
             } else {
                 if (actions) actions.style.display = 'none';
