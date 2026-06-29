@@ -138,6 +138,41 @@ def get_matching_datetime(days_str, start_time_str):
     simulated_dt = dt.datetime.combine(target_date, simulated_time)
     return simulated_dt.strftime("%Y-%m-%d %H:%M:%S")
 
+def send_frame(request_url, image_path):
+    print(f"Sending '{image_path}' to {request_url}...")
+    try:
+        with open(image_path, 'rb') as fh:
+            files = {'file': fh}
+            try:
+                response = requests.post(request_url, files=files)
+            except (requests.exceptions.SSLError, requests.exceptions.ConnectionError) as ssl_err:
+                print(f"  SSL/Connection issue ({ssl_err}), retrying with verify=False...")
+                import urllib3
+                urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+                try:
+                    response = requests.post(request_url, files=files, verify=False, timeout=15)
+                except Exception as fallback_err:
+                    if request_url.startswith("https://"):
+                        http_url = request_url.replace("https://", "http://")
+                        print(f"  Retrying over HTTP: {http_url}")
+                        response = requests.post(http_url, files=files, timeout=15)
+                    else:
+                        raise fallback_err
+            
+        if response.status_code == 200:
+            result = response.json()
+            print("  Server Response:")
+            print(f"    Success: {result.get('success')}")
+            print(f"    Recognized Students: {result.get('recognized')}")
+            print(f"    Marked Present: {result.get('marked_present_count')} new record(s)")
+            print(f"    Message: {result.get('message')}")
+        else:
+            print(f"  Server returned error status code: {response.status_code}")
+            print(f"  {response.text}")
+            
+    except Exception as e:
+        print(f"  Connection error: {e}")
+
 def main():
     if not os.path.exists(IMAGE_PATH):
         print(f"Error: Could not find '{IMAGE_PATH}' in the project folder.")
@@ -180,95 +215,33 @@ def main():
     else:
         print("\nNote: Local database not found or empty. Using standard face recognition matching.")
 
-    # Construct request URL and select course if student is selected
-    test_course_id = None
-    custom_time = None
+    # Construct and send request(s) automatically
     if test_user_id:
         courses = get_user_courses(test_user_id)
         if courses:
-            print("\nSelect which course schedule to mark attendance for:")
+            print(f"\nFound {len(courses)} course schedule(s) for user ID {test_user_id}.")
+            print("Automatically simulating attendance for each schedule...")
             for idx, item in enumerate(courses):
-                cid, course_name = item[0], item[1]
-                print(f"[{idx + 1}] {course_name} (ID: {cid})")
-            print(f"[{len(courses) + 1}] General/No specific course")
-            
-            try:
-                choice = input(f"\nEnter choice [1-{len(courses) + 1}] (default: {len(courses) + 1}): ").strip()
-                if choice:
-                    choice_idx = int(choice) - 1
-                    if 0 <= choice_idx < len(courses):
-                        selected_course = courses[choice_idx]
-                        cid = selected_course[0]
-                        course_name = selected_course[1]
-                        days = selected_course[2] if len(selected_course) > 2 else "Monday"
-                        start_time = selected_course[3] if len(selected_course) > 3 else "10:00:00"
-                        end_time = selected_course[4] if len(selected_course) > 4 else "11:30:00"
-                        
-                        print(f"\nYou selected: {course_name}")
-                        print(f"Schedule: {days} from {start_time} to {end_time}")
-                        print("[1] Simulate course schedule time (server automatically detects course by time range)")
-                        print("[2] Direct override (force course ID directly)")
-                        sub_choice = input("Enter choice [1-2] (default: 1): ").strip()
-                        
-                        if not sub_choice or sub_choice == "1":
-                            custom_time = get_matching_datetime(days, start_time)
-                            print(f"-> Simulating active schedule time: {custom_time}")
-                        else:
-                            test_course_id = cid
-                            print(f"-> Forcing course ID: {cid}")
-                    else:
-                        print("Using general class attendance.")
-                else:
-                    print("Using general class attendance.")
-            except Exception as e:
-                print(f"Error handling selection, using general class attendance: {e}")
-
-    params = []
-    if test_user_id:
-        params.append(f"test_user_id={test_user_id}")
-    if test_course_id:
-        params.append(f"course_id={test_course_id}")
-    if custom_time:
-        params.append(f"custom_time={custom_time}")
-
-    request_url = url
-    if params:
-        request_url = f"{url}?{'&'.join(params)}"
-
-    print(f"\nSending '{IMAGE_PATH}' to {request_url}...")
-    try:
-        with open(IMAGE_PATH, 'rb') as fh:
-            files = {'file': fh}
-            try:
-                response = requests.post(request_url, files=files)
-            except (requests.exceptions.SSLError, requests.exceptions.ConnectionError) as ssl_err:
-                print(f"SSL/Connection issue ({ssl_err}), retrying with verify=False...")
-                import urllib3
-                urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-                try:
-                    response = requests.post(request_url, files=files, verify=False, timeout=15)
-                except Exception as fallback_err:
-                    if request_url.startswith("https://"):
-                        http_url = request_url.replace("https://", "http://")
-                        print(f"Retrying over HTTP: {http_url}")
-                        response = requests.post(http_url, files=files, timeout=15)
-                    else:
-                        raise fallback_err
-            
-        if response.status_code == 200:
-            result = response.json()
-            print("\nServer Response:")
-            print(f"Success: {result.get('success')}")
-            print(f"Recognized Students: {result.get('recognized')}")
-            print(f"Marked Present: {result.get('marked_present_count')} new record(s)")
-            print(f"Message: {result.get('message')}")
+                cid = item[0]
+                course_name = item[1]
+                days = item[2] if len(item) > 2 else "Monday"
+                start_time = item[3] if len(item) > 3 else "10:00:00"
+                end_time = item[4] if len(item) > 4 else "11:30:00"
+                
+                custom_time = get_matching_datetime(days, start_time)
+                print(f"\n[{idx + 1}/{len(courses)}] Course: {course_name} (Schedule: {days} {start_time}-{end_time})")
+                print(f"  Simulating active time inside schedule range: {custom_time}")
+                
+                params = [f"test_user_id={test_user_id}", f"custom_time={custom_time}"]
+                request_url = f"{url}?{'&'.join(params)}"
+                send_frame(request_url, IMAGE_PATH)
         else:
-            print(f"Server returned error status code: {response.status_code}")
-            print(response.text)
-            
-    except Exception as e:
-        print(f"Connection error: {e}")
-        print(f"Make sure the server at {url} is running.")
+            print(f"\nNo course schedules found for user ID {test_user_id}. Simulating general class attendance.")
+            request_url = f"{url}?test_user_id={test_user_id}"
+            send_frame(request_url, IMAGE_PATH)
+    else:
+        print("\nUsing standard face recognition name matching (no user override).")
+        send_frame(url, IMAGE_PATH)
 
 if __name__ == '__main__':
     main()
