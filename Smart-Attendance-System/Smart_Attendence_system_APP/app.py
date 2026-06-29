@@ -56,6 +56,19 @@ input_name = session.get_inputs()[0].name
 
 
 def load_database():
+    try:
+        import sys
+        parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        if parent_dir not in sys.path:
+            sys.path.insert(0, parent_dir)
+        from db_sync import load_db_with_sync
+        db = load_db_with_sync()
+        if db:
+            print(f"Successfully loaded {len(db)} face embeddings from Supabase/cache.")
+            return db
+    except Exception as e:
+        print(f"Supabase sync failed, falling back to local file: {e}")
+
     if os.path.exists(config.DATABASE_PATH):
         with open(config.DATABASE_PATH, "rb") as f:
             return pickle.load(f)
@@ -388,9 +401,15 @@ async def websocket_stream_endpoint(websocket: WebSocket):
     await websocket.accept()
     print("[SUCCESS] Camera streaming WebSocket connected")
     
+    global database, latest_esp_frame, latest_face_boxes
+    try:
+        database = load_database()
+        print(f"[SYNC] Reloaded database successfully. Total {len(database)} persons loaded.")
+    except Exception as e:
+        print(f"[!] Error re-syncing database on WebSocket connection: {e}")
+        
     course_id = websocket.query_params.get("course_id")
     session_attended_ids = set()
-    global latest_esp_frame, latest_face_boxes
     
     try:
         while True:
