@@ -1999,11 +1999,6 @@
                     <span>Recognized successfully, Hello ${recognizedFirstName}!</span>
                 </div>
                 <div style="font-size:12px;opacity:0.8;margin-top:5px;text-align:center;">Updating website statistics and sending report email...</div>`;
-                    
-                    // Reload after 2.5 seconds to refresh page statistics and records
-                    setTimeout(() => {
-                        window.location.reload();
-                    }, 2500);
                 } else if (data.success) {
                     rEl.className = 'test-result fail';
                     rEl.innerHTML = `<div style="font-size:15px;font-weight:800;margin-bottom:4px">Not Recognized</div>
