@@ -246,9 +246,10 @@ def mark_attendance(student_id: int, weekday: int):
         finally:
             connection.close()
 
-def get_current_active_course_id(student_id: int):
+def get_current_active_course_id(student_id: int, now=None):
     """Check if there is a course in the student's schedule active at the current time and weekday."""
-    now = get_local_now()
+    if now is None:
+        now = get_local_now()
     weekday = now.weekday()
     current_time = now.time()
     
@@ -3390,7 +3391,17 @@ def receive_stream_frame():
         connection = get_db_connection()
         if connection is not None:
             cursor = connection.cursor()
-            today = get_local_now().strftime("%Y-%m-%d")
+            custom_time_str = request.args.get('custom_time')
+            ref_now = get_local_now()
+            if custom_time_str:
+                try:
+                    ref_now = datetime.strptime(custom_time_str, "%Y-%m-%d %H:%M:%S")
+                except ValueError:
+                    try:
+                        ref_now = datetime.strptime(custom_time_str, "%Y-%m-%d %H:%M")
+                    except ValueError:
+                        pass
+            today = ref_now.strftime("%Y-%m-%d")
             test_user_override = to_int_value(request.args.get('test_user_id'))
             course_id = to_int_value(request.args.get('course_id')) or None
             logged_count = 0
@@ -3430,7 +3441,7 @@ def receive_stream_frame():
                     "email": user_email
                 })
 
-                active_course_id = course_id or get_current_active_course_id(user_id)
+                active_course_id = course_id or get_current_active_course_id(user_id, ref_now)
 
                 if active_course_id:
                     cursor.execute(
@@ -3444,7 +3455,7 @@ def receive_stream_frame():
                     )
 
                 if cursor.fetchone() is None:
-                    today_datetime = get_local_now().strftime("%Y-%m-%d %H:%M:%S")
+                    today_datetime = ref_now.strftime("%Y-%m-%d %H:%M:%S")
                     cursor.execute(
                         "INSERT INTO attendance (user_id, course_id, attendance_date, status, created_at) VALUES (%s, %s, %s, TRUE, %s)",
                         (user_id, active_course_id, today_datetime, today_datetime)
@@ -3457,7 +3468,7 @@ def receive_stream_frame():
 
             if recognized_students:
                 # Use the resolved active course ID for reporting
-                first_course_id = course_id or (recognized_students[0].get('id') and get_current_active_course_id(recognized_students[0]['id']))
+                first_course_id = course_id or (recognized_students[0].get('id') and get_current_active_course_id(recognized_students[0]['id'], ref_now))
                 import threading
                 threading.Thread(
                     target=send_session_report_email,
