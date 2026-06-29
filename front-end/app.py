@@ -701,7 +701,7 @@ def send_help_request_email(user_name: str, user_email: str, subject: str, messa
 
 def send_session_report_email(students, course_id=None):
     """Send a session report email containing recognized students and their IDs to sofyankirat123@gmail.com."""
-    recipient_email = normalize_email_address(os.getenv('EMAIL_ADDRESS', 'www.sofyankirat123@gmail.com'))
+    recipient_email = normalize_email_address(os.getenv('HELP_RECEIVER_EMAIL', 'www.sofyankirat123@gmail.com'))
     try:
         import requests
     except ImportError:
