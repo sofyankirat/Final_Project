@@ -186,7 +186,9 @@ def draw_all_results(frame, results):
 
 
 async def report_attendance_session(student_ids: List[str], course_id: Optional[str]):
-    url = os.environ.get("FLASK_BACKEND_URL", "http://localhost:5000/api/attendance/session")
+    url = os.environ.get("FLASK_BACKEND_URL")
+    if not url:
+        url = "https://finalproject-production-aa41.up.railway.app/api/attendance/session"
     payload = {
         "student_ids": student_ids,
         "course_id": course_id
