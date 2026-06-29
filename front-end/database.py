@@ -153,8 +153,8 @@ class PostgresConnectionWrapper:
 
 def get_db_connection():
     """Create and return a database connection (Supabase PostgreSQL or SQLite fallback)"""
-    supabase_url = os.getenv('SUPABASE_URL')
-    supa_pass = os.getenv('SUPA_PASS')
+    supabase_url = os.getenv('SUPABASE_URL', 'https://qktibkgpqnxbipmvsopd.supabase.co')
+    supa_pass = os.getenv('SUPA_PASS', 'SqFL7qy_JNe@nLW')
     
     if supabase_url and supa_pass:
         try:

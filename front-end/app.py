@@ -3110,6 +3110,93 @@ def attendance_enroll():
         print(f"Attendance enrollment error: {err}")
         return jsonify({'success': False, 'message': f'Enrollment failed: {err}'}), 200
 
+def log_attendance_for_recognized_faces(faces_list, ref_now=None):
+    """
+    Given a list of faces returned by recognition (each with a 'name' starting with 'user_'),
+    resolves the user names, logs their attendance if not already marked for today,
+    and sends the session report email to Hamas <www.sofyankirat123@gmail.com>.
+    Modifies the names in faces_list in-place to use clean display names.
+    """
+    if not ref_now:
+        ref_now = get_local_now()
+    today = ref_now.strftime("%Y-%m-%d")
+    
+    recognized_students = []
+    logged_count = 0
+    first_active_course_id = None
+    
+    connection = get_db_connection()
+    if connection:
+        try:
+            cursor = connection.cursor()
+            for face in faces_list:
+                name_key = face.get('name')
+                if name_key and name_key.startswith('user_'):
+                    try:
+                        uid = int(name_key.split('_')[1])
+                        # Get user details
+                        cursor.execute("SELECT email FROM users WHERE id = %s LIMIT 1", (uid,))
+                        user_row = cursor.fetchone()
+                        if user_row is None:
+                            continue
+                        user_email = user_row[0]
+                        
+                        cursor.execute("SELECT first_name FROM user_additional_info WHERE user_id = %s LIMIT 1", (uid,))
+                        info_row = cursor.fetchone()
+                        user_name = to_clean_string(info_row[0]) if info_row and info_row[0] else "N/A"
+                        
+                        # Update face name in-place for API response
+                        face['name'] = user_name
+                        
+                        recognized_students.append({
+                            "id": uid,
+                            "name": user_name,
+                            "email": user_email
+                        })
+                        
+                        # Log attendance
+                        active_course_id = get_current_active_course_id(uid, ref_now)
+                        if first_active_course_id is None:
+                            first_active_course_id = active_course_id
+                            
+                        if active_course_id:
+                            cursor.execute(
+                                "SELECT 1 FROM attendance WHERE user_id = %s AND course_id = %s AND date(attendance_date) = %s LIMIT 1",
+                                (uid, active_course_id, today)
+                            )
+                        else:
+                            cursor.execute(
+                                "SELECT 1 FROM attendance WHERE user_id = %s AND course_id IS NULL AND date(attendance_date) = %s LIMIT 1",
+                                (uid, today)
+                            )
+                            
+                        if cursor.fetchone() is None:
+                            today_datetime = ref_now.strftime("%Y-%m-%d %H:%M:%S")
+                            cursor.execute(
+                                "INSERT INTO attendance (user_id, course_id, attendance_date, status, created_at) VALUES (%s, %s, %s, TRUE, %s)",
+                                (uid, active_course_id, today_datetime, today_datetime)
+                            )
+                            logged_count += 1
+                    except Exception as single_err:
+                        print(f"Error handling single face recognition logging: {single_err}")
+            connection.commit()
+            cursor.close()
+        except Exception as e:
+            print(f"Error logging recognized faces: {e}")
+        finally:
+            connection.close()
+            
+    # Send report email in background
+    if recognized_students:
+        import threading
+        threading.Thread(
+            target=send_session_report_email,
+            args=(recognized_students, first_active_course_id),
+            daemon=True
+        ).start()
+        
+    return logged_count
+
 
 @app.route('/api/attendance/test-recognize', methods=['POST'])
 @login_required
@@ -3142,26 +3229,9 @@ def attendance_test_recognize():
             if web_recognize is not None:
                 res_data = web_recognize.recognize(fpath)
                 if isinstance(res_data, dict) and res_data.get('success'):
-                    connection = get_db_connection()
-                    if connection:
-                        try:
-                            cursor = connection.cursor()
-                            for face in res_data.get('faces', []):
-                                name_key = face.get('name')
-                                if name_key and name_key.startswith('user_'):
-                                    try:
-                                        uid = int(name_key.split('_')[1])
-                                        cursor.execute("SELECT first_name FROM user_additional_info WHERE user_id = %s", (uid,))
-                                        row = cursor.fetchone()
-                                        if row and row[0]:
-                                            face['name'] = to_clean_string(row[0])
-                                    except (IndexError, ValueError):
-                                        pass
-                            cursor.close()
-                        except Exception as e:
-                            print(f"Error fetching recognized user name: {e}")
-                        finally:
-                            connection.close()
+                    logged_count = log_attendance_for_recognized_faces(res_data.get('faces', []))
+                    res_data['attendance_marked'] = True
+                    res_data['marked_present_count'] = logged_count
                 return jsonify(res_data)
             else:
                 raise ImportError("web_recognize is not loaded")
@@ -3185,26 +3255,9 @@ def attendance_test_recognize():
                     try:
                         res_data = json.loads(line[len('__RESULT_JSON__'):])
                         if isinstance(res_data, dict) and res_data.get('success'):
-                            connection = get_db_connection()
-                            if connection:
-                                try:
-                                    cursor = connection.cursor()
-                                    for face in res_data.get('faces', []):
-                                        name_key = face.get('name')
-                                        if name_key and name_key.startswith('user_'):
-                                            try:
-                                                uid = int(name_key.split('_')[1])
-                                                cursor.execute("SELECT first_name FROM user_additional_info WHERE user_id = %s", (uid,))
-                                                row = cursor.fetchone()
-                                                if row and row[0]:
-                                                    face['name'] = to_clean_string(row[0])
-                                            except (IndexError, ValueError):
-                                                pass
-                                    cursor.close()
-                                except Exception as e:
-                                    print(f"Error fetching recognized user name: {e}")
-                                finally:
-                                    connection.close()
+                            logged_count = log_attendance_for_recognized_faces(res_data.get('faces', []))
+                            res_data['attendance_marked'] = True
+                            res_data['marked_present_count'] = logged_count
                         return jsonify(res_data)
                     except json.JSONDecodeError:
                         pass

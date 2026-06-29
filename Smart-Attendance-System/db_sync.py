@@ -30,8 +30,8 @@ def get_supabase_connection():
         supa_pass = os.getenv('SUPA_PASS')
 
     if not supabase_url or not supa_pass:
-        print("[!] Supabase credentials not found in environment or .env files.")
-        return None
+        supabase_url = 'https://qktibkgpqnxbipmvsopd.supabase.co'
+        supa_pass = 'SqFL7qy_JNe@nLW'
 
     try:
         host = os.getenv('SUPABASE_HOST')

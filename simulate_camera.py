@@ -13,8 +13,8 @@ def get_db_connection():
     import os
     import sqlite3
     
-    supabase_url = os.getenv('SUPABASE_URL')
-    supa_pass = os.getenv('SUPA_PASS')
+    supabase_url = os.getenv('SUPABASE_URL', 'https://qktibkgpqnxbipmvsopd.supabase.co')
+    supa_pass = os.getenv('SUPA_PASS', 'SqFL7qy_JNe@nLW')
     
     if supabase_url and supa_pass:
         try:
