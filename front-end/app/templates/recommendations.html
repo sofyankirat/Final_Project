@@ -3632,8 +3632,10 @@
             updateGeneralUploadBoxState();
 
             const savedSubpane = sessionStorage.getItem('bloom_general_active_subpane');
-            if (savedSubpane && currentSelectedGeneralCourse && uploadedGeneralSyllabusFiles.length > 0) {
+            if (savedSubpane && savedSubpane !== 'test' && currentSelectedGeneralCourse && uploadedGeneralSyllabusFiles.length > 0) {
                 switchGeneralSubPane(savedSubpane);
+            } else if (savedSubpane === 'test') {
+                sessionStorage.removeItem('bloom_general_active_subpane');
             }
         }
 
@@ -3709,8 +3711,10 @@
                 }
 
                 const savedSubpane = sessionStorage.getItem('bloom_active_subpane');
-                if (savedSubpane) {
+                if (savedSubpane && savedSubpane !== 'test') {
                     switchSubPane(savedSubpane);
+                } else if (savedSubpane === 'test') {
+                    sessionStorage.removeItem('bloom_active_subpane');
                 }
             }
         }
