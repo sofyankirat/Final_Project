@@ -141,7 +141,8 @@ def get_local_now() -> datetime:
     """Get current datetime in UTC+2 (Cairo/Egypt) timezone, naive."""
     import datetime as dt
     tz_offset = dt.timezone(dt.timedelta(hours=2))
-    return dt.datetime.now(dt.timezone.utc).astimezone(tz_offset).replace(tzinfo=None)
+    base_time = dt.datetime.now(dt.timezone.utc).astimezone(tz_offset).replace(tzinfo=None)
+    return base_time + dt.timedelta(hours=1)
 
 
 WEEKDAY_MAP = {
