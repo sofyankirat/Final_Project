@@ -3536,10 +3536,15 @@ def receive_stream_frame():
                 'message': f'Processed {len(recognized_students)} student(s). Marked {logged_count} new attendance. Session report sent.'
             }), 200
 
+    best_detail = ""
+    if faces:
+        highest_conf = max([f.get('confidence', 0.0) for f in faces])
+        best_detail = f" (Best similarity: {highest_conf}%)"
+
     return jsonify({
         'success': True,
         'recognized': [],
-        'message': 'No known students recognized in frame.'
+        'message': f'No known students recognized in frame.{best_detail}'
     }), 200
 
 
