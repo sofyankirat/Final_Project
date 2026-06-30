@@ -22,7 +22,7 @@ else:
 LOG_PATH = os.path.join(BASE_DIR, "logs", "attendance_log.csv") # Output path
 
 # RECOGNETION
-THRESHOLD = 0.3
+THRESHOLD = 0.15
 
 #Face_processing 
 PADDING = 20    # pixels added around detected face bounding box

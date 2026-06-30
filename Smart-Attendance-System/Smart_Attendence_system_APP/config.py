@@ -18,7 +18,7 @@ DATABASE_PATH = os.path.join(PROJECT_ROOT, "database", "database.pkl")
 LOG_PATH = os.path.join(PROJECT_ROOT, "logs", "attendance_log.csv") # Output path
 
 # RECOGNETION
-THRESHOLD = 0.3
+THRESHOLD = 0.15
 
 #Face_processing 
 PADDING = 20    # pixels added around detected face bounding box
