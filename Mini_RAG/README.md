@@ -26,12 +26,6 @@ $ conda create -n Your-env-name
 $ conda activate Your-env-name
 ```
 
-### (Optional) Setup you command line interface for better readability
-
-```bash
-export PS1="\[\033[01;32m\]\u@\h:\w\n\[\033[00m\]\$ "
-```
-
 ## Installation
 
 ### Install the required packages
